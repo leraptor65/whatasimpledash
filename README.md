@@ -1,8 +1,10 @@
 # Just A Simple Dash
 
-A simple, highly customizable, self-hosted application dashboard built from scratch using Next.js and Docker. It allows you to create a beautiful startpage for all your services, configured entirely through a simple YAML file.
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-![Dashboard Screenshot](https://github.com/leraptor65/dashboard/blob/main/screenshot.png)
+A simple, highly customizable, self-hosted application dashboard built with Next.js and Docker. It allows you to create a beautiful startpage for all your services, configured entirely through a simple YAML file.
+
+![Dashboard Screenshot](https://raw.githubusercontent.com/leraptor65/justasimpledash/main/screenshot.png)
 
 ## Features
 
@@ -18,115 +20,142 @@ A simple, highly customizable, self-hosted application dashboard built from scra
 -   **Icon Support:** Use thousands of icons from the `react-icons` library or add your own custom PNG/SVG icons.
 -   **Easy Deployment:** Runs as a lightweight Docker container, deployable with a single command.
 
-## Getting Started
+## Easy Deployment (Recommended)
 
-Follow these steps to get your own instance of the dashboard running.
+This is the fastest way to get your dashboard running.
 
-### Prerequisites
+#### 1. Create Folders
+Create the necessary directories for your configuration and custom icons.
+```bash
+mkdir -p config public/icons
+````
 
-You must have **Docker** and **Docker Compose** installed on your machine.
+#### 2\. Create Configuration
 
-### Installation
+  - Create a file named `config/services.yml`. You can use the [sample file in this repository](https://www.google.com/search?q=https://github.com/leraptor65/justasimpledash/blob/main/config/services.yml) as a starting point.
+  - Place any custom icons you want to use into the `public/icons` folder.
 
-1.  **Clone the repository:**
-    ```bash
-    git clone https://github.com/leraptor65/dashboard.git
-    cd your-repository
-    ```
+#### 3\. Create `docker-compose.yml`
 
-2.  **Set Docker Permissions:**
-    The dashboard needs to communicate with the Docker socket to discover containers. Run the following command to create a `.env` file that grants the necessary permissions to the container.
-    ```bash
-    echo "DOCKER_GROUP_ID=$(stat -c '%g' /var/run/docker.sock)" > .env
-    ```
+Create a `docker-compose.yml` file and paste the following content into it:
 
-3.  **Add Your Custom Icons (Optional):**
-    Place any custom `.png` or `.svg` icons you want to use inside the `public/icons/` directory.
+```yaml
+services:
+  dashboard:
+    image: leraptor65/justasimpledash:latest
+    container_name: justasimpledash
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./config:/app/config:ro
+      - ./public/icons:/app/public/icons:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    group_add:
+      - $(stat -c '%g' /var/run/docker.sock)
+```
 
-4.  **Configure Your Dashboard:**
-    Edit the `config/services.yml` file to add your groups and services. See the detailed **Configuration** section below.
+#### 4\. Start the Dashboard
 
-5.  **Build and Run the Container:**
-    ```bash
-    docker compose up --build -d
-    ```
-    Your dashboard will now be running at `http://<your-server-ip>:3000`.
+```bash
+docker compose up -d
+```
 
-## Configuration
+Your dashboard will be available at `http://<your-server-ip>:3000`. The dashboard will auto-refresh a few seconds after you save changes to your `services.yml` file.
+
+\<br\>
+
+\<details\>
+\<summary\>\<strong\>Configuration Details (How to edit services.yml)\</strong\>\</summary\>
 
 All dashboard configuration is done in the `config/services.yml` file.
 
 ### Global Settings
 
-These keys are at the top level of the file:
-
--   `title`: The main title displayed at the top of the dashboard.
--   `defaultColumns`: The number of columns for services that are not inside a group.
--   `theme`: An object to control the dashboard's color scheme.
-    -   `background`: The main page background color.
-    -   `text`: The default text color.
-    -   `title`: The color of the main `title`.
-    -   `group`: The color of the group titles and subtitles.
-    -   `card`:
-        -   `background`: The default background color for service cards.
-        -   `hover`: The background color when you hover over a card.
+  - `title`: The main title displayed at the top of the dashboard.
+  - `defaultColumns`: The number of columns for services that are not inside a group.
+  - `theme`: An object to control the dashboard's color scheme.
+      - `background`, `text`, `title`, `group`: Colors for page elements.
+      - `card`: Contains `background` and `hover` colors for service cards.
 
 ### Groups
 
-The `groups` key contains a list of service groups. Each group is an object with the following properties:
+The `groups` key contains a list of service groups. Each group has:
 
--   `name`: (Required) The title of the group.
--   `columns`: (Required) The number of columns for the grid in this group.
--   `align`: (Optional) The alignment of content within the cards. Options: `left`, `center`, `right`. Defaults to `center`.
--   `layout`: (Optional) The layout of the icon and text within the cards. Options: `vertical` (default), `horizontal`, `horizontal-reverse`.
--   `services`: (Required) A list of services, as defined below.
+  - `name`: The title of the group.
+  - `columns`: The number of columns for the grid in this group.
+  - `align`: (Optional) `left`, `center`, or `right`.
+  - `layout`: (Optional) `vertical` (default), `horizontal`, or `horizontal-reverse`.
+  - `services`: A list of service items.
 
 ### Services
 
-A service is an item on your dashboard. It can be defined in a `group` or at the top-level `services` list.
+A service item has the following properties:
 
--   `name`: (Required) The name displayed on the card.
--   `url`: The URL the card links to.
--   `subtitle`: (Optional) A short description displayed under the name.
--   `icon`: (Optional) The icon to display. See **Adding Icons** below.
--   `align`: (Optional) Overrides the group's `align` setting for this specific service.
--   `layout`: (Optional) Overrides the group's `layout` setting for this specific service.
+  - `name`: The name displayed on the card.
+  - `url`: The URL the card links to.
+  - `subtitle`: (Optional) A short description displayed under the name.
+  - `icon`: (Optional) The icon to display.
+  - `align`: (Optional) Overrides the group's `align` setting.
+  - `layout`: (Optional) Overrides the group's `layout` setting.
 
-### Special Widgets
+### Adding Icons
 
--   **Docker Widget:** To display the auto-discovered list of running Docker containers, add a special service item like this (usually in the top-level `services` list):
-    ```yaml
-    services:
-      - name: Docker Containers
-        widget: "docker"
+1.  **Custom Icons:** Place your `.png` or `.svg` files in `public/icons/` and reference them by filename (e.g., `icon: proxmox.png`).
+2.  **React Icons:** Browse available icons at [https://react-icons.github.io/react-icons](https://react-icons.github.io/react-icons) and reference them by name (e.g., `icon: SiJellyfin`).
+
+### Docker Widget
+
+To display auto-discovered Docker containers, add a special service item:
+
+```yaml
+services:
+  - name: Docker Containers
+    widget: "docker"
+```
+
+\</details\>
+
+\<br\>
+
+\<details\>
+\<summary\>\<strong\>For Developers (Building from Source)\</strong\>\</summary\>
+
+If you want to modify the code, you can build the project from source.
+
+1.  **Clone the repository:**
+
+    ```bash
+    git clone [https://github.com/leraptor65/justasimpledash.git](https://github.com/leraptor65/justasimpledash.git)
+    cd justasimpledash
     ```
 
-## Adding Icons
+2.  **Set Docker Permissions:**
+    Create a `.env` file that grants the necessary build-time permissions.
 
-You can use two types of icons:
+    ```bash
+    echo "DOCKER_GROUP_ID=$(stat -c '%g' /var/run/docker.sock)" > .env
+    ```
 
-1.  **Custom Icons:**
-    -   Place your `.png` or `.svg` files in the `public/icons/` directory.
-    -   Reference them by their filename in `services.yml`:
-        ```yaml
-        icon: proxmox.png
-        ```
+3.  **Install Dependencies & Build:**
+    The Docker Compose command will handle everything.
 
-2.  **React Icons:**
-    -   This project includes the popular `react-icons` library.
-    -   Browse available icons at [https://react-icons.github.io/react-icons](https://react-icons.github.io/react-icons).
-    -   Reference them by their name (e.g., `FaGoogle`, `SiPlex`):
-        ```yaml
-        icon: SiJellyfin
-        ```
+    ```bash
+    docker compose up --build -d
+    ```
+
+\</details\>
 
 ## Technology Stack
 
--   **Framework:** [Next.js](https://nextjs.org/) / [React](https://reactjs.org/)
--   **Styling:** [Tailwind CSS](https://tailwindcss.com/)
--   **Language:** [TypeScript](https://www.typescriptlang.org/)
--   **Deployment:** [Docker](https://www.docker.com/)
+  - **Framework:** [Next.js](https://nextjs.org/) / [React](https://reactjs.org/)
+  - **Styling:** [Tailwind CSS](https://tailwindcss.com/)
+  - **Language:** [TypeScript](https://www.typescriptlang.org/)
+  - **Deployment:** [Docker](https://www.docker.com/)
 
 ## License
 
 Distributed under the MIT License.
+
+```
+```
