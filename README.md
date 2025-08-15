@@ -2,8 +2,7 @@
 
 A simple, highly customizable, self-hosted application dashboard built from scratch using Next.js and Docker. It allows you to create a beautiful startpage for all your services, configured entirely through a simple YAML file.
 
-![Dashboard Screenshot](https://github.com/leraptor65/dashboard/blob/main/K8JxFHgESz.png)
-*(You should replace this with a real screenshot of your dashboard! To make it work, upload a screenshot to your repo and update the link.)*
+![Dashboard Screenshot](https://github.com/leraptor65/dashboard/blob/main/screenshot.png)
 
 ## Features
 
@@ -31,7 +30,7 @@ You must have **Docker** and **Docker Compose** installed on your machine.
 
 1.  **Clone the repository:**
     ```bash
-    git clone [https://github.com/your-username/your-repository.git](https://github.com/your-username/your-repository.git)
+    git clone [https://github.com/leraptor65/dashboard.git](https://github.com/leraptor65/dashboard.git)
     cd your-repository
     ```
 
