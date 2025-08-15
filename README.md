@@ -1,4 +1,4 @@
-# My Custom Dashboard
+# Just A Simple Dash
 
 A simple, highly customizable, self-hosted application dashboard built from scratch using Next.js and Docker. It allows you to create a beautiful startpage for all your services, configured entirely through a simple YAML file.
 
