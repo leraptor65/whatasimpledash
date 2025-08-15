@@ -1,0 +1,36 @@
+# Global dashboard settings
+title: "Ivan's Homelab Dashboard"
+defaultColumns: 4 # Default number of columns for items not in a group
+
+# A list of service groups
+groups:
+  - name: "General Bookmarks"
+    columns: 1 # This group will have 3 columns
+    services:
+      - name: Google
+        url: "https://google.com"
+        icon: "FaGoogle" # A react-icon
+      - name: GitHub
+        url: "https://github.com"
+        icon: "FaGithub"
+      - name: LinkedIn
+        url: "https://linkedin.com"
+        icon: "FaLinkedin"
+
+
+  - name: "Local Services"
+    columns: 2 # This group will have 2 columns
+    services:
+      - name: Proxmox
+        url: "http://192.168.68.100:8006"
+        icon: "proxmox.png" # A custom PNG icon from our icons folder
+      - name: Pi-hole
+        url: "http://192.168.68.101/admin"
+        icon: "pihole.svg" # You can also use SVGs
+
+# A list of services that do not belong to any group
+services:
+  - name: Docker Containers
+    # This is a special placeholder that our app will replace
+    # with the auto-discovered Docker containers.
+    widget: "docker"
