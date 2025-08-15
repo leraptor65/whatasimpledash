@@ -1,7 +1,7 @@
 # ---------------------------------
 # Global Dashboard Settings
 # ---------------------------------
-title: "My Homelab Dashboard"
+title: "Just A Simple Dash"
 defaultColumns: 5 # Number of columns for items not in a group
 
 # Theme section for color customization

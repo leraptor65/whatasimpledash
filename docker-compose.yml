@@ -1,11 +1,11 @@
 services:
-  dashboard:
+  justasimpledash:
     build:
       context: .
       args:
         # This reads the variable from the .env file
         - DOCKER_GROUP_ID=${DOCKER_GROUP_ID}
-    container_name: my-dashboard
+    container_name: justasimpledash
     restart: unless-stopped
     ports:
       - "3000:3000"
