@@ -1,36 +1,74 @@
-# Global dashboard settings
-title: "Ivan's Homelab Dashboard"
-defaultColumns: 4 # Default number of columns for items not in a group
+# ---------------------------------
+# Global Dashboard Settings
+# ---------------------------------
+title: "My Homelab Dashboard"
+defaultColumns: 5 # Number of columns for items not in a group
 
-# A list of service groups
+# Theme section for color customization
+theme:
+  background: "#0d1117" # GitHub Dark background
+  text: "#e6edf3"       # GitHub Dark text
+  title: "#58a6ff"      # GitHub Dark blue for titles
+  group: "#8b949e"      # GitHub Dark secondary text
+  card:
+    background: "#161b22" # GitHub Dark card background
+    hover: "#21262d"      # GitHub Dark card hover
+
+# ---------------------------------
+# Service Groups
+# ---------------------------------
 groups:
-  - name: "General Bookmarks"
-    columns: 1 # This group will have 3 columns
+  - name: "Media & Automation"
+    columns: 2
+    align: center
+    layout: vertical # Icons above names
     services:
-      - name: Google
-        url: "https://google.com"
-        icon: "FaGoogle" # A react-icon
-      - name: GitHub
-        url: "https://github.com"
-        icon: "FaGithub"
-      - name: LinkedIn
-        url: "https://linkedin.com"
-        icon: "FaLinkedin"
+      - name: Plex
+        subtitle: "Media Server"
+        url: "http://192.168.1.10:32400"
+        icon: "plex.png" # Custom icon from your /public/icons folder
 
+      - name: Jellyfin
+        subtitle: "Media Server"
+        url: "http://192.168.1.10:8096"
+        icon: "SiJellyfin" # Icon from the react-icons library
 
-  - name: "Local Services"
-    columns: 2 # This group will have 2 columns
+      - name: Sonarr
+        subtitle: "TV Shows"
+        url: "http://192.168.1.11:8989"
+        icon: "SiSonarr"
+
+      - name: Radarr
+        subtitle: "Movies"
+        url: "http://192.168.1.11:7878"
+        icon: "SiRadarr"
+
+  - name: "Network & Management"
+    columns: 3
+    align: left
+    layout: horizontal # Icons next to names
     services:
-      - name: Proxmox
-        url: "http://192.168.68.100:8006"
-        icon: "proxmox.png" # A custom PNG icon from our icons folder
       - name: Pi-hole
-        url: "http://192.168.68.101/admin"
-        icon: "pihole.svg" # You can also use SVGs
+        subtitle: "DNS Ad-Blocker"
+        url: "http://192.168.1.2/admin"
+        icon: "pihole.png" # Custom icon
 
-# A list of services that do not belong to any group
+      - name: Proxmox
+        subtitle: "Virtualization"
+        url: "http://192.168.1.100:8006"
+        icon: "SiProxmox"
+
+      - name: Portainer
+        subtitle: "Container Management"
+        url: "http://192.168.1.11:9443"
+        icon: "SiPortainer"
+        layout: vertical # This service overrides the group's horizontal layout
+
+# ---------------------------------
+# Ungrouped Items
+# ---------------------------------
 services:
   - name: Docker Containers
-    # This is a special placeholder that our app will replace
-    # with the auto-discovered Docker containers.
+    # This special widget will be replaced by the list of
+    # all your auto-discovered Docker containers.
     widget: "docker"
