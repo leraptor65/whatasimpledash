@@ -30,7 +30,7 @@ You must have **Docker** and **Docker Compose** installed on your machine.
 
 1.  **Clone the repository:**
     ```bash
-    git clone [https://github.com/your-username/your-repository.git](https://github.com/your-username/your-repository.git)
+    git clone https://github.com/leraptor65/dashboard.git
     cd your-repository
     ```
 
