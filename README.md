@@ -2,7 +2,7 @@
 
 A simple, highly customizable, self-hosted application dashboard built from scratch using Next.js and Docker. It allows you to create a beautiful startpage for all your services, configured entirely through a simple YAML file.
 
-![Dashboard Screenshot](https://raw.githubusercontent.com/username/repository/main/screenshot.png)
+![Dashboard Screenshot](https://github.com/leraptor65/dashboard/blob/main/K8JxFHgESz.png)
 *(You should replace this with a real screenshot of your dashboard! To make it work, upload a screenshot to your repo and update the link.)*
 
 ## Features
