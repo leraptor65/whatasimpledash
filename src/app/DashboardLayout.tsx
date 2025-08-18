@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect, type ElementType } from 'react';
-import { FaGlobe } from 'react-icons/fa';
+import Link from 'next/link';
+import { FaGlobe, FaCog } from 'react-icons/fa';
 import * as FaIcons from 'react-icons/fa';
 import * as SiIcons from 'react-icons/si';
 import type { DashboardConfig, Service, ServiceGroup } from '../types';
@@ -27,14 +28,15 @@ const getGridColsClass = (cols: number) => ({
   1: "md:grid-cols-1", 2: "md:grid-cols-2", 3: "md:grid-cols-3",
   4: "md:grid-cols-4", 5: "md:grid-cols-5", 6: "md:grid-cols-6",
 }[cols] || "md:grid-cols-4");
+
 const getAlignmentClass = (align: Alignment = 'center') => ({
   left: "items-start text-left", center: "items-center text-center", right: "items-end text-right",
 }[align]);
+
 const getLayoutClass = (layout: Layout = 'vertical') => ({
   vertical: "flex-col justify-center", horizontal: "flex-row items-center",
   'horizontal-reverse': "flex-row-reverse items-center justify-end",
 }[layout]);
-
 
 // --- Reusable Service Card with Status ---
 const ServiceCard = ({ service, theme, groupAlign, groupLayout }: { service: Service; theme: DashboardConfig['theme'], groupAlign?: Alignment, groupLayout?: Layout }) => {
@@ -47,10 +49,9 @@ const ServiceCard = ({ service, theme, groupAlign, groupLayout }: { service: Ser
 
   useEffect(() => {
     if (!service.ping) {
-      setStatus('online'); // If no ping URL, consider it 'online' for display (no dot)
+      setStatus('online');
       return;
     }
-
     const checkStatus = async () => {
       try {
         const res = await fetch('/api/status', {
@@ -64,9 +65,8 @@ const ServiceCard = ({ service, theme, groupAlign, groupLayout }: { service: Ser
         setStatus('offline');
       }
     };
-
-    checkStatus(); // Check status on initial load
-    const interval = setInterval(checkStatus, 60000); // And every 60 seconds
+    checkStatus();
+    const interval = setInterval(checkStatus, 60000);
     return () => clearInterval(interval);
   }, [service.ping]);
 
@@ -75,7 +75,7 @@ const ServiceCard = ({ service, theme, groupAlign, groupLayout }: { service: Ser
       href={service.url}
       target="_blank"
       rel="noopener noreferrer"
-      className={`relative rounded-lg p-4 shadow-lg flex h-full transition-colors ${getAlignmentClass(align)} ${getLayoutClass(layout)}`}
+      className={`relative bg-gray-800 rounded-xl p-2 shadow-lg flex h-24 transition-colors ${getAlignmentClass(align)} ${getLayoutClass(layout)}`}
       style={{
         backgroundColor: hovered ? theme.card.hover : theme.card.background,
       }}
@@ -100,7 +100,6 @@ const ServiceCard = ({ service, theme, groupAlign, groupLayout }: { service: Ser
   );
 };
 
-
 // --- Main Layout Component ---
 export default function DashboardLayout({ initialConfig }: { initialConfig: DashboardConfig }) {
   const [config, setConfig] = useState(initialConfig);
@@ -109,6 +108,7 @@ export default function DashboardLayout({ initialConfig }: { initialConfig: Dash
     const interval = setInterval(async () => {
       try {
         const configRes = await fetch('/api/config');
+        
         if (configRes.ok) {
           const newConfig = await configRes.json();
           if (JSON.stringify(newConfig) !== JSON.stringify(config)) {
@@ -116,9 +116,9 @@ export default function DashboardLayout({ initialConfig }: { initialConfig: Dash
           }
         }
       } catch (error) {
-        console.error("Failed to refresh config data:", error);
+        console.error("Failed to refresh data:", error);
       }
-    }, 5000); // Refresh config every 5 seconds
+    }, 5000);
 
     return () => clearInterval(interval);
   }, [config]);
@@ -129,17 +129,25 @@ export default function DashboardLayout({ initialConfig }: { initialConfig: Dash
 
   return (
     <main className="min-h-screen w-full p-4 md:p-8" style={{ backgroundColor: config.theme.background, color: config.theme.text }}>
-      <h1 className="text-3xl md:text-4xl font-bold mb-8 text-center" style={{ color: config.theme.title }}>{config.title}</h1>
-      {config.groups.map((group: ServiceGroup) => (
-        <div key={group.name} className="mb-10">
-          <h2 className="text-2xl font-semibold mb-4 pl-2" style={{ color: config.theme.group }}>{group.name}</h2>
-          <div className={`grid grid-cols-2 ${getGridColsClass(group.columns)} gap-4`}>
-            {group.services.map((service: Service) => (
-              <ServiceCard key={service.name} service={service} theme={config.theme} groupAlign={group.align} groupLayout={group.layout} />
-            ))}
+      
+      <div className="max-w-[75%] mx-auto relative">
+        <Link href="/edit" className="absolute top-0 right-0 text-gray-400 hover:text-white transition-colors" title="Edit Configuration">
+          <FaCog size={24} />
+        </Link>
+
+        <h1 className="text-3xl md:text-4xl font-bold mb-8 text-center" style={{ color: config.theme.title }}>{config.title}</h1>
+        
+        {config.groups.map((group: ServiceGroup) => (
+          <div key={group.name} className="mb-10">
+            <h2 className="text-2xl font-semibold mb-4 pl-2" style={{ color: config.theme.group }}>{group.name}</h2>
+            <div className={`grid grid-cols-2 ${getGridColsClass(group.columns)} gap-4`}>
+              {group.services.map((service: Service) => {
+                  return <ServiceCard key={service.name} service={service} theme={config.theme} groupAlign={group.align} groupLayout={group.layout} />;
+              })}
+            </div>
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </main>
   );
 }
