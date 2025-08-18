@@ -14,6 +14,7 @@ theme:
 groups:
   - name: "Getting Started"
     columns: 2
+    layout: horizontal
     services:
       - name: "Edit This File!"
         subtitle: "Edit config/services.yml to start"
@@ -23,3 +24,11 @@ groups:
         subtitle: "Visit the project repo"
         url: "https://github.com/leraptor65/justasimpledash"
         icon: "FaGithub"
+      - name: test
+        url: https://google.com
+        icon: FaWrench
+      - name: test2
+        url: https://youtube.com
+        icon: fawrench
+
+
