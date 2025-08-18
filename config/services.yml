@@ -24,11 +24,5 @@ groups:
         subtitle: "Visit the project repo"
         url: "https://github.com/leraptor65/justasimpledash"
         icon: "FaGithub"
-      - name: test
-        url: https://google.com
-        icon: FaWrench
-      - name: test2
-        url: https://youtube.com
-        icon: fawrench
 
 
