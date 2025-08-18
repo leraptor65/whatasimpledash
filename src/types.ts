@@ -3,7 +3,7 @@ export type Service = {
   subtitle?: string;
   url?: string;
   icon?: string;
-  widget?: 'docker';
+  ping?: string; // For status checks
   align?: 'left' | 'center' | 'right';
   layout?: 'vertical' | 'horizontal' | 'horizontal-reverse';
 };
@@ -24,6 +24,8 @@ export type Theme = {
   card: {
     background: string;
     hover: string;
+    online: string;
+    offline: string;
   };
 };
 
@@ -32,7 +34,4 @@ export type DashboardConfig = {
   defaultColumns: number;
   theme: Theme;
   groups: ServiceGroup[];
-  services: Service[];
 };
-
-export type DockerService = { id: string; name: string; image: string; state: string };

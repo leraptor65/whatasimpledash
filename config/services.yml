@@ -63,12 +63,3 @@ groups:
         url: "http://192.168.1.11:9443"
         icon: "SiPortainer"
         layout: vertical # This service overrides the group's horizontal layout
-
-# ---------------------------------
-# Ungrouped Items
-# ---------------------------------
-services:
-  - name: Docker Containers
-    # This special widget will be replaced by the list of
-    # all your auto-discovered Docker containers.
-    widget: "docker"

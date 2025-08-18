@@ -1,15 +1,11 @@
 services:
-  justasimpledash:
-    build:
-      context: .
-      args:
-        # This reads the variable from the .env file
-        - DOCKER_GROUP_ID=${DOCKER_GROUP_ID}
+  dashboard:
+    build: .
     container_name: justasimpledash
     restart: unless-stopped
     ports:
       - "3000:3000"
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      # Mounts the config directory as read-only for safety
+      # Mounts your local config and icons folders into the container
       - ./config:/app/config:ro
+      - ./public/icons:/app/public/icons:ro
