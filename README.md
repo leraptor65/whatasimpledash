@@ -44,7 +44,7 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - ./config:/app/config:ro
+      - ./config:/app/config
       - ./public/icons:/app/public/icons:ro
 ```
 
