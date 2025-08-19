@@ -3,3 +3,7 @@
 .git
 .next
 node_modules
+
+# Local build and publish scripts
+build.sh
+publish.sh
