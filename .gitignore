@@ -24,3 +24,7 @@
 
 # Ignore custom user-uploaded icons
 /public/icons/*
+
+# Local build and publish scripts
+build.sh
+publish.sh
