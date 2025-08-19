@@ -6,6 +6,5 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      # Mounts your local config and icons folders into the container
       - ./config:/app/config
       - ./public/icons:/app/public/icons:ro

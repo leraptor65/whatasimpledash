@@ -1,36 +1,47 @@
-# config.sample.yml
-title: "Welcome to Just A Simple Dash!"
-defaultColumns: 3
+title: Welcome to Just A Simple Dash!
+defaultColumns: 4
 theme:
-  background: "#111827"
-  text: "#ffffff"
-  title: "#58a6ff"
-  group: "#8b949e"
+  background: '#111827'
+  text: '#ffffff'
+  title: '#58a6ff'
+  group: '#8b949e'
   card:
-    background: "#161b22"
-    hover: "#21262d"
-    online: "#22c55e"
-    offline: "#ef4444"
+    background: '#161b22'
+    hover: '#21262d'
+    online: '#22c55e'
+    offline: '#ef4444'
 groups:
-  - name: "Getting Started"
-    # columns: 2
+  - name: Getting Started
     layout: horizontal
     align: left
     services:
-      - name: "Edit This File!"
-        subtitle: "Edit config/services.yml to start"
-        url: "https://github.com/leraptor65/justasimpledash"
-        icon: "FaWrench"
-      - name: "My GitHub"
-        subtitle: "Visit the project repo"
-        url: "https://github.com/leraptor65/justasimpledash"
-        icon: "FaGithub"
+      - name: Edit This File!
+        subtitle: Edit config/services.yml to start
+        url: https://github.com/leraptor65/justasimpledash
+        icon: FaWrench
+        ping: http://192.168.68.237:3000
+      - name: My GitHub
+        subtitle: Visit the project repo
+        url: https://github.com/leraptor65/justasimpledash
+        icon: FaGithub
+        ping: https://github.com/leraptor65/justasimpledash
       - name: Test 1
         align: right
+        icon: ''
+        url: ''
+        layout: horizontal-reverse
       - name: Test 2
         align: center
       - name: Test 3
         layout: vertical
         align: left
-
-
+  - name: Group 2
+    services:
+      - name: Test 4
+  - name: Group 3
+    columns: 1
+    services:
+      - name: Test 5
+        url: ''
+        subtitle: This is a test service card
+services: []
