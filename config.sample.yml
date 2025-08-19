@@ -15,12 +15,10 @@ groups:
   - name: "Getting Started"
     columns: 2
     services:
-      - name: "My Other Service"
-        subtitle: "This one uses GET for its ping"
-        url: "http://example.com"
-        icon: "FaServer"
-        ping: "http://example.com"
-        pingMethod: "GET"
+      - name: "Edit This File!"
+        subtitle: "Edit config/services.yml to start"
+        url: "https://github.com/leraptor65/justasimpledash"
+        icon: "FaWrench"
       - name: "My GitHub"
         subtitle: "Visit the project repo"
         url: "https://github.com/leraptor65/justasimpledash"
