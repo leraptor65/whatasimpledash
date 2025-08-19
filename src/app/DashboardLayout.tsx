@@ -29,10 +29,12 @@ const getGridColsClass = (cols: number) => ({
   4: "md:grid-cols-4", 5: "md:grid-cols-5", 6: "md:grid-cols-6",
 }[cols] || "md:grid-cols-4");
 
+// This helper now ONLY handles text alignment
 const getTextAlignClass = (align: Alignment = 'center') => ({
   left: "text-left", center: "text-center", right: "text-right",
 }[align]);
 
+// This helper now handles all flexbox layout and container alignment properties
 const getLayoutClass = (layout: Layout = 'vertical', align: Alignment = 'center') => {
   if (layout === 'vertical') {
     const alignmentClass = {
@@ -42,18 +44,21 @@ const getLayoutClass = (layout: Layout = 'vertical', align: Alignment = 'center'
     }[align];
     return `flex-col justify-center ${alignmentClass}`;
   }
+
   const justifyContentClass = {
     left: "justify-start",
     center: "justify-center",
     right: "justify-end"
   }[align];
+
   if (layout === 'horizontal') {
     return `flex-row items-center ${justifyContentClass}`;
   }
   if (layout === 'horizontal-reverse') {
     return `flex-row-reverse items-center ${justifyContentClass}`;
   }
-  return 'flex-col justify-center items-center';
+
+  return 'flex-col justify-center items-center'; // Default fallback
 };
 
 
@@ -78,7 +83,7 @@ const ServiceCard = ({ service, theme, groupAlign, groupLayout, columnCount }: {
         const res = await fetch('/api/status', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ url: service.ping }),
+          body: JSON.stringify({ url: service.ping, method: service.pingMethod }),
         });
         const data = await res.json();
         setStatus(data.status);
@@ -89,7 +94,7 @@ const ServiceCard = ({ service, theme, groupAlign, groupLayout, columnCount }: {
     checkStatus();
     const interval = setInterval(checkStatus, 60000);
     return () => clearInterval(interval);
-  }, [service.ping]);
+  }, [service.ping, service.pingMethod]);
 
   return (
     <a
@@ -115,7 +120,6 @@ const ServiceCard = ({ service, theme, groupAlign, groupLayout, columnCount }: {
       </div>
       <div className={getTextAlignClass(align)}>
         <h3 className={`font-semibold ${isVertical ? 'text-md' : 'text-lg'}`}>{service.name}</h3>
-        {/* Subtitle is now hidden if column count is 5 or more */}
         {service.subtitle && columnCount < 5 && <p className="text-xs" style={{ color: theme.group }}>{service.subtitle}</p>}
       </div>
     </a>
