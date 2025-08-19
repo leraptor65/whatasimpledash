@@ -29,12 +29,10 @@ const getGridColsClass = (cols: number) => ({
   4: "md:grid-cols-4", 5: "md:grid-cols-5", 6: "md:grid-cols-6",
 }[cols] || "md:grid-cols-4");
 
-// This helper now ONLY handles text alignment
 const getTextAlignClass = (align: Alignment = 'center') => ({
   left: "text-left", center: "text-center", right: "text-right",
 }[align]);
 
-// This helper now handles all flexbox layout and container alignment properties
 const getLayoutClass = (layout: Layout = 'vertical', align: Alignment = 'center') => {
   if (layout === 'vertical') {
     const alignmentClass = {
@@ -44,21 +42,18 @@ const getLayoutClass = (layout: Layout = 'vertical', align: Alignment = 'center'
     }[align];
     return `flex-col justify-center ${alignmentClass}`;
   }
-
   const justifyContentClass = {
     left: "justify-start",
     center: "justify-center",
     right: "justify-end"
   }[align];
-
   if (layout === 'horizontal') {
     return `flex-row items-center ${justifyContentClass}`;
   }
   if (layout === 'horizontal-reverse') {
     return `flex-row-reverse items-center ${justifyContentClass}`;
   }
-
-  return 'flex-col justify-center items-center'; // Default fallback
+  return 'flex-col justify-center items-center';
 };
 
 
