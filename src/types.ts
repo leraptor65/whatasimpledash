@@ -3,7 +3,7 @@ export type Service = {
   subtitle?: string;
   url?: string;
   icon?: string;
-  ping?: string; // For status checks
+  ping?: string;
   align?: 'left' | 'center' | 'right';
   layout?: 'vertical' | 'horizontal' | 'horizontal-reverse';
 };
