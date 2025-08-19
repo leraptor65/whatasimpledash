@@ -4,7 +4,7 @@ export type Service = {
   url?: string;
   icon?: string;
   ping?: string;
-  pingMethod?: 'HEAD' | 'GET'; // New line
+  pingMethod?: 'HEAD' | 'GET';
   align?: 'left' | 'center' | 'right';
   layout?: 'vertical' | 'horizontal' | 'horizontal-reverse';
 };
