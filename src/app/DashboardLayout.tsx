@@ -29,12 +29,10 @@ const getGridColsClass = (cols: number) => ({
   4: "md:grid-cols-4", 5: "md:grid-cols-5", 6: "md:grid-cols-6",
 }[cols] || "md:grid-cols-4");
 
-// This helper now ONLY handles text alignment
 const getTextAlignClass = (align: Alignment = 'center') => ({
   left: "text-left", center: "text-center", right: "text-right",
 }[align]);
 
-// This helper now handles all flexbox layout and container alignment properties
 const getLayoutClass = (layout: Layout = 'vertical', align: Alignment = 'center') => {
   if (layout === 'vertical') {
     const alignmentClass = {
@@ -44,32 +42,31 @@ const getLayoutClass = (layout: Layout = 'vertical', align: Alignment = 'center'
     }[align];
     return `flex-col justify-center ${alignmentClass}`;
   }
-
   const justifyContentClass = {
     left: "justify-start",
     center: "justify-center",
     right: "justify-end"
   }[align];
-
   if (layout === 'horizontal') {
     return `flex-row items-center ${justifyContentClass}`;
   }
   if (layout === 'horizontal-reverse') {
     return `flex-row-reverse items-center ${justifyContentClass}`;
   }
-
-  return 'flex-col justify-center items-center'; // Default fallback
+  return 'flex-col justify-center items-center';
 };
 
 
 // --- Reusable Service Card with Status ---
-const ServiceCard = ({ service, theme, groupAlign, groupLayout }: { service: Service; theme: DashboardConfig['theme'], groupAlign?: Alignment, groupLayout?: Layout }) => {
+const ServiceCard = ({ service, theme, groupAlign, groupLayout, columnCount }: { service: Service; theme: DashboardConfig['theme'], groupAlign?: Alignment, groupLayout?: Layout, columnCount: number }) => {
   const [status, setStatus] = useState<'loading' | 'online' | 'offline'>('loading');
   const [hovered, setHovered] = useState(false);
 
   const align = service.align || groupAlign || 'center';
   const layout = service.layout || groupLayout || 'vertical';
   const isVertical = (layout || 'vertical') === 'vertical';
+
+  const paddingClass = columnCount <= 3 ? 'px-14' : 'px-4';
 
   useEffect(() => {
     if (!service.ping) {
@@ -99,7 +96,7 @@ const ServiceCard = ({ service, theme, groupAlign, groupLayout }: { service: Ser
       href={service.url}
       target="_blank"
       rel="noopener noreferrer"
-      className={`relative bg-gray-800 rounded-xl py-2 px-14 shadow-lg flex h-24 transition-colors ${getLayoutClass(layout, align)}`}
+      className={`relative bg-gray-800 rounded-xl py-2 ${paddingClass} shadow-lg flex h-24 transition-colors ${getLayoutClass(layout, align)}`}
       style={{
         backgroundColor: hovered ? theme.card.hover : theme.card.background,
       }}
@@ -118,7 +115,8 @@ const ServiceCard = ({ service, theme, groupAlign, groupLayout }: { service: Ser
       </div>
       <div className={getTextAlignClass(align)}>
         <h3 className={`font-semibold ${isVertical ? 'text-md' : 'text-lg'}`}>{service.name}</h3>
-        {service.subtitle && <p className="text-xs" style={{ color: theme.group }}>{service.subtitle}</p>}
+        {/* Subtitle is now hidden if column count is 5 or more */}
+        {service.subtitle && columnCount < 5 && <p className="text-xs" style={{ color: theme.group }}>{service.subtitle}</p>}
       </div>
     </a>
   );
@@ -161,24 +159,26 @@ export default function DashboardLayout({ initialConfig }: { initialConfig: Dash
 
         <h1 className="text-3xl md:text-4xl font-bold mb-8 text-center" style={{ color: config.theme.title }}>{config.title}</h1>
         
-        {config.groups.map((group: ServiceGroup) => (
-          <div key={group.name} className="mb-10">
-            <h2 className="text-2xl font-semibold mb-4 pl-2" style={{ color: config.theme.group }}>{group.name}</h2>
-            <div className={`grid grid-cols-1 ${getGridColsClass(group.columns || config.defaultColumns)} gap-4`}>
-              {group.services.map((service: Service) => {
-                  return <ServiceCard key={service.name} service={service} theme={config.theme} groupAlign={group.align} groupLayout={group.layout} />;
-              })}
+        {config.groups.map((group: ServiceGroup) => {
+          const columnCount = group.columns || config.defaultColumns;
+          return (
+            <div key={group.name} className="mb-10">
+              <h2 className="text-2xl font-semibold mb-4 pl-2" style={{ color: config.theme.group }}>{group.name}</h2>
+              <div className={`grid grid-cols-1 ${getGridColsClass(columnCount)} gap-4`}>
+                {group.services.map((service: Service) => {
+                    return <ServiceCard key={service.name} service={service} theme={config.theme} groupAlign={group.align} groupLayout={group.layout} columnCount={columnCount} />;
+                })}
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
         
-        {/* This section is for ungrouped services */}
         {config.services && config.services.length > 0 && (
           <div>
             <h2 className="text-2xl font-semibold mb-4 pl-2" style={{ color: config.theme.group }}>Services</h2>
             <div className={`grid grid-cols-1 ${getGridColsClass(config.defaultColumns)} gap-4`}>
               {config.services.map((service: Service) => {
-                return <ServiceCard key={service.name} service={service} theme={config.theme} />;
+                return <ServiceCard key={service.name} service={service} theme={config.theme} columnCount={config.defaultColumns} />;
               })}
             </div>
           </div>
