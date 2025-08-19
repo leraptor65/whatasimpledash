@@ -34,4 +34,5 @@ export type DashboardConfig = {
   defaultColumns: number;
   theme: Theme;
   groups: ServiceGroup[];
+  services?: Service[];
 };

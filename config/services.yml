@@ -13,8 +13,9 @@ theme:
     offline: "#ef4444"
 groups:
   - name: "Getting Started"
-    columns: 2
+    # columns: 2
     layout: horizontal
+    align: left
     services:
       - name: "Edit This File!"
         subtitle: "Edit config/services.yml to start"
@@ -24,5 +25,12 @@ groups:
         subtitle: "Visit the project repo"
         url: "https://github.com/leraptor65/justasimpledash"
         icon: "FaGithub"
+      - name: Test 1
+        align: right
+      - name: Test 2
+        align: center
+      - name: Test 3
+        layout: vertical
+        align: left
 
 
