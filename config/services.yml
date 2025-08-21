@@ -3,13 +3,18 @@ defaultColumns: 4
 theme:
   background: '#111827'
   text: '#ffffff'
-  title: '#58a6ff'
-  group: '#8b949e'
+  title: '#ffffff'
+  group: '#ffffff'
+  button: '#0d6efd'
+  buttonHover: '#0b5ed7'
   card:
     background: '#161b22'
     hover: '#21262d'
     online: '#22c55e'
     offline: '#ef4444'
+settings:
+  showTitleBackgrounds: true
+backgroundImageUrl: https://cdn.wallpapersafari.com/36/75/nEGQcu.jpg
 groups:
   - name: Getting Started
     layout: horizontal
@@ -17,12 +22,12 @@ groups:
     services:
       - name: Edit This File!
         subtitle: Edit config/services.yml to start
-        url: https://github.com/leraptor65/justasimpledash
+        url: https://github.com/leraptor65/whatasimpledash
         icon: FaWrench
         ping: http://192.168.68.237:3000
       - name: My GitHub
         subtitle: Visit the project repo
-        url: https://github.com/leraptor65/justasimpledash
+        url: https://github.com/leraptor65/whatasimpledash
         icon: FaGithub
         ping: https://github.com/leraptor65/justasimpledash
       - name: Test 1
