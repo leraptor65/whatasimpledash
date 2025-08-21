@@ -1,5 +1,5 @@
 # config.sample.yml
-title: "Welcome to Just A Simple Dash!"
+title: "Welcome to What A Simple Dash!"
 defaultColumns: 3
 theme:
   background: "#111827"
@@ -17,9 +17,9 @@ groups:
     services:
       - name: "Edit This File!"
         subtitle: "Edit config/services.yml to start"
-        url: "https://github.com/leraptor65/justasimpledash"
+        url: "https://github.com/leraptor65/whatasimpledash"
         icon: "FaWrench"
       - name: "My GitHub"
         subtitle: "Visit the project repo"
-        url: "https://github.com/leraptor65/justasimpledash"
+        url: "https://github.com/leraptor65/whatasimpledash"
         icon: "FaGithub"
