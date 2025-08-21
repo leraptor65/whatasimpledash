@@ -22,6 +22,9 @@ export type Theme = {
   text: string;
   title: string;
   group: string;
+  button?: string;
+  buttonHover?: string;
+  titleBackground?: string;
   card: {
     background: string;
     hover: string;
@@ -36,4 +39,9 @@ export type DashboardConfig = {
   theme: Theme;
   groups: ServiceGroup[];
   services?: Service[];
+  settings?: {
+    showTitleBackgrounds?: boolean;
+  };
+  backgroundImage?: string;
+  backgroundImageUrl?: string;
 };
