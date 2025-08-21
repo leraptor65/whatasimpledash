@@ -147,11 +147,30 @@ export default function DashboardLayout({ initialConfig }: { initialConfig: Dash
   if (!config) {
     return <main className="min-h-screen p-8" style={{backgroundColor: '#111827', color: '#ef4444'}}>Loading configuration...</main>;
   }
+  
+  const backgroundUrl = config.backgroundImageUrl || (config.backgroundImage ? `/${config.backgroundImage}` : '');
+
+  const mainStyle: React.CSSProperties = {
+    backgroundColor: config.theme.background,
+    color: config.theme.text,
+  };
+  if (backgroundUrl) {
+    mainStyle.backgroundImage = `url(${backgroundUrl})`;
+  }
+
+  const titleBackgroundStyle: React.CSSProperties = {};
+  if (config.settings?.showTitleBackgrounds && config.theme.titleBackground) {
+    titleBackgroundStyle.backgroundColor = config.theme.titleBackground;
+  }
 
   return (
-    <main className="min-h-screen w-full p-4 md:p-8" style={{ backgroundColor: config.theme.background, color: config.theme.text }}>
+    <main
+      className={`min-h-screen w-full p-4 md:p-8 relative ${backgroundUrl ? 'bg-cover bg-center bg-no-repeat' : ''}`}
+      style={mainStyle}
+    >
+      {backgroundUrl && <div className="absolute inset-0 bg-black/50 z-0" />}
       
-      <div className="max-w-5xl mx-auto relative">
+      <div className="max-w-5xl mx-auto relative z-10">
         <Link href="/edit" className="absolute top-0 right-0 text-gray-400 hover:text-white transition-colors" title="Edit Configuration">
           <FaCog size={24} />
         </Link>
@@ -162,7 +181,12 @@ export default function DashboardLayout({ initialConfig }: { initialConfig: Dash
           const columnCount = group.columns || config.defaultColumns;
           return (
             <div key={group.name} className="mb-10">
-              <h2 className="text-2xl font-semibold mb-4 pl-2" style={{ color: config.theme.group }}>{group.name}</h2>
+              <h2
+                className={`text-2xl font-semibold mb-4 pl-2 ${config.settings?.showTitleBackgrounds ? 'p-2 rounded-lg inline-block' : ''}`}
+                style={{ color: config.theme.group, ...titleBackgroundStyle }}
+              >
+                {group.name}
+              </h2>
               <div className={`grid grid-cols-1 ${getGridColsClass(columnCount)} gap-4`}>
                 {group.services.map((service: Service) => {
                     return <ServiceCard key={service.name} service={service} theme={config.theme} groupAlign={group.align} groupLayout={group.layout} columnCount={columnCount} />;
@@ -174,7 +198,12 @@ export default function DashboardLayout({ initialConfig }: { initialConfig: Dash
         
         {config.services && config.services.length > 0 && (
           <div>
-            <h2 className="text-2xl font-semibold mb-4 pl-2" style={{ color: config.theme.group }}>Services</h2>
+            <h2
+              className={`text-2xl font-semibold mb-4 pl-2 ${config.settings?.showTitleBackgrounds ? 'p-2 rounded-lg inline-block' : ''}`}
+              style={{ color: config.theme.group, ...titleBackgroundStyle }}
+            >
+              Services
+            </h2>
             <div className={`grid grid-cols-1 ${getGridColsClass(config.defaultColumns)} gap-4`}>
               {config.services.map((service: Service) => {
                 return <ServiceCard key={service.name} service={service} theme={config.theme} columnCount={config.defaultColumns} />;
