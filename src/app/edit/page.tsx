@@ -1,14 +1,82 @@
 "use client";
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import Editor from 'react-simple-code-editor';
 import { highlight, languages } from 'prismjs/components/prism-core';
 import 'prismjs/components/prism-yaml';
-import 'prismjs/themes/prism-tomorrow.css'; // Editor theme
+import 'prismjs/themes/prism-tomorrow.css';
 import yaml from 'js-yaml';
 import type { DashboardConfig, ServiceGroup, Service } from '../../types';
-import { FaPlus, FaTrash } from 'react-icons/fa';
+import { FaPlus, FaTrash, FaChevronDown } from 'react-icons/fa';
+import { SketchPicker, type ColorResult } from 'react-color';
+
+// --- New Advanced Color Picker Component ---
+const ColorPicker = ({ label, name, value, onChange }: { label: string, name: string, value: string, onChange: (e: React.ChangeEvent<HTMLInputElement>) => void }) => {
+    const [displayColorPicker, setDisplayColorPicker] = useState(false);
+
+    const handleClick = () => {
+        setDisplayColorPicker(!displayColorPicker);
+    };
+
+    const handleClose = () => {
+        setDisplayColorPicker(false);
+    };
+
+    const handleChangeComplete = (color: ColorResult) => {
+        const { r, g, b, a } = color.rgb;
+        const rgbaString = `rgba(${r}, ${g}, ${b}, ${a})`;
+        // Simulate a change event to reuse the existing handler
+        const event = {
+            target: { name, value: rgbaString }
+        } as React.ChangeEvent<HTMLInputElement>;
+        onChange(event);
+    };
+
+    return (
+        <div>
+            <label className="block text-sm font-medium text-gray-400 capitalize">{label}</label>
+            <div className="mt-1 flex items-center bg-gray-700 border border-gray-600 rounded-md shadow-sm h-11">
+                <div 
+                    className="w-10 h-full rounded-l-md cursor-pointer border-r border-gray-600"
+                    style={{ backgroundColor: value }}
+                    onClick={handleClick}
+                />
+                <input type="text" readOnly value={value} className="w-full h-full bg-transparent px-2 focus:outline-none"/>
+            </div>
+            {displayColorPicker ? (
+                <div className="absolute z-10">
+                    <div className="fixed inset-0" onClick={handleClose} />
+                    <SketchPicker color={value} onChangeComplete={handleChangeComplete} />
+                </div>
+            ) : null}
+        </div>
+    );
+};
+
+
+// --- Collapsible Section Component ---
+const CollapsibleSection = ({ title, children, startOpen = false }: { title: string, children: React.ReactNode, startOpen?: boolean }) => {
+    const [isOpen, setIsOpen] = useState(startOpen);
+    return (
+        <section className="border border-gray-700 rounded-lg">
+            <button
+                type="button"
+                className="w-full flex justify-between items-center p-4 bg-gray-800 hover:bg-gray-700 rounded-t-lg"
+                onClick={() => setIsOpen(!isOpen)}
+            >
+                <h2 className="text-xl font-bold">{title}</h2>
+                <FaChevronDown className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+            </button>
+            {isOpen && (
+                <div className="p-4">
+                    {children}
+                </div>
+            )}
+        </section>
+    );
+};
+
 
 // --- Form UI Component ---
 const FormEditor = ({ configObject, setConfigObject, handleBackgroundUpload, handleBackgroundRemove }: { configObject: DashboardConfig | null, setConfigObject: React.Dispatch<React.SetStateAction<DashboardConfig | null>>, handleBackgroundUpload: (file: File) => void, handleBackgroundRemove: () => void }) => {
@@ -21,14 +89,10 @@ const FormEditor = ({ configObject, setConfigObject, handleBackgroundUpload, han
   
   const handleThemeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const { name, value } = e.target;
-      const [key, subkey] = name.split('.');
       setConfigObject(prev => {
           if (!prev) return null;
-          if (subkey) {
-            return { ...prev, theme: { ...prev.theme, card: { ...prev.theme.card, [subkey]: value } } };
-          }
           // @ts-ignore
-          return { ...prev, theme: { ...prev.theme, [key]: value } };
+          return { ...prev, theme: { ...prev.theme, [name]: value } };
       });
   };
 
@@ -85,12 +149,31 @@ const FormEditor = ({ configObject, setConfigObject, handleBackgroundUpload, han
       });
   };
 
+  const handleToggleTitleBackground = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const { checked } = e.target;
+      setConfigObject(prev => {
+          if (!prev) return null;
+          return { ...prev, settings: { ...prev.settings, showTitleBackgrounds: checked } };
+      });
+  };
+
+  const themeColorMap = [
+      { key: 'mainBackground', label: 'Main Background' },
+      { key: 'titleBackground', label: 'Title Background' },
+      { key: 'primaryText', label: 'Primary Text' },
+      { key: 'secondaryText', label: 'Secondary Text' },
+      { key: 'saveButton', label: 'Save Button' },
+      { key: 'saveButtonHover', label: 'Save Button Hover' },
+      { key: 'serviceBackground', label: 'Service Background' },
+      { key: 'serviceBackgroundHover', label: 'Service Background Hover' },
+      { key: 'serviceOnline', label: 'Service Online' },
+      { key: 'serviceOffline', label: 'Service Offline' },
+  ];
+
   return (
-      <div className="space-y-8">
-          {/* Global Settings */}
-          <section>
-              <h2 className="text-2xl font-bold mb-4 border-b border-gray-700 pb-2">Global Settings</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="space-y-4">
+          <CollapsibleSection title="Global Settings">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-6">
                   <div>
                       <label className="block text-sm font-medium text-gray-400">Dashboard Title</label>
                       <input type="text" name="title" value={configObject.title} onChange={handleGlobalChange} className="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-cyan-500 focus:border-cyan-500"/>
@@ -99,31 +182,28 @@ const FormEditor = ({ configObject, setConfigObject, handleBackgroundUpload, han
                       <label className="block text-sm font-medium text-gray-400">Default Columns</label>
                       <input type="number" name="defaultColumns" value={configObject.defaultColumns} min="1" max="6" onChange={e => setConfigObject(prev => prev ? { ...prev, defaultColumns: parseInt(e.target.value) || 4 } : null)} className="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-cyan-500 focus:border-cyan-500"/>
                   </div>
+                  <div className="col-span-1 md:col-span-2 flex items-center gap-3">
+                      <input
+                          type="checkbox"
+                          id="showTitleBackgrounds"
+                          checked={configObject.settings?.showTitleBackgrounds || false}
+                          onChange={handleToggleTitleBackground}
+                          className="h-4 w-4 rounded border-gray-600 bg-gray-700 text-cyan-600 focus:ring-cyan-500"
+                      />
+                      <label htmlFor="showTitleBackgrounds" className="text-sm font-medium text-gray-300">Show Title Backgrounds</label>
+                  </div>
               </div>
-          </section>
+          </CollapsibleSection>
 
-          {/* Theme Settings */}
-          <section>
-              <h2 className="text-2xl font-bold mb-4 border-b border-gray-700 pb-2">Theme Colors</h2>
+          <CollapsibleSection title="Theme Colors">
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  {Object.entries(configObject.theme).filter(([key]) => typeof configObject.theme[key as keyof typeof configObject.theme] === 'string').map(([key, value]) => (
-                      <div key={key}>
-                          <label className="block text-sm font-medium text-gray-400 capitalize">{key.replace(/([A-Z])/g, ' $1')}</label>
-                          <input type="color" name={key} value={value as string} onChange={handleThemeChange} className="mt-1 block w-full h-10 bg-gray-700 border border-gray-600 rounded-md shadow-sm"/>
-                      </div>
-                  ))}
-                  {Object.entries(configObject.theme.card).map(([key, value]) => (
-                       <div key={key}>
-                          <label className="block text-sm font-medium text-gray-400 capitalize">Card {key}</label>
-                          <input type="color" name={`card.${key}`} value={value} onChange={handleThemeChange} className="mt-1 block w-full h-10 bg-gray-700 border border-gray-600 rounded-md shadow-sm"/>
-                      </div>
+                  {themeColorMap.map(({ key, label }) => (
+                      <ColorPicker key={key} label={label} name={key} value={configObject.theme[key as keyof typeof configObject.theme]} onChange={handleThemeChange} />
                   ))}
               </div>
-          </section>
+          </CollapsibleSection>
 
-          {/* Appearance */}
-          <section>
-              <h2 className="text-2xl font-bold mb-4 border-b border-gray-700 pb-2">Appearance</h2>
+          <CollapsibleSection title="Appearance">
               <div className="space-y-6">
                 <div>
                   <h3 className="text-lg font-semibold mb-2">Custom Background</h3>
@@ -145,105 +225,105 @@ const FormEditor = ({ configObject, setConfigObject, handleBackgroundUpload, han
                   )}
                 </div>
               </div>
-          </section>
-
-          {/* Groups and Services */}
-          <section>
-               <div className="flex justify-between items-center mb-4 border-b border-gray-700 pb-2">
-                    <h2 className="text-2xl font-bold">Service Groups</h2>
-                    <button onClick={handleAddGroup} className="flex items-center gap-2 bg-green-600 hover:bg-green-500 px-3 py-1 rounded-md text-sm">
-                        <FaPlus /> Add Group
-                    </button>
-               </div>
-               <div className="space-y-6">
-                  {(configObject.groups || []).map((group, groupIndex) => (
-                      <div key={groupIndex} className="p-4 border border-gray-700 rounded-lg">
-                          <div className="flex justify-between items-center mb-4">
-                            <input type="text" name="name" value={group.name} onChange={(e) => handleGroupChange(groupIndex, e)} className="text-xl font-semibold bg-transparent w-full focus:outline-none focus:bg-gray-600 rounded p-1"/>
-                            <button onClick={() => handleDeleteGroup(groupIndex)} className="text-red-500 hover:text-red-400 p-1">
-                                <FaTrash />
-                            </button>
-                          </div>
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                              <div>
-                                  <label className="block text-sm font-medium text-gray-400">Columns</label>
-                                  <input type="number" name="columns" value={group.columns} min="1" max="6" onChange={(e) => handleGroupChange(groupIndex, e)} className="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3"/>
-                              </div>
-                              <div>
-                                  <label className="block text-sm font-medium text-gray-400">Layout</label>
-                                  <select name="layout" value={group.layout || 'vertical'} onChange={(e) => handleGroupChange(groupIndex, e)} className="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3">
-                                      <option value="vertical">Vertical</option>
-                                      <option value="horizontal">Horizontal</option>
-                                      <option value="horizontal-reverse">Horizontal Reverse</option>
-                                  </select>
-                              </div>
-                              <div>
-                                  <label className="block text-sm font-medium text-gray-400">Alignment</label>
-                                  <select name="align" value={group.align || 'center'} onChange={(e) => handleGroupChange(groupIndex, e)} className="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3">
-                                      <option value="left">Left</option>
-                                      <option value="center">Center</option>
-                                      <option value="right">Right</option>
-                                  </select>
-                              </div>
-                          </div>
-                          <div className="space-y-4">
-                              <div className="flex justify-between items-center">
-                                <h3 className="text-lg font-semibold text-gray-300">Services in this group</h3>
-                                <button onClick={() => handleAddService(groupIndex)} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 px-3 py-1 rounded-md text-xs">
-                                    <FaPlus /> Add Service
-                                </button>
-                              </div>
-                              {(group.services || []).map((service, serviceIndex) => (
-                                  <div key={serviceIndex} className="p-2 border-t border-gray-700 space-y-2">
-                                      <div className="flex justify-end">
-                                        <button onClick={() => handleDeleteService(groupIndex, serviceIndex)} className="text-red-500 hover:text-red-400 p-1 text-xs">
-                                            <FaTrash />
-                                        </button>
-                                      </div>
-                                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                                          <input type="text" placeholder="Name" name="name" value={service.name || ''} onChange={(e) => handleServiceChange(groupIndex, serviceIndex, e)} className="bg-gray-600 rounded p-1"/>
-                                          <input type="text" placeholder="URL" name="url" value={service.url || ''} onChange={(e) => handleServiceChange(groupIndex, serviceIndex, e)} className="bg-gray-600 rounded p-1"/>
-                                          <input type="text" placeholder="Subtitle" name="subtitle" value={service.subtitle || ''} onChange={(e) => handleServiceChange(groupIndex, serviceIndex, e)} className="bg-gray-600 rounded p-1"/>
-                                          <input type="text" placeholder="Icon (e.g., FaGithub or icon.png)" name="icon" value={service.icon || ''} onChange={(e) => handleServiceChange(groupIndex, serviceIndex, e)} className="bg-gray-600 rounded p-1"/>
-                                      </div>
-                                      <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                                          <div>
-                                              <label className="text-xs text-gray-400">Ping URL (optional)</label>
-                                              <input type="text" placeholder="Ping URL" name="ping" value={service.ping || ''} onChange={(e) => handleServiceChange(groupIndex, serviceIndex, e)} className="mt-1 block w-full bg-gray-600 border-gray-500 rounded-md shadow-sm py-1 px-2 text-sm"/>
-                                          </div>
-                                          <div>
-                                              <label className="text-xs text-gray-400">Ping Method</label>
-                                              <select name="pingMethod" value={service.pingMethod || 'HEAD'} onChange={(e) => handleServiceChange(groupIndex, serviceIndex, e)} className="mt-1 block w-full bg-gray-600 border-gray-500 rounded-md shadow-sm py-1 px-2 text-sm">
-                                                  <option value="HEAD">HEAD</option>
-                                                  <option value="GET">GET</option>
-                                              </select>
-                                          </div>
-                                          <div>
-                                              <label className="text-xs text-gray-400">Layout (optional)</label>
-                                              <select name="layout" value={service.layout || ''} onChange={(e) => handleServiceChange(groupIndex, serviceIndex, e)} className="mt-1 block w-full bg-gray-600 border-gray-500 rounded-md shadow-sm py-1 px-2 text-sm">
-                                                  <option value="">Inherit from group</option>
-                                                  <option value="vertical">Vertical</option>
-                                                  <option value="horizontal">Horizontal</option>
-                                                  <option value="horizontal-reverse">Horizontal Reverse</option>
-                                              </select>
-                                          </div>
-                                          <div>
-                                              <label className="text-xs text-gray-400">Alignment (optional)</label>
-                                              <select name="align" value={service.align || ''} onChange={(e) => handleServiceChange(groupIndex, serviceIndex, e)} className="mt-1 block w-full bg-gray-600 border-gray-500 rounded-md shadow-sm py-1 px-2 text-sm">
-                                                  <option value="">Inherit from group</option>
-                                                  <option value="left">Left</option>
-                                                  <option value="center">Center</option>
-                                                  <option value="right">Right</option>
-                                              </select>
-                                          </div>
-                                      </div>
-                                  </div>
-                              ))}
-                          </div>
-                      </div>
-                  ))}
-               </div>
-          </section>
+          </CollapsibleSection>
+          
+          <CollapsibleSection title="Service Groups" startOpen={true}>
+             <div className="flex justify-end items-center mb-4">
+                  <button onClick={handleAddGroup} className="flex items-center gap-2 bg-green-600 hover:bg-green-500 px-3 py-1 rounded-md text-sm">
+                      <FaPlus /> Add Group
+                  </button>
+             </div>
+             <div className="space-y-6">
+                {(configObject.groups || []).map((group, groupIndex) => (
+                    <CollapsibleSection key={groupIndex} title={group.name || "New Group"}>
+                        <div className="space-y-4">
+                            <div className="flex justify-between items-center">
+                              <input type="text" name="name" value={group.name} onChange={(e) => handleGroupChange(groupIndex, e)} className="text-xl font-semibold bg-transparent w-full focus:outline-none focus:bg-gray-600 rounded p-1"/>
+                              <button onClick={() => handleDeleteGroup(groupIndex)} className="text-red-500 hover:text-red-400 p-1">
+                                  <FaTrash />
+                              </button>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-400">Columns</label>
+                                    <input type="number" name="columns" value={group.columns} min="1" max="6" onChange={(e) => handleGroupChange(groupIndex, e)} className="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3"/>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-400">Layout</label>
+                                    <select name="layout" value={group.layout || 'vertical'} onChange={(e) => handleGroupChange(groupIndex, e)} className="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3">
+                                        <option value="vertical">Vertical</option>
+                                        <option value="horizontal">Horizontal</option>
+                                        <option value="horizontal-reverse">Horizontal Reverse</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-400">Alignment</label>
+                                    <select name="align" value={group.align || 'center'} onChange={(e) => handleGroupChange(groupIndex, e)} className="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3">
+                                        <option value="left">Left</option>
+                                        <option value="center">Center</option>
+                                        <option value="right">Right</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div className="space-y-4">
+                                <div className="flex justify-between items-center">
+                                  <h3 className="text-lg font-semibold text-gray-300">Services in this group</h3>
+                                  <button onClick={() => handleAddService(groupIndex)} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 px-3 py-1 rounded-md text-xs">
+                                      <FaPlus /> Add Service
+                                  </button>
+                                </div>
+                                {(group.services || []).map((service, serviceIndex) => (
+                                    <div key={serviceIndex} className="p-2 border-t border-gray-700 space-y-2">
+                                        <div className="flex justify-end">
+                                          <button onClick={() => handleDeleteService(groupIndex, serviceIndex)} className="text-red-500 hover:text-red-400 p-1 text-xs">
+                                              <FaTrash />
+                                          </button>
+                                        </div>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                                            <input type="text" placeholder="Name" name="name" value={service.name || ''} onChange={(e) => handleServiceChange(groupIndex, serviceIndex, e)} className="bg-gray-600 rounded p-1"/>
+                                            <input type="text" placeholder="URL" name="url" value={service.url || ''} onChange={(e) => handleServiceChange(groupIndex, serviceIndex, e)} className="bg-gray-600 rounded p-1"/>
+                                            <input type="text" placeholder="Subtitle" name="subtitle" value={service.subtitle || ''} onChange={(e) => handleServiceChange(groupIndex, serviceIndex, e)} className="bg-gray-600 rounded p-1"/>
+                                            <input type="text" placeholder="Icon (e.g., FaGithub or icon.png)" name="icon" value={service.icon || ''} onChange={(e) => handleServiceChange(groupIndex, serviceIndex, e)} className="bg-gray-600 rounded p-1"/>
+                                        </div>
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                                            <div>
+                                                <label className="text-xs text-gray-400">Ping URL (optional)</label>
+                                                <input type="text" placeholder="Ping URL" name="ping" value={service.ping || ''} onChange={(e) => handleServiceChange(groupIndex, serviceIndex, e)} className="mt-1 block w-full bg-gray-600 border-gray-500 rounded-md shadow-sm py-1 px-2 text-sm"/>
+                                            </div>
+                                            <div>
+                                                <label className="text-xs text-gray-400">Ping Method</label>
+                                                <select name="pingMethod" value={service.pingMethod || 'HEAD'} onChange={(e) => handleServiceChange(groupIndex, serviceIndex, e)} className="mt-1 block w-full bg-gray-600 border-gray-500 rounded-md shadow-sm py-1 px-2 text-sm">
+                                                    <option value="HEAD">HEAD</option>
+                                                    <option value="GET">GET</option>
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label className="text-xs text-gray-400">Layout (optional)</label>
+                                                <select name="layout" value={service.layout || ''} onChange={(e) => handleServiceChange(groupIndex, serviceIndex, e)} className="mt-1 block w-full bg-gray-600 border-gray-500 rounded-md shadow-sm py-1 px-2 text-sm">
+                                                    <option value="">Inherit from group</option>
+                                                    <option value="vertical">Vertical</option>
+                                                    <option value="horizontal">Horizontal</option>
+                                                    <option value="horizontal-reverse">Horizontal Reverse</option>
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label className="text-xs text-gray-400">Alignment (optional)</label>
+                                                <select name="align" value={service.align || ''} onChange={(e) => handleServiceChange(groupIndex, serviceIndex, e)} className="mt-1 block w-full bg-gray-600 border-gray-500 rounded-md shadow-sm py-1 px-2 text-sm">
+                                                    <option value="">Inherit from group</option>
+                                                    <option value="left">Left</option>
+                                                    <option value="center">Center</option>
+                                                    <option value="right">Right</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    </CollapsibleSection>
+                ))}
+             </div>
+          </CollapsibleSection>
       </div>
   );
 };
@@ -253,7 +333,7 @@ export default function EditPage() {
   const [configObject, setConfigObject] = useState<DashboardConfig | null>(null);
   const [status, setStatus] = useState<'loading' | 'saved' | 'saving' | 'error' | 'ready'>('loading');
   const [editorMode, setEditorMode] = useState<'raw' | 'form'>('form');
-  const [theme, setTheme] = useState({ background: '#111827', text: '#ffffff', button: '#0d6efd', buttonHover: '#0b5ed7' });
+  const [theme, setTheme] = useState({ button: '#0d6efd', buttonHover: '#0b5ed7' });
   const [buttonHovered, setButtonHovered] = useState(false);
 
   useEffect(() => {
@@ -262,10 +342,8 @@ export default function EditPage() {
       .then(data => {
         if (data.theme) {
           setTheme({
-            background: data.theme.background || '#111827',
-            text: data.theme.text || '#ffffff',
-            button: data.theme.button || '#0d6efd',
-            buttonHover: data.theme.buttonHover || '#0b5ed7'
+            button: data.theme.saveButton || '#0d6efd',
+            buttonHover: data.theme.saveButtonHover || '#0b5ed7'
           });
         }
       });
@@ -363,9 +441,22 @@ export default function EditPage() {
       setStatus('error');
     }
   };
+  
+  const SaveButton = () => (
+    <button
+      onClick={handleSave}
+      disabled={status === 'saving' || status === 'loading'}
+      className="text-white font-bold px-6 py-2 rounded-lg transition-colors"
+      style={{ backgroundColor: buttonHovered ? theme.buttonHover : theme.button }}
+      onMouseEnter={() => setButtonHovered(true)}
+      onMouseLeave={() => setButtonHovered(false)}
+    >
+      {status === 'saving' ? 'Saving...' : 'Save Changes'}
+    </button>
+  );
 
   return (
-    <main className="min-h-screen w-full p-4 md:p-8" style={{ backgroundColor: theme.background, color: theme.text }}>
+    <main className="min-h-screen w-full p-4 md:p-8" style={{ backgroundColor: configObject?.theme.mainBackground, color: configObject?.theme.primaryText }}>
       <div className="max-w-4xl mx-auto">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold">Edit Configuration</h1>
@@ -374,9 +465,16 @@ export default function EditPage() {
           </Link>
         </div>
 
-        <div className="flex border border-gray-700 rounded-lg p-1 mb-4 max-w-xs">
-            <button onClick={() => setEditorMode('form')} className={`w-1/2 rounded-md py-1 ${editorMode === 'form' ? 'bg-cyan-600' : 'hover:bg-gray-700'}`}>Form</button>
-            <button onClick={() => setEditorMode('raw')} className={`w-1/2 rounded-md py-1 ${editorMode === 'raw' ? 'bg-cyan-600' : 'hover:bg-gray-700'}`}>Raw Editor</button>
+        <div className="flex justify-between items-center mb-4">
+            <div className="flex border border-gray-700 rounded-lg p-1 max-w-xs">
+                <button onClick={() => setEditorMode('form')} className={`w-1/2 rounded-md py-1 px-4 ${editorMode === 'form' ? 'bg-cyan-600' : 'hover:bg-gray-700'}`}>Form</button>
+                <button onClick={() => setEditorMode('raw')} className={`w-1/2 rounded-md py-1 px-4 ${editorMode === 'raw' ? 'bg-cyan-600' : 'hover:bg-gray-700'}`}>Raw</button>
+            </div>
+            <div className="flex items-center gap-4">
+                <SaveButton />
+                {status === 'saved' && <span className="text-green-400">Saved!</span>}
+                {status === 'error' && <span className="text-red-400">Error.</span>}
+            </div>
         </div>
         
         {editorMode === 'raw' ? (
@@ -395,22 +493,11 @@ export default function EditPage() {
             />
           </div>
         ) : (
-          <div className="p-4 bg-gray-800 border border-gray-700 rounded-lg">
-            <FormEditor configObject={configObject} setConfigObject={setConfigObject} handleBackgroundUpload={handleBackgroundUpload} handleBackgroundRemove={handleBackgroundRemove} />
-          </div>
+          <FormEditor configObject={configObject} setConfigObject={setConfigObject} handleBackgroundUpload={handleBackgroundUpload} handleBackgroundRemove={handleBackgroundRemove} />
         )}
 
         <div className="mt-4 flex items-center gap-4">
-          <button
-            onClick={handleSave}
-            disabled={status === 'saving' || status === 'loading'}
-            className="text-white font-bold px-6 py-2 rounded-lg transition-colors"
-            style={{ backgroundColor: buttonHovered ? theme.buttonHover : theme.button }}
-            onMouseEnter={() => setButtonHovered(true)}
-            onMouseLeave={() => setButtonHovered(false)}
-          >
-            {status === 'saving' ? 'Saving...' : 'Save Changes'}
-          </button>
+          <SaveButton />
           {status === 'saved' && <span className="text-green-400">Configuration saved!</span>}
           {status === 'error' && <span className="text-red-400">Failed to save. Check YAML syntax.</span>}
         </div>
