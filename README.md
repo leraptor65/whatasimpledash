@@ -2,7 +2,7 @@
 
 A simple, highly customizable, self-hosted application dashboard. It allows you to create a beautiful startpage for all your services, configured entirely through a simple YAML file.
 
-![Dashboard Screenshot](https://github.com/leraptor65/whatasimpledash/blob/main/screenshot.png)
+![Dashboard Screenshot](https://github.com/leraptor65/whatasimpledash/blob/main/screenshot.png?raw=true)
 
 ## Features
 
@@ -21,28 +21,34 @@ A simple, highly customizable, self-hosted application dashboard. It allows you 
 
 This is the fastest way to get your dashboard running.
 
-#### 1. Create a Directory and `docker-compose.yml`
+#### 1. Create a Directory
 
-First, create a folder for your dashboard and create a `docker-compose.yml` file inside it with the following content:
+First, create a folder where you want to store your dashboard's configuration.
 
-```yaml
-services:
-  dashboard:
-    image: leraptor65/whatasimpledash:latest
-    container_name: whatasimpledash
-    restart: unless-stopped
-    ports:
-      - "3000:3000"
-    volumes:
-      # These folders will be created on your host machine automatically
-      - ./config:/app/config
-      - ./public/icons:/app/public/icons
-      - ./public:/app/public # Persists uploaded backgrounds
+```bash
+mkdir my-dashboard
+cd my-dashboard
 ````
 
-#### 2\. Start the Dashboard
+#### 2\. Download the `docker-compose.yml` File
 
-Run Docker Compose from within your new directory.
+Run one of the following commands to download the compose file directly from the repository.
+
+**Using `curl`:**
+
+```bash
+curl -o docker-compose.yml https://raw.githubusercontent.com/leraptor65/whatasimpledash/main/docker-compose.yml
+```
+
+**Or using `wget`:**
+
+```bash
+wget -O docker-compose.yml https://raw.githubusercontent.com/leraptor65/whatasimpledash/main/docker-compose.yml
+```
+
+#### 3\. Start the Dashboard
+
+Run Docker Compose from within your directory.
 
 ```bash
 docker compose pull
@@ -51,7 +57,7 @@ docker compose up -d
 
 The first time you run this, it will automatically create a `config` folder and place a sample `services.yml` file inside it.
 
-#### 3\. Customize
+#### 4\. Customize
 
   * Edit the newly created `config/services.yml` file with your services, either manually or by using the in-app editor.
   * Add any custom icons to the `public/icons` folder.
@@ -108,14 +114,14 @@ A service item has the following properties:
 1.  **Custom Icons:** Place your `.png` or `.svg` files in `public/icons/` and reference them by filename (e.g., `icon: proxmox.png`).
 2.  **React Icons:** Browse available icons at [https://react-icons.github.io/react-icons](https://react-icons.github.io/react-icons) and reference them by name (e.g., `icon: SiJellyfin`).
 
-## Build from Source
+## Build from Source (for Developers)
 
 If you want to modify the code, you can build the project from source.
 
 1.  **Clone the repository:**
 
     ```bash
-    git clone https://github.com/leraptor65/whatasimpledash.git
+    git clone [https://github.com/leraptor65/whatasimpledash.git](https://github.com/leraptor65/whatasimpledash.git)
     cd whatasimpledash
     ```
 
@@ -125,10 +131,11 @@ If you want to modify the code, you can build the project from source.
     npm install
     ```
 
-3.  **Build and Run the Container:**
+3.  **Build and Run the Development Container:**
+    Use the `docker-compose.dev.yml` file to build and run the container.
 
     ```bash
-    docker compose up --build -d
+    docker compose -f docker-compose.dev.yml up --build -d
     ```
 
 ## Technology Stack
@@ -141,6 +148,3 @@ If you want to modify the code, you can build the project from source.
 ## License
 
 Distributed under the MIT License.
-
-```
-```
