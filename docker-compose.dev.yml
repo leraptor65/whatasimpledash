@@ -1,0 +1,12 @@
+services:
+  dashboard:
+    build: .
+    container_name: whatasimpledash
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      # This volume is now writable so the entrypoint can create the sample config
+      - ./config:/app/config
+      - ./public/icons:/app/public/icons:ro
+      - ./public:/app/public
