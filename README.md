@@ -2,7 +2,7 @@
 
 A simple, highly customizable, self-hosted application dashboard. It allows you to create a beautiful startpage for all your services, configured entirely through a simple YAML file.
 
-![Dashboard Screenshot](https://github.com/leraptor65/whatasimpledash/blob/main/screenshot.png?raw=true)
+![Dashboard Screenshot](https://github.com/leraptor65/whatasimpledash/blob/main/screenshot.png)
 
 ## Features
 
