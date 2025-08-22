@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, useRef, type ElementType } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import { FaCog, FaSearch } from 'react-icons/fa';
 import type { DashboardConfig, Service, ServiceGroup } from '../types';
@@ -50,7 +50,7 @@ export default function DashboardLayout({ initialConfig }: { initialConfig: Dash
       if (event.key === 'Escape') {
         setIsSearching(false);
         setSearchQuery('');
-        (activeElement as HTMLElement)?.blur(); // Unfocus any active element
+        (activeElement as HTMLElement)?.blur();
         return;
       }
       
@@ -95,7 +95,8 @@ export default function DashboardLayout({ initialConfig }: { initialConfig: Dash
     return <main className="min-h-screen p-8" style={{backgroundColor: '#111827', color: '#ef4444'}}>Loading configuration...</main>;
   }
   
-  const backgroundUrl = config.backgroundImageUrl || (config.backgroundImage ? `/${config.backgroundImage}` : '');
+  const backgroundUrl = config.backgrounds?.active ? `/backgrounds/${config.backgrounds.active}` : '';
+
   const mainStyle: React.CSSProperties = {
     backgroundColor: config.theme.mainBackground,
     color: config.theme.primaryText,
