@@ -9,3 +9,4 @@ services:
       # This volume is now writable so the entrypoint can create the sample config
       - ./config:/app/config
       - ./public/icons:/app/public/icons:ro
+      - ./public:/app/public
