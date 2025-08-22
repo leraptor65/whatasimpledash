@@ -10,15 +10,8 @@ RUN npm run build
 FROM node:20-slim AS runner
 WORKDIR /app
 
-# Install 'gosu' for easy user privilege dropping
-RUN apt-get update && apt-get install -y gosu && rm -rf /var/lib/apt/lists/*
-
-# Create the config directory within the image first
+# The config directory will be created by the volume mount
 RUN mkdir -p /app/config
-
-# Create a simple non-root user
-RUN addgroup --system --gid 1001 nodejs && \
-    adduser --system --uid 1001 nextjs
 
 # Copy the entrypoint script and the sample config
 COPY entrypoint.sh /app/entrypoint.sh
@@ -27,7 +20,7 @@ COPY config.sample.yml /app/config.sample.yml
 # Make the entrypoint script executable
 RUN chmod +x /app/entrypoint.sh
 
-# The entrypoint will handle permissions and user switching
+# The entrypoint will handle creating a sample config if needed
 ENTRYPOINT ["/app/entrypoint.sh"]
 
 ENV NODE_ENV=production
