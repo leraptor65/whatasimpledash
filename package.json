@@ -14,6 +14,7 @@
     "next": "14.2.5",
     "prismjs": "^1.30.0",
     "react": "^18",
+    "react-color": "^2.19.3",
     "react-dom": "^18",
     "react-icons": "^5.2.1",
     "react-simple-code-editor": "^0.14.1"
@@ -24,6 +25,7 @@
     "@types/node": "^20",
     "@types/prismjs": "^1.26.5",
     "@types/react": "^18",
+    "@types/react-color": "^3.0.13",
     "@types/react-dom": "^18",
     "autoprefixer": "^10.4.19",
     "eslint": "^8",
