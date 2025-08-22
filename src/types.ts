@@ -18,19 +18,16 @@ export type ServiceGroup = {
 };
 
 export type Theme = {
-  background: string;
-  text: string;
-  title: string;
-  group: string;
-  button?: string;
-  buttonHover?: string;
-  titleBackground?: string;
-  card: {
-    background: string;
-    hover: string;
-    online: string;
-    offline: string;
-  };
+  mainBackground: string;
+  titleBackground: string;
+  primaryText: string;
+  secondaryText: string;
+  saveButton: string;
+  saveButtonHover: string;
+  serviceBackground: string;
+  serviceBackgroundHover: string;
+  serviceOnline: string;
+  serviceOffline: string;
 };
 
 export type DashboardConfig = {
