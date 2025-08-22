@@ -1,18 +1,16 @@
 title: Welcome to Just A Simple Dash!
 defaultColumns: 4
 theme:
-  background: '#111827'
-  text: '#ffffff'
-  title: '#58a6ff'
-  group: '#8b949e'
-  button: '#0d6efd'
-  buttonHover: '#0b5ed7'
+  mainBackground: 'rgba(17, 24, 39, 1)'
   titleBackground: 'rgba(0, 0, 0, 0.4)'
-  card:
-    background: '#161b22'
-    hover: '#21262d'
-    online: '#22c55e'
-    offline: '#ef4444'
+  primaryText: 'rgba(255, 255, 255, 1)'
+  secondaryText: 'rgba(169, 177, 214, 1)'
+  saveButton: 'rgba(13, 110, 253, 1)'
+  saveButtonHover: 'rgba(11, 94, 215, 1)'
+  serviceBackground: 'rgba(22, 27, 34, 1)'
+  serviceBackgroundHover: 'rgba(33, 38, 45, 1)'
+  serviceOnline: 'rgba(34, 197, 94, 1)'
+  serviceOffline: 'rgba(239, 68, 68, 1)'
 settings:
   showTitleBackgrounds: true
 backgroundImageUrl: ""

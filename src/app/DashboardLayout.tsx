@@ -96,9 +96,9 @@ const ServiceCard = ({ service, theme, groupAlign, groupLayout, columnCount }: {
       href={service.url}
       target="_blank"
       rel="noopener noreferrer"
-      className={`relative bg-gray-800 rounded-xl py-2 ${paddingClass} shadow-lg flex h-24 transition-colors ${getLayoutClass(layout, align)}`}
+      className={`relative rounded-xl py-2 ${paddingClass} shadow-lg flex h-24 transition-colors ${getLayoutClass(layout, align)}`}
       style={{
-        backgroundColor: hovered ? theme.card.hover : theme.card.background,
+        backgroundColor: hovered ? theme.serviceBackgroundHover : theme.serviceBackground,
       }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
@@ -106,16 +106,16 @@ const ServiceCard = ({ service, theme, groupAlign, groupLayout, columnCount }: {
       {service.ping && (
         <div className="absolute top-3 right-3 h-3 w-3 rounded-full"
           style={{
-            backgroundColor: status === 'online' ? theme.card.online : status === 'offline' ? theme.card.offline : '#6b7280',
+            backgroundColor: status === 'online' ? theme.serviceOnline : status === 'offline' ? theme.serviceOffline : '#6b7280',
           }}
         />
       )}
-      <div className={`flex-shrink-0 ${isVertical ? 'mb-2 text-3xl' : 'mx-3 text-4xl'}`} style={{ color: theme.text }}>
+      <div className={`flex-shrink-0 ${isVertical ? 'mb-2 text-3xl' : 'mx-3 text-4xl'}`} style={{ color: theme.secondaryText }}>
         <IconComponent icon={service.icon} isVertical={isVertical} />
       </div>
       <div className={getTextAlignClass(align)}>
-        <h3 className={`font-semibold ${isVertical ? 'text-md' : 'text-lg'}`}>{service.name}</h3>
-        {service.subtitle && columnCount < 5 && <p className="text-xs" style={{ color: theme.group }}>{service.subtitle}</p>}
+        <h3 className={`font-semibold ${isVertical ? 'text-md' : 'text-lg'}`} style={{ color: theme.secondaryText }}>{service.name}</h3>
+        {service.subtitle && columnCount < 5 && <p className="text-xs" style={{ color: theme.secondaryText, opacity: 0.8 }}>{service.subtitle}</p>}
       </div>
     </a>
   );
@@ -151,13 +151,13 @@ export default function DashboardLayout({ initialConfig }: { initialConfig: Dash
   const backgroundUrl = config.backgroundImageUrl || (config.backgroundImage ? `/${config.backgroundImage}` : '');
 
   const mainStyle: React.CSSProperties = {
-    backgroundColor: config.theme.background,
-    color: config.theme.text,
+    backgroundColor: config.theme.mainBackground,
+    color: config.theme.primaryText,
   };
   if (backgroundUrl) {
     mainStyle.backgroundImage = `url(${backgroundUrl})`;
   }
-
+  
   const titleBackgroundStyle: React.CSSProperties = {};
   if (config.settings?.showTitleBackgrounds && config.theme.titleBackground) {
     titleBackgroundStyle.backgroundColor = config.theme.titleBackground;
@@ -165,7 +165,7 @@ export default function DashboardLayout({ initialConfig }: { initialConfig: Dash
 
   return (
     <main
-      className={`min-h-screen w-full p-4 md:p-8 relative ${backgroundUrl ? 'bg-cover bg-center bg-no-repeat' : ''}`}
+      className={`min-h-screen w-full p-4 md:p-8 relative ${backgroundUrl ? 'bg-cover bg-center bg-fixed' : ''}`}
       style={mainStyle}
     >
       {backgroundUrl && <div className="absolute inset-0 bg-black/50 z-0" />}
@@ -174,19 +174,34 @@ export default function DashboardLayout({ initialConfig }: { initialConfig: Dash
         <Link href="/edit" className="absolute top-0 right-0 text-gray-400 hover:text-white transition-colors" title="Edit Configuration">
           <FaCog size={24} />
         </Link>
-
-        <h1 className="text-3xl md:text-4xl font-bold mb-8 text-center" style={{ color: config.theme.title }}>{config.title}</h1>
+        
+        <div className="text-center mb-8">
+            {config.settings?.showTitleBackgrounds ? (
+                <div 
+                    className="p-2 rounded-lg inline-block"
+                    style={titleBackgroundStyle}
+                >
+                    <h1 className="text-3xl md:text-4xl font-bold" style={{ color: config.theme.primaryText }}>{config.title}</h1>
+                </div>
+            ) : (
+                <h1 className="text-3xl md:text-4xl font-bold" style={{ color: config.theme.primaryText }}>{config.title}</h1>
+            )}
+        </div>
         
         {config.groups.map((group: ServiceGroup) => {
           const columnCount = group.columns || config.defaultColumns;
           return (
-            <div key={group.name} className="mb-10">
-              <h2
-                className={`text-2xl font-semibold mb-4 pl-2 ${config.settings?.showTitleBackgrounds ? 'p-2 rounded-lg inline-block' : ''}`}
-                style={{ color: config.theme.group, ...titleBackgroundStyle }}
-              >
-                {group.name}
-              </h2>
+            <div key={group.name} className="mb-8">
+              {config.settings?.showTitleBackgrounds ? (
+                <div 
+                  className="p-2 rounded-lg mb-4"
+                  style={titleBackgroundStyle}
+                >
+                  <h2 className="text-2xl font-semibold" style={{ color: config.theme.primaryText }}>{group.name}</h2>
+                </div>
+              ) : (
+                <h2 className="text-2xl font-semibold mb-4" style={{ color: config.theme.primaryText }}>{group.name}</h2>
+              )}
               <div className={`grid grid-cols-1 ${getGridColsClass(columnCount)} gap-4`}>
                 {group.services.map((service: Service) => {
                     return <ServiceCard key={service.name} service={service} theme={config.theme} groupAlign={group.align} groupLayout={group.layout} columnCount={columnCount} />;
@@ -198,12 +213,16 @@ export default function DashboardLayout({ initialConfig }: { initialConfig: Dash
         
         {config.services && config.services.length > 0 && (
           <div>
-            <h2
-              className={`text-2xl font-semibold mb-4 pl-2 ${config.settings?.showTitleBackgrounds ? 'p-2 rounded-lg inline-block' : ''}`}
-              style={{ color: config.theme.group, ...titleBackgroundStyle }}
-            >
-              Services
-            </h2>
+            {config.settings?.showTitleBackgrounds ? (
+              <div 
+                className="p-2 rounded-lg mb-4"
+                style={titleBackgroundStyle}
+              >
+                <h2 className="text-2xl font-semibold" style={{ color: config.theme.primaryText }}>Services</h2>
+              </div>
+            ) : (
+              <h2 className="text-2xl font-semibold mb-4" style={{ color: config.theme.primaryText }}>Services</h2>
+            )}
             <div className={`grid grid-cols-1 ${getGridColsClass(config.defaultColumns)} gap-4`}>
               {config.services.map((service: Service) => {
                 return <ServiceCard key={service.name} service={service} theme={config.theme} columnCount={config.defaultColumns} />;
