@@ -11,7 +11,7 @@ import type { DashboardConfig, ServiceGroup, Service } from '../../types';
 import { FaPlus, FaTrash, FaChevronDown } from 'react-icons/fa';
 import { SketchPicker, type ColorResult } from 'react-color';
 
-// --- New Advanced Color Picker Component ---
+// --- Color Picker with Transparency Support ---
 const ColorPicker = ({ label, name, value, onChange }: { label: string, name: string, value: string, onChange: (e: React.ChangeEvent<HTMLInputElement>) => void }) => {
     const [displayColorPicker, setDisplayColorPicker] = useState(false);
 
@@ -26,7 +26,6 @@ const ColorPicker = ({ label, name, value, onChange }: { label: string, name: st
     const handleChangeComplete = (color: ColorResult) => {
         const { r, g, b, a } = color.rgb;
         const rgbaString = `rgba(${r}, ${g}, ${b}, ${a})`;
-        // Simulate a change event to reuse the existing handler
         const event = {
             target: { name, value: rgbaString }
         } as React.ChangeEvent<HTMLInputElement>;
@@ -54,7 +53,6 @@ const ColorPicker = ({ label, name, value, onChange }: { label: string, name: st
     );
 };
 
-
 // --- Collapsible Section Component ---
 const CollapsibleSection = ({ title, children, startOpen = false }: { title: string, children: React.ReactNode, startOpen?: boolean }) => {
     const [isOpen, setIsOpen] = useState(startOpen);
@@ -77,10 +75,11 @@ const CollapsibleSection = ({ title, children, startOpen = false }: { title: str
     );
 };
 
-
 // --- Form UI Component ---
-const FormEditor = ({ configObject, setConfigObject, handleBackgroundUpload, handleBackgroundRemove }: { configObject: DashboardConfig | null, setConfigObject: React.Dispatch<React.SetStateAction<DashboardConfig | null>>, handleBackgroundUpload: (file: File) => void, handleBackgroundRemove: () => void }) => {
+const FormEditor = ({ configObject, setConfigObject, onConfigUpdate }: { configObject: DashboardConfig | null, setConfigObject: React.Dispatch<React.SetStateAction<DashboardConfig | null>>, onConfigUpdate: (newConfig: DashboardConfig) => void }) => {
   if (!configObject) return <div className="text-red-400">Could not parse YAML. Please fix in Raw Editor.</div>;
+  
+  const [url, setUrl] = useState('');
 
   const handleGlobalChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const { name, value } = e.target;
@@ -140,21 +139,45 @@ const FormEditor = ({ configObject, setConfigObject, handleBackgroundUpload, han
     setConfigObject(prev => prev ? { ...prev, groups: newGroups } : null);
   };
   
-  const handleBackgroundUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const { value } = e.target;
-      setConfigObject(prev => {
-          if (!prev) return null;
-          const { backgroundImage, ...rest } = prev;
-          return { ...rest, backgroundImageUrl: value };
-      });
-  };
-
   const handleToggleTitleBackground = (e: React.ChangeEvent<HTMLInputElement>) => {
       const { checked } = e.target;
       setConfigObject(prev => {
           if (!prev) return null;
           return { ...prev, settings: { ...prev.settings, showTitleBackgrounds: checked } };
       });
+  };
+
+  const handleBackgroundUpload = async (file: File) => {
+    const formData = new FormData();
+    formData.append('background', file);
+    const response = await fetch('/api/background', { method: 'POST', body: formData });
+    const data = await response.json();
+    if(data.success) onConfigUpdate(data.config);
+  };
+
+  const handleUrlDownload = async () => {
+    if (!url) return;
+    const response = await fetch('/api/background', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ url }) });
+    const data = await response.json();
+    if(data.success) {
+      onConfigUpdate(data.config);
+      setUrl('');
+    } else {
+        alert(`Error: ${data.error}`);
+    }
+  };
+
+  const handleSetActive = async (filename: string) => {
+    const response = await fetch('/api/background', { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ filename }) });
+    const data = await response.json();
+    if(data.success) onConfigUpdate(data.config);
+  };
+  
+  const handleBackgroundRemove = async (filename: string) => {
+    if (!window.confirm(`Are you sure you want to delete ${filename}? This cannot be undone.`)) return;
+    const response = await fetch('/api/background', { method: 'DELETE', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ filename }) });
+    const data = await response.json();
+    if(data.success) onConfigUpdate(data.config);
   };
 
   const themeColorMap = [
@@ -203,26 +226,39 @@ const FormEditor = ({ configObject, setConfigObject, handleBackgroundUpload, han
               </div>
           </CollapsibleSection>
 
-          <CollapsibleSection title="Appearance">
+          <CollapsibleSection title="Backgrounds">
               <div className="space-y-6">
                 <div>
-                  <h3 className="text-lg font-semibold mb-2">Custom Background</h3>
+                  <h3 className="text-lg font-semibold mb-2">Add New Background</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
                     <div>
-                        <label className="block text-sm font-medium text-gray-400">Background Image URL</label>
-                        <input type="text" placeholder="https://example.com/image.png" value={configObject.backgroundImageUrl || ''} onChange={handleBackgroundUrlChange} className="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-cyan-500"/>
+                        <label className="block text-sm font-medium text-gray-400">Download from URL</label>
+                        <div className="flex gap-2">
+                            <input type="text" placeholder="https://example.com/image.png" value={url} onChange={(e) => setUrl(e.target.value)} className="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3"/>
+                            <button onClick={handleUrlDownload} className="bg-cyan-600 hover:bg-cyan-500 px-4 rounded-md">Add</button>
+                        </div>
                     </div>
                     <div className="flex items-center">
                         <span className="text-gray-400 px-4">OR</span>
                         <div className="w-full">
                             <label className="block text-sm font-medium text-gray-400">Upload an Image</label>
-                            <input type="file" accept="image/png, image/jpeg" className="mt-1 block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-cyan-50 file:text-cyan-700 hover:file:bg-cyan-100" onChange={(e) => e.target.files && handleBackgroundUpload(e.target.files[0])} />
+                            <input type="file" accept="image/png, image/jpeg" className="mt-1 block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-cyan-50 file:text-cyan-700 hover:file:bg-cyan-100" onChange={(e) => { if(e.target.files) handleBackgroundUpload(e.target.files[0]); e.target.value = ''; }} />
                         </div>
                     </div>
                   </div>
-                  {(configObject.backgroundImage || configObject.backgroundImageUrl) && (
-                    <button onClick={handleBackgroundRemove} className="mt-4 text-sm text-red-500 hover:text-red-400">Remove Background</button>
-                  )}
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold mb-2">Background History</h3>
+                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
+                    {(configObject.backgrounds?.history || []).map(filename => (
+                      <div key={filename} className="relative group">
+                        <button onClick={() => handleSetActive(filename)} className={`w-full h-24 bg-transparent rounded-lg bg-cover bg-center focus:outline-none focus:ring-4 ${configObject.backgrounds?.active === filename ? 'ring-cyan-500' : 'ring-gray-700 hover:ring-cyan-600'}`} style={{backgroundImage: `url(/backgrounds/${filename})`}} />
+                        <button onClick={() => handleBackgroundRemove(filename)} className="absolute top-1 right-1 p-1 bg-red-600 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                            <FaTrash size={10} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
           </CollapsibleSection>
@@ -336,18 +372,19 @@ export default function EditPage() {
   const [theme, setTheme] = useState({ button: '#0d6efd', buttonHover: '#0b5ed7' });
   const [buttonHovered, setButtonHovered] = useState(false);
 
+  const handleConfigUpdate = (newConfig: DashboardConfig) => {
+    setConfigObject(newConfig);
+    setConfigText(yaml.dump(newConfig));
+  };
+
   useEffect(() => {
-    fetch('/api/config')
-      .then(res => res.json())
-      .then(data => {
-        if (data.theme) {
-          setTheme({
-            button: data.theme.saveButton || '#0d6efd',
-            buttonHover: data.theme.saveButtonHover || '#0b5ed7'
-          });
-        }
+    if (configObject?.theme) {
+      setTheme({
+        button: configObject.theme.saveButton || '#0d6efd',
+        buttonHover: configObject.theme.saveButtonHover || '#0b5ed7'
       });
-  }, []);
+    }
+  }, [configObject]);
 
   useEffect(() => {
     fetch('/api/config/raw')
@@ -379,7 +416,6 @@ export default function EditPage() {
     let yamlString = configText;
     if (editorMode === 'form' && configObject) {
       yamlString = yaml.dump(configObject);
-      setConfigText(yamlString); 
     }
     
     try {
@@ -390,54 +426,17 @@ export default function EditPage() {
       });
 
       if (response.ok) {
+        const newConfig = yaml.load(yamlString) as DashboardConfig;
+        setConfigObject(newConfig);
         setStatus('saved');
         setTimeout(() => setStatus('ready'), 2000);
       } else {
-        setStatus('error');
         const errorData = await response.json();
         alert(`Error saving: ${errorData.message}`);
+        setStatus('error');
       }
     } catch (error) {
-      setStatus('error');
-      alert('An unexpected error occurred.');
-    }
-  };
-
-  const handleBackgroundUpload = async (file: File) => {
-    const formData = new FormData();
-    formData.append('background', file);
-    setStatus('saving');
-    try {
-      const response = await fetch('/api/upload/background', { method: 'POST', body: formData });
-      if (!response.ok) throw new Error('Upload failed');
-      const data = await response.json();
-      setConfigObject(prev => {
-        if (!prev) return null;
-        const { backgroundImageUrl, ...rest } = prev;
-        return { ...rest, backgroundImage: data.filename };
-      });
-      setStatus('saved');
-      setTimeout(() => setStatus('ready'), 2000);
-    } catch (error) {
-      alert('Background upload failed!');
-      setStatus('error');
-    }
-  };
-
-  const handleBackgroundRemove = async () => {
-    if (!window.confirm("Are you sure you want to remove the background? This will also save your current configuration.")) return;
-    setStatus('saving');
-    try {
-      await fetch('/api/upload/background', { method: 'DELETE' });
-      setConfigObject(prev => {
-        if (!prev) return null;
-        const { backgroundImage, backgroundImageUrl, ...rest } = prev;
-        return rest;
-      });
-      setStatus('saved');
-      setTimeout(() => setStatus('ready'), 2000);
-    } catch (error) {
-      alert('Failed to remove background!');
+      alert('Failed to save. Check YAML syntax.');
       setStatus('error');
     }
   };
@@ -493,7 +492,7 @@ export default function EditPage() {
             />
           </div>
         ) : (
-          <FormEditor configObject={configObject} setConfigObject={setConfigObject} handleBackgroundUpload={handleBackgroundUpload} handleBackgroundRemove={handleBackgroundRemove} />
+          <FormEditor configObject={configObject} setConfigObject={setConfigObject} onConfigUpdate={handleConfigUpdate} />
         )}
 
         <div className="mt-4 flex items-center gap-4">

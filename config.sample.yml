@@ -13,7 +13,10 @@ theme:
   serviceOffline: 'rgba(239, 68, 68, 1)'
 settings:
   showTitleBackgrounds: true
-backgroundImageUrl: ""
+backgrounds:
+  active: pexels-photo-1743165.jpeg
+  history:
+    - pexels-photo-1743165.jpeg
 groups:
   - name: Getting Started
     layout: horizontal

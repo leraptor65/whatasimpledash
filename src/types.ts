@@ -30,15 +30,19 @@ export type Theme = {
   serviceOffline: string;
 };
 
+export type Backgrounds = {
+  active?: string;
+  history?: string[];
+};
+
 export type DashboardConfig = {
   title: string;
   defaultColumns: number;
   theme: Theme;
+  backgrounds?: Backgrounds;
   groups: ServiceGroup[];
   services?: Service[];
   settings?: {
     showTitleBackgrounds?: boolean;
   };
-  backgroundImage?: string;
-  backgroundImageUrl?: string;
 };
