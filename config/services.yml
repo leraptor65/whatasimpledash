@@ -1,4 +1,4 @@
-title: Welcome to What A Simple Dash!
+title: Welcome to Just A Simple Dash!
 defaultColumns: 4
 theme:
   mainBackground: rgba(0, 0, 0, 1)
@@ -11,10 +11,12 @@ theme:
   serviceBackgroundHover: rgba(33, 38, 45, 1)
   serviceOnline: rgba(34, 197, 94, 1)
   serviceOffline: rgba(239, 68, 68, 1)
-  '': '#6f0e0e'
 settings:
   showTitleBackgrounds: true
-backgroundImageUrl: https://i.pinimg.com/736x/9b/e9/ae/9be9aeac214f667293ec868b46c54d54.jpg
+backgrounds:
+  active: pexels-photo-1743165.jpeg
+  history:
+    - pexels-photo-1743165.jpeg
 groups:
   - name: Getting Started
     layout: horizontal
