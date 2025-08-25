@@ -56,11 +56,23 @@ export async function POST(request: Request) {
       const response = await fetch(url);
       if (!response.ok) throw new Error('Failed to download image from URL.');
       
-      const buffer = Buffer.from(await response.arrayBuffer());
-      filename = path.basename(new URL(url).pathname).replace(/[^a-zA-Z0-9.\-_]/g, '');
-      if (!filename || filename === '/') { // Handle URLs that don't have a clear filename
-          filename = `${Date.now()}.jpg`;
+      const contentType = response.headers.get('content-type');
+      let extension = '';
+      if (contentType?.startsWith('image/')) {
+        extension = `.${contentType.split('/')[1]}`;
+      } else {
+        // Fallback for URLs that don't provide a proper content type
+        const urlPath = new URL(url).pathname;
+        const ext = path.extname(urlPath);
+        if (['.jpg', '.jpeg', '.png'].includes(ext)) {
+          extension = ext;
+        } else {
+          extension = '.jpg'; // default to .jpg if all else fails
+        }
       }
+
+      const buffer = Buffer.from(await response.arrayBuffer());
+      filename = `${Date.now()}${extension}`;
       await fs.writeFile(path.join(UPLOAD_DIR, filename), buffer);
     }
 

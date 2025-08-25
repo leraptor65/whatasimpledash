@@ -14,9 +14,10 @@ theme:
 settings:
   showTitleBackgrounds: true
 backgrounds:
-  active: pexels-photo-1743165.jpeg
+  active: 1756150656669.jpeg
   history:
-    - pexels-photo-1743165.jpeg
+    - wp8944713-4k-universal-studios-wallpapers.jpg
+    - 1756150656669.jpeg
 groups:
   - name: Getting Started
     layout: horizontal
@@ -31,7 +32,7 @@ groups:
         subtitle: Visit the project repo
         url: https://github.com/leraptor65/whatasimpledash
         icon: FaGithub
-        ping: https://github.com/leraptor65/justasimpledash
+        ping: https://github.com/leraptor65/whatasimpledash
       - name: Test 1
         align: right
         icon: ''
