@@ -7,15 +7,6 @@ import type { DashboardConfig } from '@/types';
 const CONFIG_PATH = path.join(process.cwd(), 'config', 'services.yml');
 const UPLOAD_DIR = path.join(process.cwd(), 'public', 'backgrounds');
 
-// Helper to ensure the upload directory exists
-async function ensureUploadDir() {
-  try {
-    await fs.access(UPLOAD_DIR);
-  } catch {
-    await fs.mkdir(UPLOAD_DIR, { recursive: true });
-  }
-}
-
 // Helper to read and write YAML config
 async function readConfig(): Promise<DashboardConfig> {
   const fileContents = await fs.readFile(CONFIG_PATH, 'utf8');
@@ -25,70 +16,6 @@ async function readConfig(): Promise<DashboardConfig> {
 async function writeConfig(config: DashboardConfig) {
   const yamlString = yaml.dump(config);
   await fs.writeFile(CONFIG_PATH, yamlString, 'utf8');
-}
-
-// POST: Handles new background uploads (from file or URL)
-export async function POST(request: Request) {
-  await ensureUploadDir();
-  const config = await readConfig();
-  if (!config.backgrounds) {
-    config.backgrounds = { active: '', history: [] };
-  }
-
-  let filename = '';
-
-  try {
-    // Check if it's a file upload or URL download
-    if (request.headers.get('content-type')?.includes('multipart/form-data')) {
-      const formData = await request.formData();
-      const file = formData.get('background') as File | null;
-      if (!file) throw new Error('No file provided.');
-      
-      // Sanitize filename to prevent path traversal
-      filename = path.basename(file.name).replace(/[^a-zA-Z0-9.\-_]/g, '');
-      const buffer = Buffer.from(await file.arrayBuffer());
-      await fs.writeFile(path.join(UPLOAD_DIR, filename), buffer);
-
-    } else { // Assume URL download
-      const { url } = await request.json();
-      if (!url) throw new Error('No URL provided.');
-
-      const response = await fetch(url);
-      if (!response.ok) throw new Error('Failed to download image from URL.');
-      
-      const contentType = response.headers.get('content-type');
-      let extension = '';
-      if (contentType?.startsWith('image/')) {
-        extension = `.${contentType.split('/')[1]}`;
-      } else {
-        // Fallback for URLs that don't provide a proper content type
-        const urlPath = new URL(url).pathname;
-        const ext = path.extname(urlPath);
-        if (['.jpg', '.jpeg', '.png'].includes(ext)) {
-          extension = ext;
-        } else {
-          extension = '.jpg'; // default to .jpg if all else fails
-        }
-      }
-
-      const buffer = Buffer.from(await response.arrayBuffer());
-      filename = `${Date.now()}${extension}`;
-      await fs.writeFile(path.join(UPLOAD_DIR, filename), buffer);
-    }
-
-    // Update config
-    config.backgrounds.active = filename;
-    if (!config.backgrounds.history?.includes(filename)) {
-      config.backgrounds.history?.push(filename);
-    }
-    await writeConfig(config);
-
-    return NextResponse.json({ success: true, config });
-
-  } catch (error) {
-    const message = error instanceof Error ? error.message : 'An unknown error occurred';
-    return NextResponse.json({ success: false, error: message }, { status: 500 });
-  }
 }
 
 // PUT: Sets an existing background as active

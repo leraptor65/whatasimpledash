@@ -7,6 +7,6 @@ services:
       - "3000:3000"
     volumes:
       # These folders will be created on your host machine automatically
+      - /var/run/docker.sock:/var/run/docker.sock
       - ./config:/app/config
-      - ./public/icons:/app/public/icons
-      - ./public:/app/public # Persists uploaded backgrounds
+      - ./public:/app/public
