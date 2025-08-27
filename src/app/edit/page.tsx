@@ -8,7 +8,7 @@ import 'prismjs/components/prism-yaml';
 import 'prismjs/themes/prism-tomorrow.css';
 import yaml from 'js-yaml';
 import type { DashboardConfig, ServiceGroup, Service } from '../../types';
-import { FaPlus, FaTrash, FaChevronDown } from 'react-icons/fa';
+import { FaPlus, FaTrash, FaChevronDown, FaSyncAlt } from 'react-icons/fa';
 import { SketchPicker, type ColorResult } from 'react-color';
 
 // --- Color Picker with Transparency Support ---
@@ -147,21 +147,36 @@ const FormEditor = ({ configObject, setConfigObject, onConfigUpdate }: { configO
       });
   };
 
-  const handleBackgroundUpload = async (file: File) => {
+  const handleFileChange = async (file: File, type: 'icon' | 'background') => {
     const formData = new FormData();
-    formData.append('background', file);
-    const response = await fetch('/api/background', { method: 'POST', body: formData });
+    formData.append('file', file);
+    formData.append('type', type);
+
+    const response = await fetch('/api/upload', { method: 'POST', body: formData });
     const data = await response.json();
-    if(data.success) onConfigUpdate(data.config);
+
+    if (data.success) {
+      if (type === 'background') {
+        onConfigUpdate(data.config);
+      }
+      alert(`${file.name} uploaded successfully! You may need to restart the dashboard for changes to appear.`);
+    } else {
+      alert(`Error: ${data.error}`);
+    }
   };
 
   const handleUrlDownload = async () => {
     if (!url) return;
-    const response = await fetch('/api/background', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ url }) });
+    const response = await fetch('/api/upload', { 
+      method: 'POST', 
+      headers: {'Content-Type': 'application/json'}, 
+      body: JSON.stringify({ url }) 
+    });
     const data = await response.json();
     if(data.success) {
       onConfigUpdate(data.config);
       setUrl('');
+      alert('Background downloaded successfully! You may need to restart the dashboard for it to appear.');
     } else {
         alert(`Error: ${data.error}`);
     }
@@ -226,41 +241,43 @@ const FormEditor = ({ configObject, setConfigObject, onConfigUpdate }: { configO
               </div>
           </CollapsibleSection>
 
+          <CollapsibleSection title="Manage Icons">
+            <div className="w-full">
+                <label className="block text-sm font-medium text-gray-400">Upload a new icon</label>
+                <input type="file" accept="image/png, image/svg" className="mt-1 block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-cyan-50 file:text-cyan-700 hover:file:bg-cyan-100" onChange={(e) => { if(e.target.files) handleFileChange(e.target.files[0], 'icon'); e.target.value = ''; }} />
+            </div>
+          </CollapsibleSection>
+
           <CollapsibleSection title="Backgrounds">
-              <div className="space-y-6">
-                <div>
-                  <h3 className="text-lg font-semibold mb-2">Add New Background</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
-                    <div>
-                        <label className="block text-sm font-medium text-gray-400">Download from URL</label>
-                        <div className="flex gap-2">
-                            <input type="text" placeholder="https://example.com/image.png" value={url} onChange={(e) => setUrl(e.target.value)} className="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3"/>
-                            <button onClick={handleUrlDownload} className="bg-cyan-600 hover:bg-cyan-500 px-4 rounded-md">Add</button>
-                        </div>
-                    </div>
-                    <div className="flex items-center">
-                        <span className="text-gray-400 px-4">OR</span>
-                        <div className="w-full">
-                            <label className="block text-sm font-medium text-gray-400">Upload an Image</label>
-                            <input type="file" accept="image/png, image/jpeg" className="mt-1 block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-cyan-50 file:text-cyan-700 hover:file:bg-cyan-100" onChange={(e) => { if(e.target.files) handleBackgroundUpload(e.target.files[0]); e.target.value = ''; }} />
-                        </div>
-                    </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end mb-6">
+              <div>
+                  <label className="block text-sm font-medium text-gray-400">Download from URL</label>
+                  <div className="flex gap-2">
+                      <input type="text" placeholder="https://example.com/image.png" value={url} onChange={(e) => setUrl(e.target.value)} className="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3"/>
+                      <button onClick={handleUrlDownload} className="bg-cyan-600 hover:bg-cyan-500 px-4 rounded-md">Add</button>
                   </div>
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold mb-2">Background History</h3>
-                  <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
-                    {(configObject.backgrounds?.history || []).map(filename => (
-                      <div key={filename} className="relative group">
-                        <button onClick={() => handleSetActive(filename)} className={`w-full h-24 bg-transparent rounded-lg bg-cover bg-center focus:outline-none focus:ring-4 ${configObject.backgrounds?.active === filename ? 'ring-cyan-500' : 'ring-gray-700 hover:ring-cyan-600'}`} style={{backgroundImage: `url(/backgrounds/${filename})`}} />
-                        <button onClick={() => handleBackgroundRemove(filename)} className="absolute top-1 right-1 p-1 bg-red-600 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity">
-                            <FaTrash size={10} />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                </div>
               </div>
+              <div className="flex items-center">
+                  <span className="text-gray-400 px-4">OR</span>
+                  <div className="w-full">
+                      <label className="block text-sm font-medium text-gray-400">Upload an Image</label>
+                      <input type="file" accept="image/png, image/jpeg" className="mt-1 block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-cyan-50 file:text-cyan-700 hover:file:bg-cyan-100" onChange={(e) => { if(e.target.files) handleFileChange(e.target.files[0], 'background'); e.target.value = ''; }} />
+                  </div>
+              </div>
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold mb-2">Available Backgrounds</h3>
+              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
+                {(configObject.backgrounds?.history || []).map(filename => (
+                  <div key={filename} className="relative group">
+                    <button onClick={() => handleSetActive(filename)} className={`w-full h-24 bg-transparent rounded-lg bg-cover bg-center focus:outline-none focus:ring-4 ${configObject.backgrounds?.active === filename ? 'ring-cyan-500' : 'ring-gray-700 hover:ring-cyan-600'}`} style={{backgroundImage: `url(/backgrounds/${filename})`}} />
+                    <button onClick={() => handleBackgroundRemove(filename)} className="absolute top-1 right-1 p-1 bg-red-600 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                        <FaTrash size={10} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
           </CollapsibleSection>
           
           <CollapsibleSection title="Service Groups" startOpen={true}>
@@ -368,6 +385,7 @@ export default function EditPage() {
   const [configText, setConfigText] = useState('');
   const [configObject, setConfigObject] = useState<DashboardConfig | null>(null);
   const [status, setStatus] = useState<'loading' | 'saved' | 'saving' | 'error' | 'ready'>('loading');
+  const [isRestarting, setIsRestarting] = useState(false);
   const [editorMode, setEditorMode] = useState<'raw' | 'form'>('form');
   const [theme, setTheme] = useState({ button: '#0d6efd', buttonHover: '#0b5ed7' });
   const [buttonHovered, setButtonHovered] = useState(false);
@@ -440,6 +458,37 @@ export default function EditPage() {
       setStatus('error');
     }
   };
+
+  const handleRestart = async () => {
+    if (!window.confirm('Are you sure you want to restart the dashboard? This will take a few moments.')) {
+      return;
+    }
+    setIsRestarting(true);
+
+    // Fire and forget the restart command
+    fetch('/api/restart', { method: 'POST' }).catch(err => {
+      // This error is expected as the server will shut down before a response is received
+      console.log("Restart command sent. The server is going down.");
+    });
+
+    // Start polling to check when the server is back online
+    setTimeout(() => {
+      const interval = setInterval(async () => {
+        try {
+          // We use /api/config/raw as a lightweight health check endpoint
+          const response = await fetch('/api/config/raw');
+          if (response.ok) {
+            // Server is back up!
+            clearInterval(interval);
+            // Reload the page to see the changes
+            window.location.reload();
+          }
+        } catch (error) {
+          console.log("Server is still restarting, retrying...");
+        }
+      }, 2000); // Poll every 2 seconds
+    }, 5000); // Start polling after 5 seconds
+  };
   
   const SaveButton = () => (
     <button
@@ -470,6 +519,14 @@ export default function EditPage() {
                 <button onClick={() => setEditorMode('raw')} className={`w-1/2 rounded-md py-1 px-4 ${editorMode === 'raw' ? 'bg-cyan-600' : 'hover:bg-gray-700'}`}>Raw</button>
             </div>
             <div className="flex items-center gap-4">
+                <button
+                  onClick={handleRestart}
+                  disabled={isRestarting}
+                  className="flex items-center gap-2 bg-yellow-600 hover:bg-yellow-500 text-white font-bold px-4 py-2 rounded-lg transition-colors disabled:bg-gray-500 disabled:cursor-not-allowed"
+                >
+                  <FaSyncAlt className={isRestarting ? 'animate-spin' : ''} />
+                  {isRestarting ? 'Restarting...' : 'Restart'}
+                </button>
                 <SaveButton />
                 {status === 'saved' && <span className="text-green-400">Saved!</span>}
                 {status === 'error' && <span className="text-red-400">Error.</span>}

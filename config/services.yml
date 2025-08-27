@@ -14,10 +14,15 @@ theme:
 settings:
   showTitleBackgrounds: true
 backgrounds:
-  active: 1756150656669.jpeg
+  active: 1756337247995.jpeg
   history:
-    - wp8944713-4k-universal-studios-wallpapers.jpg
     - 1756150656669.jpeg
+    - 1756152777317.jpeg
+    - wp8944713-4k-universal-studios-wallpapers.jpg
+    - pexels-umkreisel-app-956999.jpg
+    - pexels-philkallahar-983200.jpg
+    - pexels-pixabay-35857.jpg
+    - 1756337247995.jpeg
 groups:
   - name: Getting Started
     layout: horizontal
