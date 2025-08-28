@@ -145,8 +145,11 @@ export default function DashboardLayout({ initialConfig }: { initialConfig: Dash
         style={mainStyle}
       >
         <div className="max-w-5xl mx-auto relative z-10">
-          <Link href="/edit" className="absolute top-0 right-0 text-gray-400 hover:text-white transition-colors" title="Edit Configuration">
-            <FaCog size={24} />
+          <Link href="/edit" className="absolute top-0 right-0 text-white group" title="Settings">
+            <FaCog size={24} className="transition-transform group-hover:rotate-90" />
+            <span className="absolute bottom-full right-0 mb-2 hidden group-hover:block bg-gray-800 text-white text-xs rounded py-1 px-2">
+              Settings
+            </span>
           </Link>
           
           <div className="text-center mb-8">
