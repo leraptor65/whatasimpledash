@@ -2,7 +2,6 @@ import { NextResponse } from 'next/server';
 import fs from 'fs/promises';
 import path from 'path';
 import yaml from 'js-yaml';
-import Docker from 'dockerode';
 import type { DashboardConfig } from '@/types';
 
 const CONFIG_PATH = path.join(process.cwd(), 'config', 'services.yml');

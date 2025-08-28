@@ -14,7 +14,7 @@ theme:
 settings:
   showTitleBackgrounds: true
 backgrounds:
-  active: 1756337247995.jpeg
+  active: 1756339272601.jpeg
   history:
     - 1756150656669.jpeg
     - 1756152777317.jpeg
@@ -23,6 +23,7 @@ backgrounds:
     - pexels-philkallahar-983200.jpg
     - pexels-pixabay-35857.jpg
     - 1756337247995.jpeg
+    - 1756339272601.jpeg
 groups:
   - name: Getting Started
     layout: horizontal

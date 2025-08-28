@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, type ElementType } from 'react';
-import type { DashboardConfig, Service } from '@/types'; // FIX: Changed path to use the '@/' alias
+import type { DashboardConfig, Service } from '@/types';
 import { FaGlobe } from 'react-icons/fa';
 import * as FaIcons from 'react-icons/fa';
 import * as SiIcons from 'react-icons/si';
@@ -16,7 +16,7 @@ const IconComponent = ({ icon, isVertical }: { icon?: string, isVertical: boolea
   if (!icon) return <FaGlobe />;
   const iconSize = isVertical ? "h-8 w-8" : "h-10 w-10";
   if (icon.endsWith('.png') || icon.endsWith('.svg')) {
-    return <img src={`/icons/${icon}`} alt="" className={iconSize} />;
+    return <img src={`/api/images/icons/${icon}`} alt="" className={iconSize} />;
   }
   const Icon = AllIcons[icon];
   return Icon ? <Icon /> : <FaGlobe />;
