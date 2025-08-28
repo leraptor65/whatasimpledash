@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Editor from 'react-simple-code-editor';
 import { highlight, languages } from 'prismjs/components/prism-core';
@@ -8,27 +8,34 @@ import 'prismjs/components/prism-yaml';
 import 'prismjs/themes/prism-tomorrow.css';
 import yaml from 'js-yaml';
 import type { DashboardConfig, ServiceGroup, Service } from '../../types';
-import { FaPlus, FaTrash, FaChevronDown, FaSyncAlt } from 'react-icons/fa';
+import { FaPlus, FaTrash, FaChevronDown, FaUndo } from 'react-icons/fa';
 import { SketchPicker, type ColorResult } from 'react-color';
 
-// --- Color Picker with Transparency Support ---
+// --- Default Theme for Reset ---
+const defaultTheme = {
+  mainBackground: 'rgba(17, 24, 39, 1)',
+  titleBackground: 'rgba(0, 0, 0, 0.4)',
+  primaryText: 'rgba(255, 255, 255, 1)',
+  secondaryText: 'rgba(169, 177, 214, 1)',
+  saveButton: 'rgba(13, 110, 253, 1)',
+  saveButtonHover: 'rgba(11, 94, 215, 1)',
+  serviceBackground: 'rgba(22, 27, 34, 1)',
+  serviceBackgroundHover: 'rgba(33, 38, 45, 1)',
+  serviceOnline: 'rgba(34, 197, 94, 1)',
+  serviceOffline: 'rgba(239, 68, 68, 1)',
+};
+
+// --- Color Picker with Manual Input ---
 const ColorPicker = ({ label, name, value, onChange }: { label: string, name: string, value: string, onChange: (e: React.ChangeEvent<HTMLInputElement>) => void }) => {
     const [displayColorPicker, setDisplayColorPicker] = useState(false);
 
-    const handleClick = () => {
-        setDisplayColorPicker(!displayColorPicker);
-    };
-
-    const handleClose = () => {
-        setDisplayColorPicker(false);
-    };
+    const handleClick = () => setDisplayColorPicker(!displayColorPicker);
+    const handleClose = () => setDisplayColorPicker(false);
 
     const handleChangeComplete = (color: ColorResult) => {
         const { r, g, b, a } = color.rgb;
         const rgbaString = `rgba(${r}, ${g}, ${b}, ${a})`;
-        const event = {
-            target: { name, value: rgbaString }
-        } as React.ChangeEvent<HTMLInputElement>;
+        const event = { target: { name, value: rgbaString } } as React.ChangeEvent<HTMLInputElement>;
         onChange(event);
     };
 
@@ -41,33 +48,39 @@ const ColorPicker = ({ label, name, value, onChange }: { label: string, name: st
                     style={{ backgroundColor: value }}
                     onClick={handleClick}
                 />
-                <input type="text" readOnly value={value} className="w-full h-full bg-transparent px-2 focus:outline-none"/>
+                <input 
+                  type="text" 
+                  name={name}
+                  value={value} 
+                  onChange={onChange}
+                  className="w-full h-full bg-transparent px-2 focus:outline-none"
+                />
             </div>
-            {displayColorPicker ? (
+            {displayColorPicker && (
                 <div className="absolute z-10">
                     <div className="fixed inset-0" onClick={handleClose} />
                     <SketchPicker color={value} onChangeComplete={handleChangeComplete} />
                 </div>
-            ) : null}
+            )}
         </div>
     );
 };
 
 // --- Collapsible Section Component ---
-const CollapsibleSection = ({ title, children, startOpen = false }: { title: string, children: React.ReactNode, startOpen?: boolean }) => {
+const CollapsibleSection = ({ title, children, startOpen = false, isNested = false }: { title: string, children: React.ReactNode, startOpen?: boolean, isNested?: boolean }) => {
     const [isOpen, setIsOpen] = useState(startOpen);
     return (
-        <section className="border border-gray-700 rounded-lg">
+        <section className={`${isNested ? 'border-none' : 'border border-gray-700 rounded-lg'}`}>
             <button
                 type="button"
-                className="w-full flex justify-between items-center p-4 bg-gray-800 hover:bg-gray-700 rounded-t-lg"
+                className={`w-full flex justify-between items-center p-4 ${isNested ? 'bg-gray-900/50 hover:bg-gray-900' : 'bg-gray-800 hover:bg-gray-700 rounded-t-lg'}`}
                 onClick={() => setIsOpen(!isOpen)}
             >
-                <h2 className="text-xl font-bold">{title}</h2>
+                <h2 className={`font-bold ${isNested ? 'text-lg' : 'text-xl'}`}>{title}</h2>
                 <FaChevronDown className={`transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
             </button>
             {isOpen && (
-                <div className="p-4">
+                <div className={`${isNested ? 'p-4 border-l border-r border-b border-gray-800' : 'p-4'}`}>
                     {children}
                 </div>
             )}
@@ -79,7 +92,18 @@ const CollapsibleSection = ({ title, children, startOpen = false }: { title: str
 const FormEditor = ({ configObject, setConfigObject, onConfigUpdate }: { configObject: DashboardConfig | null, setConfigObject: React.Dispatch<React.SetStateAction<DashboardConfig | null>>, onConfigUpdate: (newConfig: DashboardConfig) => void }) => {
   if (!configObject) return <div className="text-red-400">Could not parse YAML. Please fix in Raw Editor.</div>;
   
+  const [availableIcons, setAvailableIcons] = useState<string[]>([]);
   const [url, setUrl] = useState('');
+  
+  useEffect(() => {
+    fetch('/api/icons')
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          setAvailableIcons(data.icons);
+        }
+      });
+  }, []);
 
   const handleGlobalChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const { name, value } = e.target;
@@ -90,10 +114,15 @@ const FormEditor = ({ configObject, setConfigObject, onConfigUpdate }: { configO
       const { name, value } = e.target;
       setConfigObject(prev => {
           if (!prev) return null;
-          // @ts-ignore
-          return { ...prev, theme: { ...prev.theme, [name]: value } };
+          return { ...prev, theme: { ...prev.theme, [name as keyof typeof prev.theme]: value } };
       });
   };
+
+  const handleResetTheme = () => {
+    if (window.confirm('Are you sure you want to reset all colors to their default values?')) {
+      setConfigObject(prev => prev ? { ...prev, theme: defaultTheme } : null);
+    }
+  }
 
   const handleGroupChange = (index: number, e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
       const { name, value } = e.target;
@@ -158,6 +187,8 @@ const FormEditor = ({ configObject, setConfigObject, onConfigUpdate }: { configO
     if (data.success) {
       if (type === 'background' && data.config) {
         onConfigUpdate(data.config);
+      } else if (type === 'icon') {
+        setAvailableIcons(prev => [...prev, data.filename].sort());
       }
       alert(`${file.name} uploaded successfully!`);
     } else {
@@ -185,7 +216,12 @@ const FormEditor = ({ configObject, setConfigObject, onConfigUpdate }: { configO
   const handleSetActive = async (filename: string) => {
     const response = await fetch('/api/background', { method: 'PUT', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ filename }) });
     const data = await response.json();
-    if(data.success) onConfigUpdate(data.config);
+    if(data.success) {
+      onConfigUpdate(data.config);
+      if (filename === '') {
+        alert('Background image removed. The main background color will now be used.');
+      }
+    }
   };
   
   const handleBackgroundRemove = async (filename: string) => {
@@ -210,8 +246,8 @@ const FormEditor = ({ configObject, setConfigObject, onConfigUpdate }: { configO
 
   return (
       <div className="space-y-4">
-          <CollapsibleSection title="Global Settings">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-6">
+          <CollapsibleSection title="Dashboard Settings" startOpen={true}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-6 mb-6">
                   <div>
                       <label className="block text-sm font-medium text-gray-400">Dashboard Title</label>
                       <input type="text" name="title" value={configObject.title} onChange={handleGlobalChange} className="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-cyan-500 focus:border-cyan-500"/>
@@ -231,53 +267,73 @@ const FormEditor = ({ configObject, setConfigObject, onConfigUpdate }: { configO
                       <label htmlFor="showTitleBackgrounds" className="text-sm font-medium text-gray-300">Show Title Backgrounds</label>
                   </div>
               </div>
-          </CollapsibleSection>
 
-          <CollapsibleSection title="Theme Colors">
-              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                  {themeColorMap.map(({ key, label }) => (
-                      <ColorPicker key={key} label={label} name={key} value={configObject.theme[key as keyof typeof configObject.theme]} onChange={handleThemeChange} />
-                  ))}
-              </div>
-          </CollapsibleSection>
+              <div className="space-y-4">
+                <CollapsibleSection title="Theme Colors" isNested={true}>
+                    <div className="flex justify-end mb-4">
+                        <button onClick={handleResetTheme} className="flex items-center gap-2 text-sm text-yellow-400 hover:text-yellow-300">
+                            <FaUndo /> Reset to Default
+                        </button>
+                    </div>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                        {themeColorMap.map(({ key, label }) => (
+                            <ColorPicker key={key} label={label} name={key} value={configObject.theme[key as keyof typeof configObject.theme]} onChange={handleThemeChange} />
+                        ))}
+                    </div>
+                </CollapsibleSection>
 
-          <CollapsibleSection title="Manage Icons">
-            <div className="w-full">
-                <label className="block text-sm font-medium text-gray-400">Upload a new icon</label>
-                <input type="file" accept="image/png, image/svg" className="mt-1 block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-cyan-50 file:text-cyan-700 hover:file:bg-cyan-100" onChange={(e) => { if(e.target.files) handleFileChange(e.target.files[0], 'icon'); e.target.value = ''; }} />
-            </div>
-          </CollapsibleSection>
+                <CollapsibleSection title="Icons" isNested={true}>
+                    <div className="w-full mb-4">
+                        <label className="block text-sm font-medium text-gray-400">Upload a new icon</label>
+                        <input type="file" accept="image/png, image/svg+xml" className="mt-1 block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-cyan-50 file:text-cyan-700 hover:file:bg-cyan-100" onChange={(e) => { if(e.target.files) handleFileChange(e.target.files[0], 'icon'); e.target.value = ''; }} />
+                    </div>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-400">Available Icons</label>
+                        <select className="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3">
+                            {availableIcons.length > 0 ? availableIcons.map(icon => (
+                                <option key={icon} value={icon}>{icon}</option>
+                            )) : <option>No custom icons found</option>}
+                        </select>
+                    </div>
+                </CollapsibleSection>
 
-          <CollapsibleSection title="Backgrounds">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end mb-6">
-              <div>
-                  <label className="block text-sm font-medium text-gray-400">Download from URL</label>
-                  <div className="flex gap-2">
-                      <input type="text" placeholder="https://example.com/image.png" value={url} onChange={(e) => setUrl(e.target.value)} className="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3"/>
-                      <button onClick={handleUrlDownload} className="bg-cyan-600 hover:bg-cyan-500 px-4 rounded-md">Add</button>
+                <CollapsibleSection title="Backgrounds" isNested={true}>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end mb-6">
+                    <div>
+                        <label className="block text-sm font-medium text-gray-400">Download from URL</label>
+                        <div className="flex gap-2">
+                            <input type="text" placeholder="https://example.com/image.png" value={url} onChange={(e) => setUrl(e.target.value)} className="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3"/>
+                            <button onClick={handleUrlDownload} className="bg-cyan-600 hover:bg-cyan-500 px-4 rounded-md">Add</button>
+                        </div>
+                    </div>
+                    <div className="flex items-center">
+                        <span className="text-gray-400 px-4">OR</span>
+                        <div className="w-full">
+                            <label className="block text-sm font-medium text-gray-400">Upload an Image</label>
+                            <input type="file" accept="image/png, image/jpeg" className="mt-1 block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-cyan-50 file:text-cyan-700 hover:file:bg-cyan-100" onChange={(e) => { if(e.target.files) handleFileChange(e.target.files[0], 'background'); e.target.value = ''; }} />
+                        </div>
+                    </div>
                   </div>
-              </div>
-              <div className="flex items-center">
-                  <span className="text-gray-400 px-4">OR</span>
-                  <div className="w-full">
-                      <label className="block text-sm font-medium text-gray-400">Upload an Image</label>
-                      <input type="file" accept="image/png, image/jpeg" className="mt-1 block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-cyan-50 file:text-cyan-700 hover:file:bg-cyan-100" onChange={(e) => { if(e.target.files) handleFileChange(e.target.files[0], 'background'); e.target.value = ''; }} />
+                  <div className="flex justify-end mb-4">
+                      <button onClick={() => handleSetActive('')} className="text-sm text-cyan-400 hover:text-cyan-300">
+                          Use Main Background Color
+                      </button>
                   </div>
-              </div>
-            </div>
-            <div>
-              <h3 className="text-lg font-semibold mb-2">Available Backgrounds</h3>
-              <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
-                {(configObject.backgrounds?.history || []).map(filename => (
-                  <div key={filename} className="relative group">
-                    <button onClick={() => handleSetActive(filename)} className={`w-full h-24 bg-transparent rounded-lg bg-cover bg-center focus:outline-none focus:ring-4 ${configObject.backgrounds?.active === filename ? 'ring-cyan-500' : 'ring-gray-700 hover:ring-cyan-600'}`} style={{backgroundImage: `url(/api/images/backgrounds/${filename})`}} />
-                    <button onClick={() => handleBackgroundRemove(filename)} className="absolute top-1 right-1 p-1 bg-red-600 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity">
-                        <FaTrash size={10} />
-                    </button>
+                  <div>
+                    <h3 className="text-lg font-semibold mb-2">Available Backgrounds</h3>
+                    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
+                      {(configObject.backgrounds?.history || []).map(filename => (
+                        <div key={filename} className="relative group">
+                          <button onClick={() => handleSetActive(filename)} className={`w-full h-24 bg-transparent rounded-lg bg-cover bg-center focus:outline-none focus:ring-4 ${configObject.backgrounds?.active === filename ? 'ring-cyan-500' : 'ring-gray-700 hover:ring-cyan-600'}`} style={{backgroundImage: `url(/api/images/backgrounds/${filename})`}} />
+                          <button onClick={() => handleBackgroundRemove(filename)} className="absolute top-1 right-1 p-1 bg-red-600 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                              <FaTrash size={10} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                ))}
+                </CollapsibleSection>
               </div>
-            </div>
           </CollapsibleSection>
           
           <CollapsibleSection title="Service Groups" startOpen={true}>
@@ -384,10 +440,7 @@ const FormEditor = ({ configObject, setConfigObject, onConfigUpdate }: { configO
 export default function EditPage() {
   const [configText, setConfigText] = useState('');
   const [configObject, setConfigObject] = useState<DashboardConfig | null>(null);
-  const [status, setStatus] = useState<'loading' | 'saved' | 'saving' | 'error' | 'ready'>(
-    'loading'
-  );
-  const [isRestarting, setIsRestarting] = useState(false);
+  const [status, setStatus] = useState<'loading' | 'saved' | 'saving' | 'error' | 'ready'>('loading');
   const [editorMode, setEditorMode] = useState<'raw' | 'form'>('form');
   const [theme, setTheme] = useState({ button: '#0d6efd', buttonHover: '#0b5ed7' });
   const [buttonHovered, setButtonHovered] = useState(false);
@@ -453,7 +506,6 @@ export default function EditPage() {
       } else {
         const errorData = await response.json();
         alert(`Error saving: ${errorData.message}`);
-        setStatus('error');
       }
     } catch (error) {
       alert('Failed to save. Check YAML syntax.');
