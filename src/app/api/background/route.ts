@@ -18,11 +18,15 @@ async function writeConfig(config: DashboardConfig) {
   await fs.writeFile(CONFIG_PATH, yamlString, 'utf8');
 }
 
-// PUT: Sets an existing background as active
+// PUT: Sets an existing background as active, or clears it
 export async function PUT(request: Request) {
     try {
         const { filename } = await request.json();
-        if (!filename) throw new Error('No filename provided.');
+
+        // Allow filename to be an empty string, but not null or undefined
+        if (typeof filename !== 'string') {
+            throw new Error('Filename must be a string.');
+        }
 
         const config = await readConfig();
         if (!config.backgrounds) {
@@ -53,7 +57,7 @@ export async function DELETE(request: Request) {
         if (config.backgrounds) {
             config.backgrounds.history = config.backgrounds.history?.filter(f => f !== filename) || [];
             if (config.backgrounds.active === filename) {
-                config.backgrounds.active = config.backgrounds.history[0] || '';
+                config.backgrounds.active = ''; // Clear active if it was deleted
             }
         }
         await writeConfig(config);
