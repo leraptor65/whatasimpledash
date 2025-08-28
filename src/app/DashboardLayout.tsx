@@ -95,7 +95,7 @@ export default function DashboardLayout({ initialConfig }: { initialConfig: Dash
     return <main className="min-h-screen p-8" style={{backgroundColor: '#111827', color: '#ef4444'}}>Loading configuration...</main>;
   }
   
-  const backgroundUrl = config.backgrounds?.active ? `/backgrounds/${config.backgrounds.active}` : '';
+  const backgroundUrl = config.backgrounds?.active ? `/api/images/backgrounds/${config.backgrounds.active}` : '';
 
   const mainStyle: React.CSSProperties = {
     backgroundColor: config.theme.mainBackground,
