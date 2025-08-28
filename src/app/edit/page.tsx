@@ -156,10 +156,10 @@ const FormEditor = ({ configObject, setConfigObject, onConfigUpdate }: { configO
     const data = await response.json();
 
     if (data.success) {
-      if (type === 'background') {
+      if (type === 'background' && data.config) {
         onConfigUpdate(data.config);
       }
-      alert(`${file.name} uploaded successfully! You may need to restart the dashboard for changes to appear.`);
+      alert(`${file.name} uploaded successfully!`);
     } else {
       alert(`Error: ${data.error}`);
     }
@@ -173,10 +173,10 @@ const FormEditor = ({ configObject, setConfigObject, onConfigUpdate }: { configO
       body: JSON.stringify({ url }) 
     });
     const data = await response.json();
-    if(data.success) {
+    if(data.success && data.config) {
       onConfigUpdate(data.config);
       setUrl('');
-      alert('Background downloaded successfully! You may need to restart the dashboard for it to appear.');
+      alert('Background downloaded successfully!');
     } else {
         alert(`Error: ${data.error}`);
     }
@@ -270,7 +270,7 @@ const FormEditor = ({ configObject, setConfigObject, onConfigUpdate }: { configO
               <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
                 {(configObject.backgrounds?.history || []).map(filename => (
                   <div key={filename} className="relative group">
-                    <button onClick={() => handleSetActive(filename)} className={`w-full h-24 bg-transparent rounded-lg bg-cover bg-center focus:outline-none focus:ring-4 ${configObject.backgrounds?.active === filename ? 'ring-cyan-500' : 'ring-gray-700 hover:ring-cyan-600'}`} style={{backgroundImage: `url(/backgrounds/${filename})`}} />
+                    <button onClick={() => handleSetActive(filename)} className={`w-full h-24 bg-transparent rounded-lg bg-cover bg-center focus:outline-none focus:ring-4 ${configObject.backgrounds?.active === filename ? 'ring-cyan-500' : 'ring-gray-700 hover:ring-cyan-600'}`} style={{backgroundImage: `url(/api/images/backgrounds/${filename})`}} />
                     <button onClick={() => handleBackgroundRemove(filename)} className="absolute top-1 right-1 p-1 bg-red-600 rounded-full text-white opacity-0 group-hover:opacity-100 transition-opacity">
                         <FaTrash size={10} />
                     </button>
@@ -384,7 +384,9 @@ const FormEditor = ({ configObject, setConfigObject, onConfigUpdate }: { configO
 export default function EditPage() {
   const [configText, setConfigText] = useState('');
   const [configObject, setConfigObject] = useState<DashboardConfig | null>(null);
-  const [status, setStatus] = useState<'loading' | 'saved' | 'saving' | 'error' | 'ready'>('loading');
+  const [status, setStatus] = useState<'loading' | 'saved' | 'saving' | 'error' | 'ready'>(
+    'loading'
+  );
   const [isRestarting, setIsRestarting] = useState(false);
   const [editorMode, setEditorMode] = useState<'raw' | 'form'>('form');
   const [theme, setTheme] = useState({ button: '#0d6efd', buttonHover: '#0b5ed7' });
@@ -458,37 +460,6 @@ export default function EditPage() {
       setStatus('error');
     }
   };
-
-  const handleRestart = async () => {
-    if (!window.confirm('Are you sure you want to restart the dashboard? This will take a few moments.')) {
-      return;
-    }
-    setIsRestarting(true);
-
-    // Fire and forget the restart command
-    fetch('/api/restart', { method: 'POST' }).catch(err => {
-      // This error is expected as the server will shut down before a response is received
-      console.log("Restart command sent. The server is going down.");
-    });
-
-    // Start polling to check when the server is back online
-    setTimeout(() => {
-      const interval = setInterval(async () => {
-        try {
-          // We use /api/config/raw as a lightweight health check endpoint
-          const response = await fetch('/api/config/raw');
-          if (response.ok) {
-            // Server is back up!
-            clearInterval(interval);
-            // Reload the page to see the changes
-            window.location.reload();
-          }
-        } catch (error) {
-          console.log("Server is still restarting, retrying...");
-        }
-      }, 2000); // Poll every 2 seconds
-    }, 5000); // Start polling after 5 seconds
-  };
   
   const SaveButton = () => (
     <button
@@ -519,14 +490,6 @@ export default function EditPage() {
                 <button onClick={() => setEditorMode('raw')} className={`w-1/2 rounded-md py-1 px-4 ${editorMode === 'raw' ? 'bg-cyan-600' : 'hover:bg-gray-700'}`}>Raw</button>
             </div>
             <div className="flex items-center gap-4">
-                <button
-                  onClick={handleRestart}
-                  disabled={isRestarting}
-                  className="flex items-center gap-2 bg-yellow-600 hover:bg-yellow-500 text-white font-bold px-4 py-2 rounded-lg transition-colors disabled:bg-gray-500 disabled:cursor-not-allowed"
-                >
-                  <FaSyncAlt className={isRestarting ? 'animate-spin' : ''} />
-                  {isRestarting ? 'Restarting...' : 'Restart'}
-                </button>
                 <SaveButton />
                 {status === 'saved' && <span className="text-green-400">Saved!</span>}
                 {status === 'error' && <span className="text-red-400">Error.</span>}
