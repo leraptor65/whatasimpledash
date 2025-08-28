@@ -1,3 +1,8 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Fix for react-color SketchPicker input text color */
+.sketch-picker input {
+  color: #333 !important;
+}
