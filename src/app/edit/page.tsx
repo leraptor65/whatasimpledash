@@ -8,21 +8,16 @@ import 'prismjs/components/prism-yaml';
 import 'prismjs/themes/prism-tomorrow.css';
 import yaml from 'js-yaml';
 import type { DashboardConfig, ServiceGroup, Service } from '../../types';
-import { FaPlus, FaTrash, FaChevronDown, FaUndo } from 'react-icons/fa';
+import { FaPlus, FaTrash, FaChevronDown, FaUndo, FaArrowUp, FaArrowDown } from 'react-icons/fa';
 import { SketchPicker, type ColorResult } from 'react-color';
 
 // --- Default Theme for Reset ---
 const defaultTheme = {
-  mainBackground: 'rgba(17, 24, 39, 1)',
+  mainBackground: 'rgba(20, 20, 20, 1)',
   titleBackground: 'rgba(0, 0, 0, 0.4)',
-  primaryText: 'rgba(255, 255, 255, 1)',
-  secondaryText: 'rgba(169, 177, 214, 1)',
-  saveButton: 'rgba(13, 110, 253, 1)',
-  saveButtonHover: 'rgba(11, 94, 215, 1)',
+  text: 'rgba(255, 255, 255, 1)',
   serviceBackground: 'rgba(22, 27, 34, 1)',
   serviceBackgroundHover: 'rgba(33, 38, 45, 1)',
-  serviceOnline: 'rgba(34, 197, 94, 1)',
-  serviceOffline: 'rgba(239, 68, 68, 1)',
 };
 
 // --- Color Picker with Manual Input ---
@@ -43,15 +38,15 @@ const ColorPicker = ({ label, name, value, onChange }: { label: string, name: st
         <div>
             <label className="block text-sm font-medium text-gray-400 capitalize">{label}</label>
             <div className="mt-1 flex items-center bg-gray-700 border border-gray-600 rounded-md shadow-sm h-11">
-                <div 
+                <div
                     className="w-10 h-full rounded-l-md cursor-pointer border-r border-gray-600"
                     style={{ backgroundColor: value }}
                     onClick={handleClick}
                 />
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   name={name}
-                  value={value} 
+                  value={value}
                   onChange={onChange}
                   className="w-full h-full bg-transparent px-2 focus:outline-none"
                 />
@@ -91,10 +86,10 @@ const CollapsibleSection = ({ title, children, startOpen = false, isNested = fal
 // --- Form UI Component ---
 const FormEditor = ({ configObject, setConfigObject, onConfigUpdate }: { configObject: DashboardConfig | null, setConfigObject: React.Dispatch<React.SetStateAction<DashboardConfig | null>>, onConfigUpdate: (newConfig: DashboardConfig) => void }) => {
   if (!configObject) return <div className="text-red-400">Could not parse YAML. Please fix in Raw Editor.</div>;
-  
+
   const [availableIcons, setAvailableIcons] = useState<string[]>([]);
   const [url, setUrl] = useState('');
-  
+
   useEffect(() => {
     fetch('/api/icons')
       .then(res => res.json())
@@ -109,7 +104,7 @@ const FormEditor = ({ configObject, setConfigObject, onConfigUpdate }: { configO
       const { name, value } = e.target;
       setConfigObject(prev => prev ? { ...prev, [name]: value } : null);
   };
-  
+
   const handleThemeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const { name, value } = e.target;
       setConfigObject(prev => {
@@ -139,7 +134,7 @@ const FormEditor = ({ configObject, setConfigObject, onConfigUpdate }: { configO
       newGroups[groupIndex].services[serviceIndex][name] = value;
       setConfigObject(prev => prev ? { ...prev, groups: newGroups } : null);
   };
-  
+
   const handleAddGroup = () => {
     const newGroup: ServiceGroup = { name: "New Group", columns: 3, services: [] };
     setConfigObject(prev => prev ? { ...prev, groups: [...(prev.groups || []), newGroup] } : null);
@@ -167,7 +162,7 @@ const FormEditor = ({ configObject, setConfigObject, onConfigUpdate }: { configO
     newGroups[groupIndex].services = newGroups[groupIndex].services.filter((_, i) => i !== serviceIndex);
     setConfigObject(prev => prev ? { ...prev, groups: newGroups } : null);
   };
-  
+
   const handleToggleTitleBackground = (e: React.ChangeEvent<HTMLInputElement>) => {
       const { checked } = e.target;
       setConfigObject(prev => {
@@ -198,10 +193,10 @@ const FormEditor = ({ configObject, setConfigObject, onConfigUpdate }: { configO
 
   const handleUrlDownload = async () => {
     if (!url) return;
-    const response = await fetch('/api/upload', { 
-      method: 'POST', 
-      headers: {'Content-Type': 'application/json'}, 
-      body: JSON.stringify({ url }) 
+    const response = await fetch('/api/upload', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ url })
     });
     const data = await response.json();
     if(data.success && data.config) {
@@ -223,7 +218,7 @@ const FormEditor = ({ configObject, setConfigObject, onConfigUpdate }: { configO
       }
     }
   };
-  
+
   const handleBackgroundRemove = async (filename: string) => {
     if (!window.confirm(`Are you sure you want to delete ${filename}? This cannot be undone.`)) return;
     const response = await fetch('/api/background', { method: 'DELETE', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ filename }) });
@@ -231,17 +226,35 @@ const FormEditor = ({ configObject, setConfigObject, onConfigUpdate }: { configO
     if(data.success) onConfigUpdate(data.config);
   };
 
+  const moveGroup = (index: number, direction: 'up' | 'down') => {
+    const newGroups = [...(configObject.groups || [])];
+    const group = newGroups[index];
+    const newIndex = direction === 'up' ? index - 1 : index + 1;
+    if (newIndex < 0 || newIndex >= newGroups.length) return;
+    newGroups.splice(index, 1);
+    newGroups.splice(newIndex, 0, group);
+    setConfigObject(prev => prev ? { ...prev, groups: newGroups } : null);
+  };
+
+  const moveService = (groupIndex: number, serviceIndex: number, direction: 'up' | 'down') => {
+    const newGroups = [...(configObject.groups || [])];
+    const services = [...(newGroups[groupIndex].services || [])];
+    const service = services[serviceIndex];
+    const newIndex = direction === 'up' ? serviceIndex - 1 : serviceIndex + 1;
+    if (newIndex < 0 || newIndex >= services.length) return;
+    services.splice(serviceIndex, 1);
+    services.splice(newIndex, 0, service);
+    newGroups[groupIndex].services = services;
+    setConfigObject(prev => prev ? { ...prev, groups: newGroups } : null);
+  };
+
+
   const themeColorMap = [
       { key: 'mainBackground', label: 'Main Background' },
       { key: 'titleBackground', label: 'Title Background' },
-      { key: 'primaryText', label: 'Primary Text' },
-      { key: 'secondaryText', label: 'Secondary Text' },
-      { key: 'saveButton', label: 'Save Button' },
-      { key: 'saveButtonHover', label: 'Save Button Hover' },
+      { key: 'text', label: 'Text' },
       { key: 'serviceBackground', label: 'Service Background' },
       { key: 'serviceBackgroundHover', label: 'Service Background Hover' },
-      { key: 'serviceOnline', label: 'Service Online' },
-      { key: 'serviceOffline', label: 'Service Offline' },
   ];
 
   return (
@@ -335,7 +348,7 @@ const FormEditor = ({ configObject, setConfigObject, onConfigUpdate }: { configO
                 </CollapsibleSection>
               </div>
           </CollapsibleSection>
-          
+
           <CollapsibleSection title="Service Groups" startOpen={true}>
              <div className="flex justify-end items-center mb-4">
                   <button onClick={handleAddGroup} className="flex items-center gap-2 bg-green-600 hover:bg-green-500 px-3 py-1 rounded-md text-sm">
@@ -347,7 +360,11 @@ const FormEditor = ({ configObject, setConfigObject, onConfigUpdate }: { configO
                     <CollapsibleSection key={groupIndex} title={group.name || "New Group"}>
                         <div className="space-y-4">
                             <div className="flex justify-between items-center">
-                              <input type="text" name="name" value={group.name} onChange={(e) => handleGroupChange(groupIndex, e)} className="text-xl font-semibold bg-transparent w-full focus:outline-none focus:bg-gray-600 rounded p-1"/>
+                              <div className="flex items-center">
+                                <button onClick={() => moveGroup(groupIndex, 'up')} className="p-1 text-gray-400 hover:text-white"><FaArrowUp /></button>
+                                <button onClick={() => moveGroup(groupIndex, 'down')} className="p-1 text-gray-400 hover:text-white"><FaArrowDown /></button>
+                                <input type="text" name="name" value={group.name} onChange={(e) => handleGroupChange(groupIndex, e)} className="text-xl font-semibold bg-transparent w-full focus:outline-none focus:bg-gray-600 rounded p-1"/>
+                              </div>
                               <button onClick={() => handleDeleteGroup(groupIndex)} className="text-red-500 hover:text-red-400 p-1">
                                   <FaTrash />
                               </button>
@@ -384,6 +401,8 @@ const FormEditor = ({ configObject, setConfigObject, onConfigUpdate }: { configO
                                 {(group.services || []).map((service, serviceIndex) => (
                                     <div key={serviceIndex} className="p-2 border-t border-gray-700 space-y-2">
                                         <div className="flex justify-end">
+                                        <button onClick={() => moveService(groupIndex, serviceIndex, 'up')} className="p-1 text-gray-400 hover:text-white"><FaArrowUp /></button>
+                                        <button onClick={() => moveService(groupIndex, serviceIndex, 'down')} className="p-1 text-gray-400 hover:text-white"><FaArrowDown /></button>
                                           <button onClick={() => handleDeleteService(groupIndex, serviceIndex)} className="text-red-500 hover:text-red-400 p-1 text-xs">
                                               <FaTrash />
                                           </button>
@@ -393,6 +412,8 @@ const FormEditor = ({ configObject, setConfigObject, onConfigUpdate }: { configO
                                             <input type="text" placeholder="URL" name="url" value={service.url || ''} onChange={(e) => handleServiceChange(groupIndex, serviceIndex, e)} className="bg-gray-600 rounded p-1"/>
                                             <input type="text" placeholder="Subtitle" name="subtitle" value={service.subtitle || ''} onChange={(e) => handleServiceChange(groupIndex, serviceIndex, e)} className="bg-gray-600 rounded p-1"/>
                                             <input type="text" placeholder="Icon (e.g., FaGithub or icon.png)" name="icon" value={service.icon || ''} onChange={(e) => handleServiceChange(groupIndex, serviceIndex, e)} className="bg-gray-600 rounded p-1"/>
+                                            <ColorPicker label="Background Color (optional)" name="backgroundColor" value={service.backgroundColor || ''} onChange={(e) => handleServiceChange(groupIndex, serviceIndex, e)} />
+                                            <ColorPicker label="Text Color (optional)" name="textColor" value={service.textColor || ''} onChange={(e) => handleServiceChange(groupIndex, serviceIndex, e)} />
                                         </div>
                                         <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
                                             <div>
@@ -437,27 +458,123 @@ const FormEditor = ({ configObject, setConfigObject, onConfigUpdate }: { configO
   );
 };
 
+// --- Cleanup function to remove empty/default values and unknown properties ---
+const cleanupConfig = (config: any): DashboardConfig => {
+  const cleanedConfig: any = {};
+
+  // Define allowed keys for each level
+  const allowedKeys: { [key: string]: string[] } = {
+    root: ['title', 'defaultColumns', 'theme', 'backgrounds', 'groups', 'services', 'settings'],
+    theme: ['mainBackground', 'titleBackground', 'text', 'serviceBackground', 'serviceBackgroundHover'],
+    backgrounds: ['active', 'history'],
+    settings: ['showTitleBackgrounds'],
+    group: ['name', 'columns', 'services', 'align', 'layout'],
+    service: ['name', 'subtitle', 'url', 'icon', 'ping', 'pingMethod', 'align', 'layout', 'backgroundColor', 'textColor']
+  };
+
+  // Clean root level
+  for (const key of allowedKeys.root) {
+    if (config[key] !== undefined && config[key] !== null) {
+      cleanedConfig[key] = config[key];
+    }
+  }
+
+  // Clean theme
+  if (cleanedConfig.theme) {
+    const cleanedTheme: any = {};
+    for (const key of allowedKeys.theme) {
+      if (cleanedConfig.theme[key]) {
+        cleanedTheme[key] = cleanedConfig.theme[key];
+      }
+    }
+    cleanedConfig.theme = cleanedTheme;
+  }
+  
+  // Clean backgrounds
+  if (cleanedConfig.backgrounds) {
+    const cleanedBackgrounds: any = {};
+    for (const key of allowedKeys.backgrounds) {
+      if (cleanedConfig.backgrounds[key] && cleanedConfig.backgrounds[key].length > 0) {
+        cleanedBackgrounds[key] = cleanedConfig.backgrounds[key];
+      }
+    }
+    if (Object.keys(cleanedBackgrounds).length === 0) {
+        delete cleanedConfig.backgrounds;
+    } else {
+        cleanedConfig.backgrounds = cleanedBackgrounds;
+    }
+  }
+
+  // Clean settings
+  if (cleanedConfig.settings) {
+    const cleanedSettings: any = {};
+    for (const key of allowedKeys.settings) {
+      if (cleanedConfig.settings[key]) {
+        cleanedSettings[key] = cleanedConfig.settings[key];
+      }
+    }
+    if (Object.keys(cleanedSettings).length === 0) {
+        delete cleanedConfig.settings;
+    } else {
+        cleanedConfig.settings = cleanedSettings;
+    }
+  }
+
+  // Clean groups and services
+  if (cleanedConfig.groups) {
+    cleanedConfig.groups = cleanedConfig.groups.map((group: any) => {
+      const cleanedGroup: any = {};
+      for (const key of allowedKeys.group) {
+        if (group[key] !== undefined && group[key] !== null) {
+          cleanedGroup[key] = group[key];
+        }
+      }
+      if (cleanedGroup.services) {
+        cleanedGroup.services = cleanedGroup.services.map((service: any) => {
+          const cleanedService: any = {};
+          for (const key of allowedKeys.service) {
+            if (service[key]) {
+              cleanedService[key] = service[key];
+            }
+          }
+          return cleanedService;
+        });
+      }
+      return cleanedGroup;
+    });
+  }
+  
+  // Clean root services
+  if (cleanedConfig.services) {
+    cleanedConfig.services = cleanedConfig.services.map((service: any) => {
+        const cleanedService: any = {};
+        for (const key of allowedKeys.service) {
+            if (service[key]) {
+                cleanedService[key] = service[key];
+            }
+        }
+        return cleanedService;
+    });
+    if (cleanedConfig.services.length === 0) {
+        delete cleanedConfig.services;
+    }
+  }
+
+
+  return cleanedConfig as DashboardConfig;
+};
+
+
 export default function EditPage() {
   const [configText, setConfigText] = useState('');
   const [configObject, setConfigObject] = useState<DashboardConfig | null>(null);
   const [status, setStatus] = useState<'loading' | 'saved' | 'saving' | 'error' | 'ready'>('loading');
   const [editorMode, setEditorMode] = useState<'raw' | 'form'>('form');
-  const [theme, setTheme] = useState({ button: '#0d6efd', buttonHover: '#0b5ed7' });
-  const [buttonHovered, setButtonHovered] = useState(false);
 
   const handleConfigUpdate = (newConfig: DashboardConfig) => {
     setConfigObject(newConfig);
     setConfigText(yaml.dump(newConfig));
   };
-
-  useEffect(() => {
-    if (configObject?.theme) {
-      setTheme({
-        button: configObject.theme.saveButton || '#0d6efd',
-        buttonHover: configObject.theme.saveButtonHover || '#0b5ed7'
-      });
-    }
-  }, [configObject]);
 
   useEffect(() => {
     fetch('/api/config/raw')
@@ -486,48 +603,64 @@ export default function EditPage() {
 
   const handleSave = async () => {
     setStatus('saving');
-    let yamlString = configText;
+    let configToSave: DashboardConfig | null = null;
+  
     if (editorMode === 'form' && configObject) {
-      yamlString = yaml.dump(configObject);
+      configToSave = configObject;
+    } else {
+      try {
+        configToSave = yaml.load(configText) as DashboardConfig;
+      } catch (error) {
+        alert('Invalid YAML syntax.');
+        setStatus('error');
+        return;
+      }
     }
-    
+  
+    if (!configToSave) {
+      alert('Could not save empty configuration.');
+      setStatus('error');
+      return;
+    }
+
+    const cleanedConfig = cleanupConfig(configToSave);
+    const yamlString = yaml.dump(cleanedConfig);
+  
     try {
       const response = await fetch('/api/config', {
         method: 'POST',
         headers: { 'Content-Type': 'application/yaml' },
         body: yamlString,
       });
-
+  
       if (response.ok) {
-        const newConfig = yaml.load(yamlString) as DashboardConfig;
-        setConfigObject(newConfig);
+        setConfigText(yamlString);
+        setConfigObject(cleanedConfig);
         setStatus('saved');
         setTimeout(() => setStatus('ready'), 2000);
       } else {
         const errorData = await response.json();
         alert(`Error saving: ${errorData.message}`);
+        setStatus('error');
       }
     } catch (error) {
-      alert('Failed to save. Check YAML syntax.');
+      alert('Failed to save. Check server connection.');
       setStatus('error');
     }
   };
-  
+
   const SaveButton = () => (
     <button
       onClick={handleSave}
       disabled={status === 'saving' || status === 'loading'}
-      className="text-white font-bold px-6 py-2 rounded-lg transition-colors"
-      style={{ backgroundColor: buttonHovered ? theme.buttonHover : theme.button }}
-      onMouseEnter={() => setButtonHovered(true)}
-      onMouseLeave={() => setButtonHovered(false)}
+      className="text-white font-bold px-6 py-2 rounded-lg transition-colors bg-blue-600 hover:bg-blue-500"
     >
       {status === 'saving' ? 'Saving...' : 'Save Changes'}
     </button>
   );
 
   return (
-    <main className="min-h-screen w-full p-4 md:p-8" style={{ backgroundColor: configObject?.theme.mainBackground, color: configObject?.theme.primaryText }}>
+    <main className="min-h-screen w-full p-4 md:p-8" style={{ backgroundColor: 'rgba(20,20,20,1)', color: '#fff' }}>
       <div className="max-w-4xl mx-auto">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold">Edit Configuration</h1>
@@ -547,7 +680,7 @@ export default function EditPage() {
                 {status === 'error' && <span className="text-red-400">Error.</span>}
             </div>
         </div>
-        
+
         {editorMode === 'raw' ? (
           <div className="editor-container bg-gray-800 border border-gray-700 rounded-lg focus-within:ring-2 focus-within:ring-cyan-500">
             <Editor

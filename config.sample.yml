@@ -3,14 +3,9 @@ defaultColumns: 4
 theme:
   mainBackground: 'rgba(17, 24, 39, 1)'
   titleBackground: 'rgba(0, 0, 0, 0.4)'
-  primaryText: 'rgba(255, 255, 255, 1)'
-  secondaryText: 'rgba(169, 177, 214, 1)'
-  saveButton: 'rgba(13, 110, 253, 1)'
-  saveButtonHover: 'rgba(11, 94, 215, 1)'
+  text: 'rgba(255, 255, 255, 1)'
   serviceBackground: 'rgba(22, 27, 34, 1)'
   serviceBackgroundHover: 'rgba(33, 38, 45, 1)'
-  serviceOnline: 'rgba(34, 197, 94, 1)'
-  serviceOffline: 'rgba(239, 68, 68, 1)'
 settings:
   showTitleBackgrounds: true
 backgrounds:
