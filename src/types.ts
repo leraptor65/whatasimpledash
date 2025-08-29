@@ -7,6 +7,8 @@ export type Service = {
   pingMethod?: 'HEAD' | 'GET';
   align?: 'left' | 'center' | 'right';
   layout?: 'vertical' | 'horizontal' | 'horizontal-reverse';
+  backgroundColor?: string;
+  textColor?: string;
 };
 
 export type ServiceGroup = {
@@ -20,14 +22,9 @@ export type ServiceGroup = {
 export type Theme = {
   mainBackground: string;
   titleBackground: string;
-  primaryText: string;
-  secondaryText: string;
-  saveButton: string;
-  saveButtonHover: string;
+  text: string;
   serviceBackground: string;
   serviceBackgroundHover: string;
-  serviceOnline: string;
-  serviceOffline: string;
 };
 
 export type Backgrounds = {
