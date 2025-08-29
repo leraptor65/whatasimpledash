@@ -53,7 +53,7 @@ export default function DashboardLayout({ initialConfig }: { initialConfig: Dash
         (activeElement as HTMLElement)?.blur();
         return;
       }
-      
+
       if (isTyping) return;
 
       if (/^[a-zA-Z0-9]$/.test(event.key)) {
@@ -66,7 +66,7 @@ export default function DashboardLayout({ initialConfig }: { initialConfig: Dash
       window.removeEventListener('keydown', handleKeyDown);
     };
   }, []);
-  
+
   useEffect(() => {
       if (isSearching) {
           setTimeout(() => searchInputRef.current?.focus(), 0);
@@ -94,17 +94,17 @@ export default function DashboardLayout({ initialConfig }: { initialConfig: Dash
   if (!config) {
     return <main className="min-h-screen p-8" style={{backgroundColor: '#111827', color: '#ef4444'}}>Loading configuration...</main>;
   }
-  
+
   const backgroundUrl = config.backgrounds?.active ? `/api/images/backgrounds/${config.backgrounds.active}` : '';
 
   const mainStyle: React.CSSProperties = {
     backgroundColor: config.theme.mainBackground,
-    color: config.theme.primaryText,
+    color: config.theme.text,
   };
   if (backgroundUrl) {
     mainStyle.backgroundImage = `url(${backgroundUrl})`;
   }
-  
+
   const titleBackgroundStyle: React.CSSProperties = {};
   if (config.settings?.showTitleBackgrounds && config.theme.titleBackground) {
     titleBackgroundStyle.backgroundColor = config.theme.titleBackground;
@@ -115,7 +115,7 @@ export default function DashboardLayout({ initialConfig }: { initialConfig: Dash
       {isSearching && (
         <div className="fixed inset-0 z-50 flex flex-col items-center p-4 pt-[20vh] bg-black/70 backdrop-blur-sm">
           <div className="relative w-full max-w-lg">
-            <input 
+            <input
                 ref={searchInputRef}
                 type="text"
                 placeholder="Search for a service..."
@@ -133,7 +133,7 @@ export default function DashboardLayout({ initialConfig }: { initialConfig: Dash
                         <ServiceCard key={service.name} service={service} theme={config.theme} columnCount={config.defaultColumns} />
                     ))
                 ) : (
-                    <p className="col-span-full text-center" style={{ color: config.theme.secondaryText }}>No services found.</p>
+                    <p className="col-span-full text-center" style={{ color: config.theme.text, opacity: 0.8 }}>No services found.</p>
                 )}
             </div>
           </div>
@@ -151,27 +151,27 @@ export default function DashboardLayout({ initialConfig }: { initialConfig: Dash
               Settings
             </span>
           </Link>
-          
+
           <div className="text-center mb-8">
               {config.settings?.showTitleBackgrounds ? (
                   <div className="p-2 rounded-lg inline-block" style={titleBackgroundStyle}>
-                      <h1 className="text-3xl md:text-4xl font-bold" style={{ color: config.theme.primaryText }}>{config.title}</h1>
+                      <h1 className="text-3xl md:text-4xl font-bold" style={{ color: config.theme.text }}>{config.title}</h1>
                   </div>
               ) : (
-                  <h1 className="text-3xl md:text-4xl font-bold" style={{ color: config.theme.primaryText }}>{config.title}</h1>
+                  <h1 className="text-3xl md:text-4xl font-bold" style={{ color: config.theme.text }}>{config.title}</h1>
               )}
           </div>
-          
+
           {config.groups.map((group: ServiceGroup) => {
             const columnCount = group.columns || config.defaultColumns;
             return (
               <div key={group.name} className="mb-8">
                 {config.settings?.showTitleBackgrounds ? (
                   <div className="p-2 rounded-lg mb-4" style={titleBackgroundStyle}>
-                    <h2 className="text-2xl font-semibold" style={{ color: config.theme.primaryText }}>{group.name}</h2>
+                    <h2 className="text-2xl font-semibold" style={{ color: config.theme.text }}>{group.name}</h2>
                   </div>
                 ) : (
-                  <h2 className="text-2xl font-semibold mb-4" style={{ color: config.theme.primaryText }}>{group.name}</h2>
+                  <h2 className="text-2xl font-semibold mb-4" style={{ color: config.theme.text }}>{group.name}</h2>
                 )}
                 <div className={`grid grid-cols-1 ${getGridColsClass(columnCount)} gap-4`}>
                   {group.services.map((service: Service) => {
@@ -181,15 +181,15 @@ export default function DashboardLayout({ initialConfig }: { initialConfig: Dash
               </div>
             );
           })}
-          
+
           {config.services && config.services.length > 0 && (
             <div>
               {config.settings?.showTitleBackgrounds ? (
                 <div className="p-2 rounded-lg mb-4" style={titleBackgroundStyle}>
-                  <h2 className="text-2xl font-semibold" style={{ color: config.theme.primaryText }}>Services</h2>
+                  <h2 className="text-2xl font-semibold" style={{ color: config.theme.text }}>Services</h2>
                 </div>
               ) : (
-                <h2 className="text-2xl font-semibold mb-4" style={{ color: config.theme.primaryText }}>Services</h2>
+                <h2 className="text-2xl font-semibold mb-4" style={{ color: config.theme.text }}>Services</h2>
               )}
               <div className={`grid grid-cols-1 ${getGridColsClass(config.defaultColumns)} gap-4`}>
                 {config.services.map((service: Service) => {
