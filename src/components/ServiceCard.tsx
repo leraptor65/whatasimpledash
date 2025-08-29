@@ -12,14 +12,14 @@ type Layout = 'vertical' | 'horizontal' | 'horizontal-reverse';
 
 // --- Icon Handling ---
 const AllIcons: Record<string, ElementType> = { ...FaIcons, ...SiIcons };
-const IconComponent = ({ icon, isVertical }: { icon?: string, isVertical: boolean }) => {
-  if (!icon) return <FaGlobe />;
+const IconComponent = ({ icon, isVertical, textColor }: { icon?: string, isVertical: boolean, textColor?: string }) => {
+  if (!icon) return <FaGlobe style={{ color: textColor }} />;
   const iconSize = isVertical ? "h-8 w-8" : "h-10 w-10";
   if (icon.endsWith('.png') || icon.endsWith('.svg')) {
     return <img src={`/api/images/icons/${icon}`} alt="" className={iconSize} />;
   }
   const Icon = AllIcons[icon];
-  return Icon ? <Icon /> : <FaGlobe />;
+  return Icon ? <Icon style={{ color: textColor }} /> : <FaGlobe style={{ color: textColor }} />;
 };
 
 // --- Helper Functions ---
@@ -85,6 +85,14 @@ export const ServiceCard = ({ service, theme, groupAlign, groupLayout, columnCou
     return () => clearInterval(interval);
   }, [service.ping, service.pingMethod]);
 
+  const backgroundColor = hovered
+    ? service.backgroundColor
+      ? service.backgroundColor // a bit darker maybe?
+      : theme.serviceBackgroundHover
+    : service.backgroundColor || theme.serviceBackground;
+  const textColor = service.textColor || theme.text;
+
+
   return (
     <a
       href={service.url}
@@ -92,7 +100,7 @@ export const ServiceCard = ({ service, theme, groupAlign, groupLayout, columnCou
       rel="noopener noreferrer"
       className={`relative rounded-xl py-2 ${paddingClass} shadow-lg flex h-24 transition-colors ${getLayoutClass(layout, align)}`}
       style={{
-        backgroundColor: hovered ? theme.serviceBackgroundHover : theme.serviceBackground,
+        backgroundColor,
       }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
@@ -100,16 +108,16 @@ export const ServiceCard = ({ service, theme, groupAlign, groupLayout, columnCou
       {service.ping && (
         <div className="absolute top-3 right-3 h-3 w-3 rounded-full"
           style={{
-            backgroundColor: status === 'online' ? theme.serviceOnline : status === 'offline' ? theme.serviceOffline : '#6b7280',
+            backgroundColor: status === 'online' ? 'rgba(34, 197, 94, 1)' : status === 'offline' ? 'rgba(239, 68, 68, 1)' : '#6b7280',
           }}
         />
       )}
-      <div className={`flex-shrink-0 ${isVertical ? 'mb-2 text-3xl' : 'mx-3 text-4xl'}`} style={{ color: theme.secondaryText }}>
-        <IconComponent icon={service.icon} isVertical={isVertical} />
+      <div className={`flex-shrink-0 ${isVertical ? 'mb-2 text-3xl' : 'mx-3 text-4xl'}`}>
+        <IconComponent icon={service.icon} isVertical={isVertical} textColor={textColor} />
       </div>
       <div className={getTextAlignClass(align)}>
-        <h3 className={`font-semibold ${isVertical ? 'text-md' : 'text-lg'}`} style={{ color: theme.secondaryText }}>{service.name}</h3>
-        {service.subtitle && columnCount < 5 && <p className="text-xs" style={{ color: theme.secondaryText, opacity: 0.8 }}>{service.subtitle}</p>}
+        <h3 className={`font-semibold ${isVertical ? 'text-md' : 'text-lg'}`} style={{ color: textColor }}>{service.name}</h3>
+        {service.subtitle && columnCount < 5 && <p className="text-xs" style={{ color: textColor, opacity: 0.8 }}>{service.subtitle}</p>}
       </div>
     </a>
   );
