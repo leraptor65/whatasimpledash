@@ -1,18 +1,11 @@
 title: Welcome to Just A Simple Dash!
 defaultColumns: 4
 theme:
-  mainBackground: rgba(17, 24, 39, 1)
+  mainBackground: rgba(20, 20, 20, 1)
   titleBackground: rgba(0, 0, 0, 0.4)
-  primaryText: rgba(255, 255, 255, 1)
-  secondaryText: rgba(169, 177, 214, 1)
-  saveButton: rgba(13, 110, 253, 1)
-  saveButtonHover: rgba(11, 94, 215, 1)
+  text: rgba(255, 255, 255, 1)
   serviceBackground: rgba(22, 27, 34, 1)
   serviceBackgroundHover: rgba(33, 38, 45, 1)
-  serviceOnline: rgba(34, 197, 94, 1)
-  serviceOffline: rgba(239, 68, 68, 1)
-settings:
-  showTitleBackgrounds: true
 backgrounds:
   active: 1756150656669.jpeg
   history:
@@ -26,14 +19,13 @@ backgrounds:
     - 1756339272601.jpeg
 groups:
   - name: Getting Started
-    layout: horizontal
-    align: left
     services:
       - name: Edit This File!
         subtitle: Edit config/services.yml to start
         url: https://github.com/leraptor65/whatasimpledash
         icon: FaWrench
-        ping: http://192.168.68.237:3000
+        backgroundColor: rgba(2,65,4,.5)
+        textColor: rgba(255,255,255,1)
       - name: My GitHub
         subtitle: Visit the project repo
         url: https://github.com/leraptor65/whatasimpledash
@@ -41,14 +33,14 @@ groups:
         ping: https://github.com/leraptor65/whatasimpledash
       - name: Test 1
         align: right
-        icon: ''
-        url: ''
         layout: horizontal-reverse
       - name: Test 2
         align: center
       - name: Test 3
-        layout: vertical
         align: left
+        layout: vertical
+    align: left
+    layout: horizontal
   - name: Group 2
     services:
       - name: Test 4
@@ -56,6 +48,6 @@ groups:
     columns: 1
     services:
       - name: Test 5
-        url: ''
         subtitle: This is a test service card
-services: []
+settings:
+  showTitleBackgrounds: true
