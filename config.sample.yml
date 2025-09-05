@@ -8,6 +8,7 @@ theme:
   serviceBackgroundHover: 'rgba(33, 38, 45, 1)'
 settings:
   showTitleBackgrounds: true
+  backgroundBlur: 0
 backgrounds:
   active: ''
   history: []
