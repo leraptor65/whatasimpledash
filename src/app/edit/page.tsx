@@ -725,6 +725,9 @@ export default function EditPage() {
           {status === 'error' && <span className="text-red-400">Failed to save. Check YAML syntax.</span>}
         </div>
       </div>
+      <footer className="text-center mt-8 text-gray-500 text-sm">
+        <p>What A Simple Dash - Version {process.env.NEXT_PUBLIC_APP_VERSION}</p>
+      </footer>
     </main>
   );
 }
