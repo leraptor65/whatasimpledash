@@ -171,6 +171,14 @@ const FormEditor = ({ configObject, setConfigObject, onConfigUpdate }: { configO
       });
   };
 
+  const handleBlurChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const { value } = e.target;
+      setConfigObject(prev => {
+          if (!prev) return null;
+          return { ...prev, settings: { ...prev.settings, backgroundBlur: parseInt(value) } };
+      });
+  };
+
   const handleFileChange = async (file: File, type: 'icon' | 'background') => {
     const formData = new FormData();
     formData.append('file', file);
@@ -278,6 +286,17 @@ const FormEditor = ({ configObject, setConfigObject, onConfigUpdate }: { configO
                           className="h-4 w-4 rounded border-gray-600 bg-gray-700 text-cyan-600 focus:ring-cyan-500"
                       />
                       <label htmlFor="showTitleBackgrounds" className="text-sm font-medium text-gray-300">Show Title Backgrounds</label>
+                  </div>
+                  <div className="col-span-1 md:col-span-2">
+                        <label className="block text-sm font-medium text-gray-400">Background Blur: {configObject.settings?.backgroundBlur || 0}px</label>
+                        <input
+                            type="range"
+                            min="0"
+                            max="50"
+                            value={configObject.settings?.backgroundBlur || 0}
+                            onChange={handleBlurChange}
+                            className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer"
+                        />
                   </div>
               </div>
 
@@ -467,7 +486,7 @@ const cleanupConfig = (config: any): DashboardConfig => {
     root: ['title', 'defaultColumns', 'theme', 'backgrounds', 'groups', 'services', 'settings'],
     theme: ['mainBackground', 'titleBackground', 'text', 'serviceBackground', 'serviceBackgroundHover'],
     backgrounds: ['active', 'history'],
-    settings: ['showTitleBackgrounds'],
+    settings: ['showTitleBackgrounds', 'backgroundBlur'],
     group: ['name', 'columns', 'services', 'align', 'layout'],
     service: ['name', 'subtitle', 'url', 'icon', 'ping', 'pingMethod', 'align', 'layout', 'backgroundColor', 'textColor']
   };
