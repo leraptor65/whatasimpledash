@@ -41,5 +41,6 @@ export type DashboardConfig = {
   services?: Service[];
   settings?: {
     showTitleBackgrounds?: boolean;
+    backgroundBlur?: number;
   };
 };
