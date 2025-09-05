@@ -96,11 +96,13 @@ export default function DashboardLayout({ initialConfig }: { initialConfig: Dash
   }
 
   const backgroundUrl = config.backgrounds?.active ? `/api/images/backgrounds/${config.backgrounds.active}` : '';
+  const backgroundBlur = config.settings?.backgroundBlur || 0;
 
   const mainStyle: React.CSSProperties = {
     backgroundColor: config.theme.mainBackground,
     color: config.theme.text,
   };
+
   if (backgroundUrl) {
     mainStyle.backgroundImage = `url(${backgroundUrl})`;
   }
@@ -144,6 +146,16 @@ export default function DashboardLayout({ initialConfig }: { initialConfig: Dash
         className={`min-h-screen w-full p-4 md:p-8 relative ${backgroundUrl ? 'bg-cover bg-center bg-fixed' : ''}`}
         style={mainStyle}
       >
+        {backgroundUrl && backgroundBlur > 0 && (
+          <div
+            className="absolute inset-0 bg-cover bg-center bg-fixed"
+            style={{
+              backgroundImage: `url(${backgroundUrl})`,
+              filter: `blur(${backgroundBlur}px)`,
+              zIndex: 0,
+            }}
+          />
+        )}
         <div className="max-w-5xl mx-auto relative z-10">
           <Link href="/edit" className="absolute top-0 right-0 text-white group" title="Settings">
             <FaCog size={24} className="transition-transform group-hover:rotate-90" />

@@ -10,3 +10,4 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./config:/app/config
       - ./public:/app/public
+      - ./public/icons:/app/public/icons
