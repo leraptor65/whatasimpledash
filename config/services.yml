@@ -7,9 +7,8 @@ theme:
   serviceBackground: rgba(22, 27, 34, 1)
   serviceBackgroundHover: rgba(33, 38, 45, 1)
 backgrounds:
-  active: 1756499126393.jpeg
+  active: 1756337247995.jpeg
   history:
-    - 1756152777317.jpeg
     - 1756337247995.jpeg
     - 1756339272601.jpeg
     - 1756499126393.jpeg

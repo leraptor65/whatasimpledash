@@ -10,6 +10,7 @@ import yaml from 'js-yaml';
 import type { DashboardConfig, ServiceGroup, Service } from '../../types';
 import { FaPlus, FaTrash, FaChevronDown, FaUndo, FaArrowUp, FaArrowDown } from 'react-icons/fa';
 import { SketchPicker, type ColorResult } from 'react-color';
+import { FileManager } from '@/components/FileManager';
 
 // --- Default Theme for Reset ---
 const defaultTheme = {
@@ -87,18 +88,7 @@ const CollapsibleSection = ({ title, children, startOpen = false, isNested = fal
 const FormEditor = ({ configObject, setConfigObject, onConfigUpdate }: { configObject: DashboardConfig | null, setConfigObject: React.Dispatch<React.SetStateAction<DashboardConfig | null>>, onConfigUpdate: (newConfig: DashboardConfig) => void }) => {
   if (!configObject) return <div className="text-red-400">Could not parse YAML. Please fix in Raw Editor.</div>;
 
-  const [availableIcons, setAvailableIcons] = useState<string[]>([]);
   const [url, setUrl] = useState('');
-
-  useEffect(() => {
-    fetch('/api/icons')
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          setAvailableIcons(data.icons);
-        }
-      });
-  }, []);
 
   const handleGlobalChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const { name, value } = e.target;
@@ -177,26 +167,6 @@ const FormEditor = ({ configObject, setConfigObject, onConfigUpdate }: { configO
           if (!prev) return null;
           return { ...prev, settings: { ...prev.settings, backgroundBlur: parseInt(value) } };
       });
-  };
-
-  const handleFileChange = async (file: File, type: 'icon' | 'background') => {
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('type', type);
-
-    const response = await fetch('/api/upload', { method: 'POST', body: formData });
-    const data = await response.json();
-
-    if (data.success) {
-      if (type === 'background' && data.config) {
-        onConfigUpdate(data.config);
-      } else if (type === 'icon') {
-        setAvailableIcons(prev => [...prev, data.filename].sort());
-      }
-      alert(`${file.name} uploaded successfully!`);
-    } else {
-      alert(`Error: ${data.error}`);
-    }
   };
 
   const handleUrlDownload = async () => {
@@ -313,22 +283,6 @@ const FormEditor = ({ configObject, setConfigObject, onConfigUpdate }: { configO
                         ))}
                     </div>
                 </CollapsibleSection>
-
-                <CollapsibleSection title="Icons" isNested={true}>
-                    <div className="w-full mb-4">
-                        <label className="block text-sm font-medium text-gray-400">Upload a new icon</label>
-                        <input type="file" accept="image/png, image/svg+xml" className="mt-1 block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-cyan-50 file:text-cyan-700 hover:file:bg-cyan-100" onChange={(e) => { if(e.target.files) handleFileChange(e.target.files[0], 'icon'); e.target.value = ''; }} />
-                    </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-400">Available Icons</label>
-                        <select className="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3">
-                            {availableIcons.length > 0 ? availableIcons.map(icon => (
-                                <option key={icon} value={icon}>{icon}</option>
-                            )) : <option>No custom icons found</option>}
-                        </select>
-                    </div>
-                </CollapsibleSection>
-
                 <CollapsibleSection title="Backgrounds" isNested={true}>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-end mb-6">
                     <div>
@@ -342,7 +296,7 @@ const FormEditor = ({ configObject, setConfigObject, onConfigUpdate }: { configO
                         <span className="text-gray-400 px-4">OR</span>
                         <div className="w-full">
                             <label className="block text-sm font-medium text-gray-400">Upload an Image</label>
-                            <input type="file" accept="image/png, image/jpeg" className="mt-1 block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-cyan-50 file:text-cyan-700 hover:file:bg-cyan-100" onChange={(e) => { if(e.target.files) handleFileChange(e.target.files[0], 'background'); e.target.value = ''; }} />
+                            <input type="file" accept="image/png, image/jpeg" className="mt-1 block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-cyan-50 file:text-cyan-700 hover:file:bg-cyan-100" onChange={(e) => { if (e.target.files) { const file = e.target.files[0]; const formData = new FormData(); formData.append('file', file); fetch('/api/upload', { method: 'POST', body: formData }).then(res => res.json()).then(data => { if (data.success && data.config) { onConfigUpdate(data.config); } else { alert(`Error: ${data.error}`); } }); } e.target.value = ''; }} />
                         </div>
                     </div>
                   </div>
@@ -364,6 +318,14 @@ const FormEditor = ({ configObject, setConfigObject, onConfigUpdate }: { configO
                       ))}
                     </div>
                   </div>
+                </CollapsibleSection>
+                <CollapsibleSection title="Assets" isNested={true}>
+                    <div className="space-y-6">
+                        <FileManager type="backgrounds" onConfigUpdate={onConfigUpdate} />
+                        <div className="border-t border-gray-700 pt-6">
+                            <FileManager type="icons" onConfigUpdate={onConfigUpdate} />
+                        </div>
+                    </div>
                 </CollapsibleSection>
               </div>
           </CollapsibleSection>
