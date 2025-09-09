@@ -95,6 +95,29 @@ const FormEditor = ({ configObject, setConfigObject, onConfigUpdate }: { configO
       setConfigObject(prev => prev ? { ...prev, [name]: value } : null);
   };
 
+  const handleSettingsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const { name, value } = e.target;
+      setConfigObject(prev => {
+          if (!prev) return null;
+          return { ...prev, settings: { ...prev.settings, [name]: value } };
+      });
+  };
+
+  const handleGetIp = async () => {
+    try {
+        const res = await fetch('/api/ip');
+        const data = await res.json();
+        if (data.ip) {
+            setConfigObject(prev => {
+                if (!prev) return null;
+                return { ...prev, settings: { ...prev.settings, localIp: data.ip } };
+            });
+        }
+    } catch (error) {
+        alert('Could not retrieve IP address.');
+    }
+  };
+
   const handleThemeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const { name, value } = e.target;
       setConfigObject(prev => {
@@ -118,10 +141,12 @@ const FormEditor = ({ configObject, setConfigObject, onConfigUpdate }: { configO
   };
 
   const handleServiceChange = (groupIndex: number, serviceIndex: number, e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-      const { name, value } = e.target;
+      const { name, value, type } = e.target;
       const newGroups = [...(configObject.groups || [])];
       // @ts-ignore
-      newGroups[groupIndex].services[serviceIndex][name] = value;
+      const isCheckbox = type === 'checkbox';
+      // @ts-ignore
+      newGroups[groupIndex].services[serviceIndex][name] = isCheckbox ? e.target.checked : value;
       setConfigObject(prev => prev ? { ...prev, groups: newGroups } : null);
   };
 
@@ -247,6 +272,14 @@ const FormEditor = ({ configObject, setConfigObject, onConfigUpdate }: { configO
                       <label className="block text-sm font-medium text-gray-400">Default Columns</label>
                       <input type="number" name="defaultColumns" value={configObject.defaultColumns} min="1" max="6" onChange={e => setConfigObject(prev => prev ? { ...prev, defaultColumns: parseInt(e.target.value) || 4 } : null)} className="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-cyan-500 focus:border-cyan-500"/>
                   </div>
+                  <div className="col-span-1 md:col-span-2">
+                    <label className="block text-sm font-medium text-gray-400">Local IP Address</label>
+                    <div className="flex gap-2">
+                        <input type="text" name="localIp" value={configObject.settings?.localIp || ''} onChange={handleSettingsChange} className="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3"/>
+                        <button onClick={handleGetIp} className="bg-cyan-600 hover:bg-cyan-500 px-4 rounded-md text-sm">Get</button>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">Services marked as "local" will only appear when accessed from this IP.</p>
+                  </div>
                   <div className="col-span-1 md:col-span-2 flex items-center gap-3">
                       <input
                           type="checkbox"
@@ -296,7 +329,7 @@ const FormEditor = ({ configObject, setConfigObject, onConfigUpdate }: { configO
                         <span className="text-gray-400 px-4">OR</span>
                         <div className="w-full">
                             <label className="block text-sm font-medium text-gray-400">Upload an Image</label>
-                            <input type="file" accept="image/png, image/jpeg" className="mt-1 block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-cyan-50 file:text-cyan-700 hover:file:bg-cyan-100" onChange={(e) => { if (e.target.files) { const file = e.target.files[0]; const formData = new FormData(); formData.append('file', file); fetch('/api/upload', { method: 'POST', body: formData }).then(res => res.json()).then(data => { if (data.success && data.config) { onConfigUpdate(data.config); } else { alert(`Error: ${data.error}`); } }); } e.target.value = ''; }} />
+                            <input type="file" accept="image/png, image/jpeg" className="mt-1 block w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-cyan-50 file:text-cyan-700 hover:file:bg-cyan-100" onChange={(e) => { if (e.target.files) { const file = e.target.files[0]; const formData = new FormData(); formData.append('file', file); formData.append('type', 'background'); fetch('/api/upload', { method: 'POST', body: formData }).then(res => res.json()).then(data => { if (data.success && data.config) { onConfigUpdate(data.config); } else { alert(`Error: ${data.error}`); } }); } e.target.value = ''; }} />
                         </div>
                     </div>
                   </div>
@@ -381,12 +414,14 @@ const FormEditor = ({ configObject, setConfigObject, onConfigUpdate }: { configO
                                 </div>
                                 {(group.services || []).map((service, serviceIndex) => (
                                     <div key={serviceIndex} className="p-2 border-t border-gray-700 space-y-2">
-                                        <div className="flex justify-end">
-                                        <button onClick={() => moveService(groupIndex, serviceIndex, 'up')} className="p-1 text-gray-400 hover:text-white"><FaArrowUp /></button>
-                                        <button onClick={() => moveService(groupIndex, serviceIndex, 'down')} className="p-1 text-gray-400 hover:text-white"><FaArrowDown /></button>
-                                          <button onClick={() => handleDeleteService(groupIndex, serviceIndex)} className="text-red-500 hover:text-red-400 p-1 text-xs">
-                                              <FaTrash />
-                                          </button>
+                                        <div className="flex justify-end items-center">
+                                            <input type="checkbox" name="local" id={`local-${groupIndex}-${serviceIndex}`} checked={service.local || false} onChange={(e) => handleServiceChange(groupIndex, serviceIndex, e)} className="h-4 w-4 rounded border-gray-600 bg-gray-700 text-cyan-600 focus:ring-cyan-500 mr-2"/>
+                                            <label htmlFor={`local-${groupIndex}-${serviceIndex}`} className="text-sm text-gray-400 mr-auto">Local</label>
+                                            <button onClick={() => moveService(groupIndex, serviceIndex, 'up')} className="p-1 text-gray-400 hover:text-white"><FaArrowUp /></button>
+                                            <button onClick={() => moveService(groupIndex, serviceIndex, 'down')} className="p-1 text-gray-400 hover:text-white"><FaArrowDown /></button>
+                                            <button onClick={() => handleDeleteService(groupIndex, serviceIndex)} className="text-red-500 hover:text-red-400 p-1 text-xs">
+                                                <FaTrash />
+                                            </button>
                                         </div>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
                                             <input type="text" placeholder="Name" name="name" value={service.name || ''} onChange={(e) => handleServiceChange(groupIndex, serviceIndex, e)} className="bg-gray-600 rounded p-1"/>
@@ -448,9 +483,9 @@ const cleanupConfig = (config: any): DashboardConfig => {
     root: ['title', 'defaultColumns', 'theme', 'backgrounds', 'groups', 'services', 'settings'],
     theme: ['mainBackground', 'titleBackground', 'text', 'serviceBackground', 'serviceBackgroundHover'],
     backgrounds: ['active', 'history'],
-    settings: ['showTitleBackgrounds', 'backgroundBlur'],
+    settings: ['showTitleBackgrounds', 'backgroundBlur', 'localIp'],
     group: ['name', 'columns', 'services', 'align', 'layout'],
-    service: ['name', 'subtitle', 'url', 'icon', 'ping', 'pingMethod', 'align', 'layout', 'backgroundColor', 'textColor']
+    service: ['name', 'subtitle', 'url', 'icon', 'ping', 'pingMethod', 'align', 'layout', 'backgroundColor', 'textColor', 'local']
   };
 
   // Clean root level
