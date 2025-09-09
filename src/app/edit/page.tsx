@@ -89,6 +89,12 @@ const FormEditor = ({ configObject, setConfigObject, onConfigUpdate }: { configO
   if (!configObject) return <div className="text-red-400">Could not parse YAML. Please fix in Raw Editor.</div>;
 
   const [url, setUrl] = useState('');
+  const [expandedServices, setExpandedServices] = useState<Record<string, boolean>>({});
+
+  const toggleService = (groupIndex: number, serviceIndex: number) => {
+    const key = `${groupIndex}-${serviceIndex}`;
+    setExpandedServices(prev => ({ ...prev, [key]: !prev[key] }));
+  };
 
   const handleGlobalChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const { name, value } = e.target;
@@ -412,58 +418,71 @@ const FormEditor = ({ configObject, setConfigObject, onConfigUpdate }: { configO
                                       <FaPlus /> Add Service
                                   </button>
                                 </div>
-                                {(group.services || []).map((service, serviceIndex) => (
-                                    <div key={serviceIndex} className="p-2 border-t border-gray-700 space-y-2">
-                                        <div className="flex justify-end items-center">
-                                            <input type="checkbox" name="local" id={`local-${groupIndex}-${serviceIndex}`} checked={service.local || false} onChange={(e) => handleServiceChange(groupIndex, serviceIndex, e)} className="h-4 w-4 rounded border-gray-600 bg-gray-700 text-cyan-600 focus:ring-cyan-500 mr-2"/>
-                                            <label htmlFor={`local-${groupIndex}-${serviceIndex}`} className="text-sm text-gray-400 mr-auto">Local</label>
-                                            <button onClick={() => moveService(groupIndex, serviceIndex, 'up')} className="p-1 text-gray-400 hover:text-white"><FaArrowUp /></button>
-                                            <button onClick={() => moveService(groupIndex, serviceIndex, 'down')} className="p-1 text-gray-400 hover:text-white"><FaArrowDown /></button>
-                                            <button onClick={() => handleDeleteService(groupIndex, serviceIndex)} className="text-red-500 hover:text-red-400 p-1 text-xs">
-                                                <FaTrash />
-                                            </button>
+                                {(group.services || []).map((service, serviceIndex) => {
+                                    const isExpanded = expandedServices[`${groupIndex}-${serviceIndex}`];
+                                    return (
+                                        <div key={serviceIndex} className="p-2 border-t border-gray-700 space-y-2">
+                                            <div className="flex justify-between items-center cursor-pointer" onClick={() => toggleService(groupIndex, serviceIndex)}>
+                                                <div className="flex items-center">
+                                                    <button onClick={(e) => { e.stopPropagation(); moveService(groupIndex, serviceIndex, 'up'); }} className="p-1 text-gray-400 hover:text-white"><FaArrowUp /></button>
+                                                    <button onClick={(e) => { e.stopPropagation(); moveService(groupIndex, serviceIndex, 'down'); }} className="p-1 text-gray-400 hover:text-white"><FaArrowDown /></button>
+                                                    <h4 className="font-semibold ml-2">{service.name || 'New Service'}</h4>
+                                                </div>
+                                                <div className="flex items-center">
+                                                    <label htmlFor={`local-${groupIndex}-${serviceIndex}`} className="text-sm text-gray-400 mr-2 flex items-center">
+                                                        <input type="checkbox" name="local" id={`local-${groupIndex}-${serviceIndex}`} checked={service.local || false} onChange={(e) => handleServiceChange(groupIndex, serviceIndex, e)} onClick={(e) => e.stopPropagation()} className="h-4 w-4 rounded border-gray-600 bg-gray-700 text-cyan-600 focus:ring-cyan-500 mr-2"/>
+                                                        Local
+                                                    </label>
+                                                    <button onClick={(e) => { e.stopPropagation(); handleDeleteService(groupIndex, serviceIndex); }} className="text-red-500 hover:text-red-400 p-1 text-xs">
+                                                        <FaTrash />
+                                                    </button>
+                                                    <FaChevronDown className={`transition-transform duration-200 ml-2 ${isExpanded ? 'rotate-180' : ''}`} />
+                                                </div>
+                                            </div>
+                                            {isExpanded && (
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 pt-2">
+                                                    <input type="text" placeholder="Name" name="name" value={service.name || ''} onChange={(e) => handleServiceChange(groupIndex, serviceIndex, e)} className="bg-gray-600 rounded p-1"/>
+                                                    <input type="text" placeholder="URL" name="url" value={service.url || ''} onChange={(e) => handleServiceChange(groupIndex, serviceIndex, e)} className="bg-gray-600 rounded p-1"/>
+                                                    <input type="text" placeholder="Subtitle" name="subtitle" value={service.subtitle || ''} onChange={(e) => handleServiceChange(groupIndex, serviceIndex, e)} className="bg-gray-600 rounded p-1"/>
+                                                    <input type="text" placeholder="Icon (e.g., FaGithub or icon.png)" name="icon" value={service.icon || ''} onChange={(e) => handleServiceChange(groupIndex, serviceIndex, e)} className="bg-gray-600 rounded p-1"/>
+                                                    <ColorPicker label="Background Color (optional)" name="backgroundColor" value={service.backgroundColor || ''} onChange={(e) => handleServiceChange(groupIndex, serviceIndex, e)} />
+                                                    <ColorPicker label="Text Color (optional)" name="textColor" value={service.textColor || ''} onChange={(e) => handleServiceChange(groupIndex, serviceIndex, e)} />
+                                                    <div className="col-span-1 md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-2">
+                                                        <div>
+                                                            <label className="text-xs text-gray-400">Ping URL (optional)</label>
+                                                            <input type="text" placeholder="Ping URL" name="ping" value={service.ping || ''} onChange={(e) => handleServiceChange(groupIndex, serviceIndex, e)} className="mt-1 block w-full bg-gray-600 border-gray-500 rounded-md shadow-sm py-1 px-2 text-sm"/>
+                                                        </div>
+                                                        <div>
+                                                            <label className="text-xs text-gray-400">Ping Method</label>
+                                                            <select name="pingMethod" value={service.pingMethod || 'HEAD'} onChange={(e) => handleServiceChange(groupIndex, serviceIndex, e)} className="mt-1 block w-full bg-gray-600 border-gray-500 rounded-md shadow-sm py-1 px-2 text-sm">
+                                                                <option value="HEAD">HEAD</option>
+                                                                <option value="GET">GET</option>
+                                                            </select>
+                                                        </div>
+                                                        <div>
+                                                            <label className="text-xs text-gray-400">Layout (optional)</label>
+                                                            <select name="layout" value={service.layout || ''} onChange={(e) => handleServiceChange(groupIndex, serviceIndex, e)} className="mt-1 block w-full bg-gray-600 border-gray-500 rounded-md shadow-sm py-1 px-2 text-sm">
+                                                                <option value="">Inherit from group</option>
+                                                                <option value="vertical">Vertical</option>
+                                                                <option value="horizontal">Horizontal</option>
+                                                                <option value="horizontal-reverse">Horizontal Reverse</option>
+                                                            </select>
+                                                        </div>
+                                                        <div>
+                                                            <label className="text-xs text-gray-400">Alignment (optional)</label>
+                                                            <select name="align" value={service.align || ''} onChange={(e) => handleServiceChange(groupIndex, serviceIndex, e)} className="mt-1 block w-full bg-gray-600 border-gray-500 rounded-md shadow-sm py-1 px-2 text-sm">
+                                                                <option value="">Inherit from group</option>
+                                                                <option value="left">Left</option>
+                                                                <option value="center">Center</option>
+                                                                <option value="right">Right</option>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                                            <input type="text" placeholder="Name" name="name" value={service.name || ''} onChange={(e) => handleServiceChange(groupIndex, serviceIndex, e)} className="bg-gray-600 rounded p-1"/>
-                                            <input type="text" placeholder="URL" name="url" value={service.url || ''} onChange={(e) => handleServiceChange(groupIndex, serviceIndex, e)} className="bg-gray-600 rounded p-1"/>
-                                            <input type="text" placeholder="Subtitle" name="subtitle" value={service.subtitle || ''} onChange={(e) => handleServiceChange(groupIndex, serviceIndex, e)} className="bg-gray-600 rounded p-1"/>
-                                            <input type="text" placeholder="Icon (e.g., FaGithub or icon.png)" name="icon" value={service.icon || ''} onChange={(e) => handleServiceChange(groupIndex, serviceIndex, e)} className="bg-gray-600 rounded p-1"/>
-                                            <ColorPicker label="Background Color (optional)" name="backgroundColor" value={service.backgroundColor || ''} onChange={(e) => handleServiceChange(groupIndex, serviceIndex, e)} />
-                                            <ColorPicker label="Text Color (optional)" name="textColor" value={service.textColor || ''} onChange={(e) => handleServiceChange(groupIndex, serviceIndex, e)} />
-                                        </div>
-                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                                            <div>
-                                                <label className="text-xs text-gray-400">Ping URL (optional)</label>
-                                                <input type="text" placeholder="Ping URL" name="ping" value={service.ping || ''} onChange={(e) => handleServiceChange(groupIndex, serviceIndex, e)} className="mt-1 block w-full bg-gray-600 border-gray-500 rounded-md shadow-sm py-1 px-2 text-sm"/>
-                                            </div>
-                                            <div>
-                                                <label className="text-xs text-gray-400">Ping Method</label>
-                                                <select name="pingMethod" value={service.pingMethod || 'HEAD'} onChange={(e) => handleServiceChange(groupIndex, serviceIndex, e)} className="mt-1 block w-full bg-gray-600 border-gray-500 rounded-md shadow-sm py-1 px-2 text-sm">
-                                                    <option value="HEAD">HEAD</option>
-                                                    <option value="GET">GET</option>
-                                                </select>
-                                            </div>
-                                            <div>
-                                                <label className="text-xs text-gray-400">Layout (optional)</label>
-                                                <select name="layout" value={service.layout || ''} onChange={(e) => handleServiceChange(groupIndex, serviceIndex, e)} className="mt-1 block w-full bg-gray-600 border-gray-500 rounded-md shadow-sm py-1 px-2 text-sm">
-                                                    <option value="">Inherit from group</option>
-                                                    <option value="vertical">Vertical</option>
-                                                    <option value="horizontal">Horizontal</option>
-                                                    <option value="horizontal-reverse">Horizontal Reverse</option>
-                                                </select>
-                                            </div>
-                                            <div>
-                                                <label className="text-xs text-gray-400">Alignment (optional)</label>
-                                                <select name="align" value={service.align || ''} onChange={(e) => handleServiceChange(groupIndex, serviceIndex, e)} className="mt-1 block w-full bg-gray-600 border-gray-500 rounded-md shadow-sm py-1 px-2 text-sm">
-                                                    <option value="">Inherit from group</option>
-                                                    <option value="left">Left</option>
-                                                    <option value="center">Center</option>
-                                                    <option value="right">Right</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
+                                    )
+                                })}
                             </div>
                         </div>
                     </CollapsibleSection>
