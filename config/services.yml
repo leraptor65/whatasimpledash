@@ -7,11 +7,13 @@ theme:
   serviceBackground: rgba(22, 27, 34, 1)
   serviceBackgroundHover: rgba(33, 38, 45, 1)
 backgrounds:
-  active: 1756337247995.jpeg
+  active: 1757448235930.jpeg
   history:
     - 1756337247995.jpeg
     - 1756339272601.jpeg
     - 1756499126393.jpeg
+    - 1757448221924.jpeg
+    - 1757448235930.jpeg
 groups:
   - name: Getting Started
     services:
@@ -21,6 +23,7 @@ groups:
         icon: FaWrench
         backgroundColor: rgba(2,65,4,.5)
         textColor: rgba(255,255,255,1)
+        local: true
       - name: My GitHub
         subtitle: Visit the project repo
         url: https://github.com/leraptor65/whatasimpledash
@@ -46,4 +49,5 @@ groups:
         subtitle: This is a test service card
 settings:
   showTitleBackgrounds: true
-  backgroundBlur: 19
+  backgroundBlur: 4
+  localIp: 192.168.68.180

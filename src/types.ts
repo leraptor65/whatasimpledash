@@ -9,6 +9,7 @@ export type Service = {
   layout?: 'vertical' | 'horizontal' | 'horizontal-reverse';
   backgroundColor?: string;
   textColor?: string;
+  local?: boolean;
 };
 
 export type ServiceGroup = {
@@ -42,5 +43,6 @@ export type DashboardConfig = {
   settings?: {
     showTitleBackgrounds?: boolean;
     backgroundBlur?: number;
+    localIp?: string;
   };
 };
