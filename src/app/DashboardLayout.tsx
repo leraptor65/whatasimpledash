@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
-import { FaCog, FaSearch } from 'react-icons/fa';
+import { FaCog, FaSearch, FaHome } from 'react-icons/fa';
 import type { DashboardConfig, Service, ServiceGroup } from '../types';
 import Fuse from 'fuse.js';
 import { ServiceCard } from '@/components/ServiceCard';
@@ -18,22 +18,85 @@ export default function DashboardLayout({ initialConfig }: { initialConfig: Dash
   const [config, setConfig] = useState(initialConfig);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
+  const [currentUserIp, setCurrentUserIp] = useState<string | null>(null);
+  const [showLocalOnly, setShowLocalOnly] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    // Fetch the user's IP address when the component mounts
+    const fetchIp = async () => {
+        try {
+            const res = await fetch('/api/ip');
+            const data = await res.json();
+            setCurrentUserIp(data.ip);
+        } catch (error) {
+            console.error("Could not fetch IP address:", error);
+        }
+    };
+    fetchIp();
+  }, []);
+
+  const filteredConfig = useMemo(() => {
+    if (showLocalOnly) {
+        const localOnlyConfig = { ...config };
+        const filterServices = (services: Service[]) => services.filter(service => service.local);
+
+        if (localOnlyConfig.groups) {
+            localOnlyConfig.groups = localOnlyConfig.groups
+                .map(group => ({
+                    ...group,
+                    services: filterServices(group.services || []),
+                }))
+                .filter(group => group.services.length > 0);
+        }
+
+        if (localOnlyConfig.services) {
+            localOnlyConfig.services = filterServices(localOnlyConfig.services);
+        }
+        return localOnlyConfig;
+    }
+
+
+    if (!currentUserIp || !config.settings?.localIp) {
+        return config;
+    }
+
+    const isLocalUser = currentUserIp === config.settings.localIp;
+
+    const filterServices = (services: Service[]) => services.filter(service => !service.local || isLocalUser);
+
+    const newConfig = { ...config };
+
+    if (newConfig.groups) {
+        newConfig.groups = newConfig.groups
+            .map(group => ({
+                ...group,
+                services: filterServices(group.services || []),
+            }))
+            .filter(group => group.services.length > 0);
+    }
+
+    if (newConfig.services) {
+        newConfig.services = filterServices(newConfig.services);
+    }
+
+    return newConfig;
+  }, [config, currentUserIp, showLocalOnly]);
 
   const allServices = useMemo(() => {
     const services: Service[] = [];
-    if (config.groups) {
-      for (const group of config.groups) {
+    if (filteredConfig.groups) {
+      for (const group of filteredConfig.groups) {
         if (group.services) {
           services.push(...group.services);
         }
       }
     }
-    if (config.services) {
-      services.push(...config.services);
+    if (filteredConfig.services) {
+      services.push(...filteredConfig.services);
     }
     return services;
-  }, [config]);
+  }, [filteredConfig]);
 
   const fuse = useMemo(() => new Fuse(allServices, {
     keys: ['name', 'subtitle', 'url'],
@@ -157,12 +220,18 @@ export default function DashboardLayout({ initialConfig }: { initialConfig: Dash
           />
         )}
         <div className="max-w-5xl mx-auto relative z-10">
-          <Link href="/edit" className="absolute top-0 right-0 text-white group" title="Settings">
-            <FaCog size={24} className="transition-transform group-hover:rotate-90" />
-            <span className="absolute bottom-full right-0 mb-2 hidden group-hover:block bg-gray-800 text-white text-xs rounded py-1 px-2">
-              Settings
-            </span>
-          </Link>
+            <button onClick={() => setShowLocalOnly(!showLocalOnly)} className="absolute top-0 left-0 text-white group" title="Toggle Local View">
+                <FaHome size={24} className={`transition-colors ${showLocalOnly ? 'text-cyan-400' : ''}`} />
+                <span className="absolute bottom-full left-0 mb-2 hidden group-hover:block bg-gray-800 text-white text-xs rounded py-1 px-2 whitespace-nowrap">
+                    {showLocalOnly ? 'Show All Services' : 'Show Local Only'}
+                </span>
+            </button>
+            <Link href="/edit" className="absolute top-0 right-0 text-white group" title="Settings">
+                <FaCog size={24} className="transition-transform group-hover:rotate-90" />
+                <span className="absolute bottom-full right-0 mb-2 hidden group-hover:block bg-gray-800 text-white text-xs rounded py-1 px-2">
+                Settings
+                </span>
+            </Link>
 
           <div className="text-center mb-8">
               {config.settings?.showTitleBackgrounds ? (
@@ -174,7 +243,7 @@ export default function DashboardLayout({ initialConfig }: { initialConfig: Dash
               )}
           </div>
 
-          {config.groups.map((group: ServiceGroup) => {
+          {filteredConfig.groups.map((group: ServiceGroup) => {
             const columnCount = group.columns || config.defaultColumns;
             return (
               <div key={group.name} className="mb-8">
@@ -194,7 +263,7 @@ export default function DashboardLayout({ initialConfig }: { initialConfig: Dash
             );
           })}
 
-          {config.services && config.services.length > 0 && (
+          {filteredConfig.services && filteredConfig.services.length > 0 && (
             <div>
               {config.settings?.showTitleBackgrounds ? (
                 <div className="p-2 rounded-lg mb-4" style={titleBackgroundStyle}>
@@ -204,7 +273,7 @@ export default function DashboardLayout({ initialConfig }: { initialConfig: Dash
                 <h2 className="text-2xl font-semibold mb-4" style={{ color: config.theme.text }}>Services</h2>
               )}
               <div className={`grid grid-cols-1 ${getGridColsClass(config.defaultColumns)} gap-4`}>
-                {config.services.map((service: Service) => {
+                {filteredConfig.services.map((service: Service) => {
                   return <ServiceCard key={service.name} service={service} theme={config.theme} columnCount={config.defaultColumns} />;
                 })}
               </div>
