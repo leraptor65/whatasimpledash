@@ -1,13 +1,17 @@
 import DashboardLayout from './DashboardLayout';
 import type { DashboardConfig } from '../types';
+import fs from 'fs/promises';
+import path from 'path';
+import yaml from 'js-yaml';
 
 async function getDashboardConfig(): Promise<DashboardConfig | null> {
   try {
-    const res = await fetch('http://localhost:3000/api/config', { cache: 'no-store' });
-    return res.ok ? res.json() : null;
-  } catch { 
+    const configPath = path.join(process.cwd(), 'config', 'services.yml');
+    const fileContents = await fs.readFile(configPath, 'utf8');
+    return yaml.load(fileContents) as DashboardConfig;
+  } catch {
     console.error("Failed to fetch dashboard config during server-side rendering.");
-    return null; 
+    return null;
   }
 }
 
