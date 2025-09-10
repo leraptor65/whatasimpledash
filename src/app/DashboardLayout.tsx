@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import { FaCog, FaSearch, FaHome } from 'react-icons/fa';
 import type { DashboardConfig, Service, ServiceGroup } from '../types';
-import Fuse from 'fuse.js';
+import Fuse, { type FuseResult } from 'fuse.js';
 import { ServiceCard } from '@/components/ServiceCard';
 
 // --- Helper function for grid columns ---
@@ -14,8 +14,8 @@ const getGridColsClass = (cols: number) => ({
 }[cols] || "md:grid-cols-4");
 
 // --- Main Layout Component ---
-export default function DashboardLayout({ initialConfig }: { initialConfig: DashboardConfig }) {
-  const [config, setConfig] = useState(initialConfig);
+export default function DashboardLayout() {
+  const [config, setConfig] = useState<DashboardConfig | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [currentUserIp, setCurrentUserIp] = useState<string | null>(null);
@@ -36,7 +36,45 @@ export default function DashboardLayout({ initialConfig }: { initialConfig: Dash
     fetchIp();
   }, []);
 
+  useEffect(() => {
+    const fetchConfig = async () => {
+      try {
+        const configRes = await fetch('/api/config');
+        if (configRes.ok) {
+          const newConfig = await configRes.json();
+          setConfig(newConfig);
+        }
+      } catch (error) {
+        console.error("Failed to fetch initial config:", error);
+      }
+    };
+
+    fetchConfig(); // Fetch config on initial component mount
+
+    const interval = setInterval(async () => {
+      try {
+        const configRes = await fetch('/api/config');
+        if (configRes.ok) {
+          const newConfig = await configRes.json();
+          setConfig(prevConfig => {
+            // Only update state if the config has actually changed
+            if (JSON.stringify(newConfig) !== JSON.stringify(prevConfig)) {
+              return newConfig;
+            }
+            return prevConfig;
+          });
+        }
+      } catch (error) {
+        console.error("Failed to refresh data:", error);
+      }
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, []);
+
   const filteredConfig = useMemo(() => {
+    if (!config) return null;
+
     if (showLocalOnly) {
         const localOnlyConfig = { ...config };
         const filterServices = (services: Service[]) => services.filter(service => service.local);
@@ -84,6 +122,7 @@ export default function DashboardLayout({ initialConfig }: { initialConfig: Dash
   }, [config, currentUserIp, showLocalOnly]);
 
   const allServices = useMemo(() => {
+    if (!filteredConfig) return [];
     const services: Service[] = [];
     if (filteredConfig.groups) {
       for (const group of filteredConfig.groups) {
@@ -103,7 +142,7 @@ export default function DashboardLayout({ initialConfig }: { initialConfig: Dash
     threshold: 0.3,
   }), [allServices]);
 
-  const searchResults = searchQuery ? fuse.search(searchQuery).map(result => result.item) : allServices;
+  const searchResults = searchQuery ? fuse.search(searchQuery).map((result: FuseResult<Service>) => result.item) : allServices;
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -136,25 +175,7 @@ export default function DashboardLayout({ initialConfig }: { initialConfig: Dash
       }
   }, [isSearching]);
 
-  useEffect(() => {
-    const interval = setInterval(async () => {
-      try {
-        const configRes = await fetch('/api/config');
-        if (configRes.ok) {
-          const newConfig = await configRes.json();
-          if (JSON.stringify(newConfig) !== JSON.stringify(config)) {
-            setConfig(newConfig);
-          }
-        }
-      } catch (error) {
-        console.error("Failed to refresh data:", error);
-      }
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, [config]);
-
-  if (!config) {
+  if (!config || !filteredConfig) {
     return <main className="min-h-screen p-8" style={{backgroundColor: '#111827', color: '#ef4444'}}>Loading configuration...</main>;
   }
 
@@ -194,7 +215,7 @@ export default function DashboardLayout({ initialConfig }: { initialConfig: Dash
           <div className="mt-4 w-full max-w-5xl overflow-y-auto">
             <div className={`grid grid-cols-1 ${getGridColsClass(config.defaultColumns)} gap-4 p-4`}>
                 {searchResults.length > 0 ? (
-                    searchResults.map((service) => (
+                    searchResults.map((service: Service) => (
                         <ServiceCard key={service.name} service={service} theme={config.theme} columnCount={config.defaultColumns} />
                     ))
                 ) : (
