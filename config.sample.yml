@@ -12,38 +12,29 @@ settings:
 backgrounds:
   active: ''
   history: []
+widgets:
+  columns: 2
+  items:
+    - name: Clock
+      type: clock
+      timeZone: "America/New_York"
+      format: "12h"
+    - name: Weather
+      type: weather
+      provider: openweathermap
+      location: "New York"
+      apiKey: "YOUR_OPENWEATHERMAP_API_KEY"
+      units: "imperial"
 groups:
   - name: Getting Started
-    layout: horizontal
-    align: left
+    columns: 4
     services:
       - name: Edit This File!
         subtitle: Edit config/services.yml to start
         url: https://github.com/leraptor65/whatasimpledash
         icon: FaWrench
-        ping: http://192.168.68.237:3000
       - name: My GitHub
         subtitle: Visit the project repo
         url: https://github.com/leraptor65/whatasimpledash
         icon: FaGithub
         ping: https://github.com/leraptor65/whatasimpledash
-      - name: Test 1
-        align: right
-        icon: ''
-        url: ''
-        layout: horizontal-reverse
-      - name: Test 2
-        align: center
-      - name: Test 3
-        layout: vertical
-        align: left
-  - name: Group 2
-    services:
-      - name: Test 4
-  - name: Group 3
-    columns: 1
-    services:
-      - name: Test 5
-        url: ''
-        subtitle: This is a test service card
-services: []

@@ -7,6 +7,7 @@ import { PiNetwork, PiNetworkFill } from 'react-icons/pi';
 import type { DashboardConfig, Service, ServiceGroup } from '../types';
 import Fuse, { type FuseResult } from 'fuse.js';
 import { ServiceCard } from '@/components/ServiceCard';
+import { WidgetCard } from '@/components/WidgetCard';
 
 // --- Helper function for grid columns ---
 const getGridColsClass = (cols: number) => ({
@@ -270,6 +271,17 @@ export default function DashboardLayout() {
               )}
           </div>
 
+          {/* Widgets Section */}
+          {filteredConfig.widgets && filteredConfig.widgets.items.length > 0 && (
+            <div className="mb-8">
+              <div className={`grid grid-cols-1 ${getGridColsClass(filteredConfig.widgets.columns)} gap-4`}>
+                {filteredConfig.widgets.items.map((widget, index) => (
+                  <WidgetCard key={index} widget={widget} theme={config.theme} />
+                ))}
+              </div>
+            </div>
+          )}
+
           {filteredConfig.groups.map((group: ServiceGroup) => {
             const columnCount = group.columns || config.defaultColumns;
             return (
@@ -289,23 +301,7 @@ export default function DashboardLayout() {
               </div>
             );
           })}
-
-          {filteredConfig.services && filteredConfig.services.length > 0 && (
-            <div>
-              {config.settings?.showTitleBackgrounds ? (
-                <div className="p-2 rounded-lg mb-4" style={titleBackgroundStyle}>
-                  <h2 className="text-2xl font-semibold" style={{ color: config.theme.text }}>Services</h2>
-                </div>
-              ) : (
-                <h2 className="text-2xl font-semibold mb-4" style={{ color: config.theme.text }}>Services</h2>
-              )}
-              <div className={`grid grid-cols-1 ${getGridColsClass(config.defaultColumns)} gap-4`}>
-                {filteredConfig.services.map((service: Service) => {
-                  return <ServiceCard key={service.name} service={service} theme={config.theme} columnCount={config.defaultColumns} />;
-                })}
-              </div>
-            </div>
-          )}
+          
         </div>
       </main>
     </>
