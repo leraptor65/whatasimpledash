@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
-import { FaCog, FaSearch, FaHome } from 'react-icons/fa';
+import { FaCog, FaSearch } from 'react-icons/fa';
+import { PiNetwork, PiNetworkFill } from 'react-icons/pi';
 import type { DashboardConfig, Service, ServiceGroup } from '../types';
 import Fuse, { type FuseResult } from 'fuse.js';
 import { ServiceCard } from '@/components/ServiceCard';
@@ -241,18 +242,23 @@ export default function DashboardLayout() {
           />
         )}
         <div className="max-w-5xl mx-auto relative z-10">
-            <button onClick={() => setShowLocalOnly(!showLocalOnly)} className="absolute top-0 left-0 text-white group" title="Toggle Local View">
-                <FaHome size={24} className={`transition-colors ${showLocalOnly ? 'text-cyan-400' : ''}`} />
-                <span className="absolute bottom-full left-0 mb-2 hidden group-hover:block bg-gray-800 text-white text-xs rounded py-1 px-2 whitespace-nowrap">
-                    {showLocalOnly ? 'Show All Services' : 'Show Local Only'}
-                </span>
-            </button>
-            <Link href="/edit" className="absolute top-0 right-0 text-white group" title="Settings">
+          <div className="absolute top-0 left-0 h-14 flex items-center rounded-lg" style={titleBackgroundStyle}>
+              <button onClick={() => setShowLocalOnly(!showLocalOnly)} className="p-4 group" title="Toggle Local View" style={{ color: config.theme.text }}>
+                  {showLocalOnly ? <PiNetworkFill size={24} /> : <PiNetwork size={24} />}
+                  <span className="absolute bottom-full left-0 mb-2 hidden group-hover:block bg-gray-800 text-white text-xs rounded py-1 px-2 whitespace-nowrap">
+                      {showLocalOnly ? 'Show All Services' : 'Show Local Only'}
+                  </span>
+              </button>
+            </div>
+            <div className="absolute top-0 right-0 h-14 flex items-center rounded-lg" style={titleBackgroundStyle}>
+            <Link href="/edit" className="p-4 group" title="Settings" style={{ color: config.theme.text }}>
                 <FaCog size={24} className="transition-transform group-hover:rotate-90" />
                 <span className="absolute bottom-full right-0 mb-2 hidden group-hover:block bg-gray-800 text-white text-xs rounded py-1 px-2">
                 Settings
                 </span>
             </Link>
+          </div>
+
 
           <div className="text-center mb-8">
               {config.settings?.showTitleBackgrounds ? (
