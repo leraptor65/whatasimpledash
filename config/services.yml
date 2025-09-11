@@ -14,6 +14,13 @@ backgrounds:
     - 1756499126393.jpeg
     - 1757448221924.jpeg
     - 1757448235930.jpeg
+widgets:
+  columns: 1
+  items:
+    - name: Clock
+      type: clock
+    - name: New Widget
+      type: clock
 groups:
   - name: Getting Started
     services:
@@ -37,6 +44,7 @@ groups:
       - name: Test 3
         align: left
         layout: vertical
+      - name: New Service
     align: left
     layout: horizontal
   - name: Group 2
@@ -47,6 +55,9 @@ groups:
     services:
       - name: Test 5
         subtitle: This is a test service card
+services:
+  - name: New Item
+    type: service
 settings:
   showTitleBackgrounds: true
   backgroundBlur: 4
