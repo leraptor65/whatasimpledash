@@ -7,10 +7,11 @@ import { highlight, languages } from 'prismjs/components/prism-core';
 import 'prismjs/components/prism-yaml';
 import 'prismjs/themes/prism-tomorrow.css';
 import yaml from 'js-yaml';
-import type { DashboardConfig, ServiceGroup, Service } from '../../types';
+import type { DashboardConfig, ServiceGroup, Service, WidgetConfig } from '../../types';
 import { FaPlus, FaTrash, FaChevronDown, FaUndo, FaArrowUp, FaArrowDown } from 'react-icons/fa';
 import { SketchPicker, type ColorResult } from 'react-color';
 import { FileManager } from '@/components/FileManager';
+import { timezones } from '@/data/timezones';
 
 // --- Default Theme for Reset ---
 const defaultTheme = {
@@ -89,11 +90,10 @@ const FormEditor = ({ configObject, setConfigObject, onConfigUpdate }: { configO
   if (!configObject) return <div className="text-red-400">Could not parse YAML. Please fix in Raw Editor.</div>;
 
   const [url, setUrl] = useState('');
-  const [expandedServices, setExpandedServices] = useState<Record<string, boolean>>({});
+  const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({});
 
-  const toggleService = (groupIndex: number, serviceIndex: number) => {
-    const key = `${groupIndex}-${serviceIndex}`;
-    setExpandedServices(prev => ({ ...prev, [key]: !prev[key] }));
+  const toggleItem = (key: string) => {
+    setExpandedItems(prev => ({ ...prev, [key]: !prev[key] }));
   };
 
   const handleGlobalChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -145,17 +145,52 @@ const FormEditor = ({ configObject, setConfigObject, onConfigUpdate }: { configO
       newGroups[index][name] = name === 'columns' ? parseInt(value) : value;
       setConfigObject(prev => prev ? { ...prev, groups: newGroups } : null);
   };
-
-  const handleServiceChange = (groupIndex: number, serviceIndex: number, e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-      const { name, value, type } = e.target;
-      const newGroups = [...(configObject.groups || [])];
+  
+  const handleServiceChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>, index: number, groupIndex: number) => {
+    const { name, value, type } = e.target;
+    const newConfig = { ...configObject } as DashboardConfig;
+    const service = newConfig.groups[groupIndex].services[index];
+    const isCheckbox = type === 'checkbox';
       // @ts-ignore
-      const isCheckbox = type === 'checkbox';
-      // @ts-ignore
-      newGroups[groupIndex].services[serviceIndex][name] = isCheckbox ? e.target.checked : value;
-      setConfigObject(prev => prev ? { ...prev, groups: newGroups } : null);
+    const checked = e.target.checked;
+    // @ts-ignore
+    service[name] = isCheckbox ? checked : value;
+    setConfigObject(newConfig);
   };
 
+  const handleWidgetConfigChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setConfigObject(prev => {
+      if (!prev) return null;
+      const newWidgets = { ...(prev.widgets || { columns: 4, items: [] }) };
+      // @ts-ignore
+      newWidgets[name] = name === 'columns' ? parseInt(value) : value;
+      return { ...prev, widgets: newWidgets };
+    });
+  };
+
+  const handleWidgetChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>, index: number) => {
+    const { name, value } = e.target;
+    const newConfig = { ...configObject } as DashboardConfig;
+    const widget = newConfig.widgets!.items[index];
+     // @ts-ignore
+    widget[name] = value;
+    if (name === 'type') { // Reset dependent fields when type changes
+      if (value === 'clock') {
+        delete widget.city;
+        delete widget.state;
+        delete widget.zipcode;
+        delete widget.country;
+        delete widget.apiKey;
+        delete widget.units;
+      } else {
+        delete widget.timeZone;
+        delete widget.format;
+      }
+    }
+    setConfigObject(newConfig);
+  };
+  
   const handleAddGroup = () => {
     const newGroup: ServiceGroup = { name: "New Group", columns: 3, services: [] };
     setConfigObject(prev => prev ? { ...prev, groups: [...(prev.groups || []), newGroup] } : null);
@@ -169,19 +204,37 @@ const FormEditor = ({ configObject, setConfigObject, onConfigUpdate }: { configO
   };
 
   const handleAddService = (groupIndex: number) => {
-    const newService: Service = { name: "New Service", url: "" };
-    const newGroups = [...(configObject.groups || [])];
-    if (!newGroups[groupIndex].services) {
-        newGroups[groupIndex].services = [];
+    const newItem: Service = { name: "New Service", url: "" };
+    const newConfig = { ...configObject } as DashboardConfig;
+    if (!newConfig.groups[groupIndex].services) {
+        newConfig.groups[groupIndex].services = [];
     }
-    newGroups[groupIndex].services.push(newService);
-    setConfigObject(prev => prev ? { ...prev, groups: newGroups } : null);
+    newConfig.groups[groupIndex].services.push(newItem);
+    setConfigObject(newConfig);
+  };
+  
+  const handleAddWidget = () => {
+    const newWidget: WidgetConfig = { name: "New Widget", type: 'clock' };
+    setConfigObject(prev => {
+        if (!prev) return null;
+        const newWidgets = { ...(prev.widgets || { columns: 4, items: [] }) };
+        newWidgets.items.push(newWidget);
+        return { ...prev, widgets: newWidgets };
+    });
   };
 
-  const handleDeleteService = (groupIndex: number, serviceIndex: number) => {
-    const newGroups = [...(configObject.groups || [])];
-    newGroups[groupIndex].services = newGroups[groupIndex].services.filter((_, i) => i !== serviceIndex);
-    setConfigObject(prev => prev ? { ...prev, groups: newGroups } : null);
+  const handleDeleteService = (index: number, groupIndex: number) => {
+    const newConfig = { ...configObject } as DashboardConfig;
+    newConfig.groups[groupIndex].services = newConfig.groups[groupIndex].services.filter((_, i) => i !== index);
+    setConfigObject(newConfig);
+  };
+  
+  const handleDeleteWidget = (index: number) => {
+      setConfigObject(prev => {
+        if (!prev || !prev.widgets) return prev;
+        const newItems = prev.widgets.items.filter((_, i) => i !== index);
+        return { ...prev, widgets: { ...prev.widgets, items: newItems } };
+      });
   };
 
   const handleToggleTitleBackground = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -245,19 +298,21 @@ const FormEditor = ({ configObject, setConfigObject, onConfigUpdate }: { configO
     setConfigObject(prev => prev ? { ...prev, groups: newGroups } : null);
   };
 
-  const moveService = (groupIndex: number, serviceIndex: number, direction: 'up' | 'down') => {
-    const newGroups = [...(configObject.groups || [])];
-    const services = [...(newGroups[groupIndex].services || [])];
-    const service = services[serviceIndex];
-    const newIndex = direction === 'up' ? serviceIndex - 1 : serviceIndex + 1;
-    if (newIndex < 0 || newIndex >= services.length) return;
-    services.splice(serviceIndex, 1);
-    services.splice(newIndex, 0, service);
-    newGroups[groupIndex].services = services;
-    setConfigObject(prev => prev ? { ...prev, groups: newGroups } : null);
+  const moveItem = (index: number, direction: 'up' | 'down', groupIndex?: number) => {
+    const newConfig = { ...configObject } as DashboardConfig;
+    const items = typeof groupIndex === 'number'
+      ? newConfig.groups[groupIndex].services
+      : newConfig.widgets!.items;
+
+    const item = items[index];
+    const newIndex = direction === 'up' ? index - 1 : index + 1;
+    if (newIndex < 0 || newIndex >= items.length) return;
+
+    items.splice(index, 1);
+    items.splice(newIndex, 0, item);
+    setConfigObject(newConfig);
   };
-
-
+  
   const themeColorMap = [
       { key: 'mainBackground', label: 'Main Background' },
       { key: 'titleBackground', label: 'Title Background' },
@@ -265,6 +320,121 @@ const FormEditor = ({ configObject, setConfigObject, onConfigUpdate }: { configO
       { key: 'serviceBackground', label: 'Service Background' },
       { key: 'serviceBackgroundHover', label: 'Service Background Hover' },
   ];
+  
+  const renderServiceEditor = (item: Service, index: number, groupIndex: number) => {
+    const key = `group-${groupIndex}-service-${index}`;
+    const isExpanded = expandedItems[key];
+    return (
+        <div key={index} className="p-2 border-t border-gray-700 space-y-2">
+            <div className="flex justify-between items-center cursor-pointer" onClick={() => toggleItem(key)}>
+                <div className="flex items-center">
+                    <button onClick={(e) => { e.stopPropagation(); moveItem(index, 'up', groupIndex); }} className="p-1 text-gray-400 hover:text-white"><FaArrowUp /></button>
+                    <button onClick={(e) => { e.stopPropagation(); moveItem(index, 'down', groupIndex); }} className="p-1 text-gray-400 hover:text-white"><FaArrowDown /></button>
+                    <h4 className="font-semibold ml-2">{item.name || 'New Service'}</h4>
+                </div>
+                <div className="flex items-center">
+                    <button onClick={(e) => { e.stopPropagation(); handleDeleteService(index, groupIndex); }} className="text-red-500 hover:text-red-400 p-1 text-xs"> <FaTrash /> </button>
+                    <FaChevronDown className={`transition-transform duration-200 ml-2 ${isExpanded ? 'rotate-180' : ''}`} />
+                </div>
+            </div>
+            {isExpanded && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                    <input type="text" placeholder="Name" name="name" value={item.name || ''} onChange={(e) => handleServiceChange(e, index, groupIndex)} className="bg-gray-600 rounded p-2"/>
+                    <input type="text" placeholder="URL" name="url" value={item.url || ''} onChange={(e) => handleServiceChange(e, index, groupIndex)} className="bg-gray-600 rounded p-2"/>
+                    <input type="text" placeholder="Subtitle" name="subtitle" value={item.subtitle || ''} onChange={(e) => handleServiceChange(e, index, groupIndex)} className="bg-gray-600 rounded p-2"/>
+                    <input type="text" placeholder="Icon (e.g., FaGithub)" name="icon" value={item.icon || ''} onChange={(e) => handleServiceChange(e, index, groupIndex)} className="bg-gray-600 rounded p-2"/>
+                    <div className="flex items-center">
+                        <input type="checkbox" name="local" id={`local-${key}`} checked={item.local || false} onChange={(e) => handleServiceChange(e, index, groupIndex)} className="h-4 w-4 rounded border-gray-600 bg-gray-700 text-cyan-600 focus:ring-cyan-500 mr-2"/>
+                        <label htmlFor={`local-${key}`} className="text-sm text-gray-300">Local Only</label>
+                    </div>
+                    <div/>
+                    <ColorPicker label="Background Color (optional)" name="backgroundColor" value={item.backgroundColor || ''} onChange={(e) => handleServiceChange(e, index, groupIndex)} />
+                    <ColorPicker label="Text Color (optional)" name="textColor" value={item.textColor || ''} onChange={(e) => handleServiceChange(e, index, groupIndex)} />
+                    <div className="col-span-1 md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-2">
+                        <div>
+                            <label className="text-xs text-gray-400">Ping URL (optional)</label>
+                            <input type="text" placeholder="Ping URL" name="ping" value={item.ping || ''} onChange={(e) => handleServiceChange(e, index, groupIndex)} className="mt-1 block w-full bg-gray-600 border-gray-500 rounded-md shadow-sm py-1 px-2 text-sm"/>
+                        </div>
+                        <div>
+                            <label className="text-xs text-gray-400">Ping Method</label>
+                            <select name="pingMethod" value={item.pingMethod || 'HEAD'} onChange={(e) => handleServiceChange(e, index, groupIndex)} className="mt-1 block w-full bg-gray-600 border-gray-500 rounded-md shadow-sm py-1 px-2 text-sm">
+                                <option value="HEAD">HEAD</option>
+                                <option value="GET">GET</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
+    )
+  }
+
+  const renderWidgetEditor = (widget: WidgetConfig, index: number) => {
+    const key = `widget-${index}`;
+    const isExpanded = expandedItems[key];
+    return (
+        <div key={index} className="p-2 border-t border-gray-700 space-y-2">
+            <div className="flex justify-between items-center cursor-pointer" onClick={() => toggleItem(key)}>
+                <div className="flex items-center">
+                    <button onClick={(e) => { e.stopPropagation(); moveItem(index, 'up'); }} className="p-1 text-gray-400 hover:text-white"><FaArrowUp /></button>
+                    <button onClick={(e) => { e.stopPropagation(); moveItem(index, 'down'); }} className="p-1 text-gray-400 hover:text-white"><FaArrowDown /></button>
+                    <h4 className="font-semibold ml-2">{widget.name || 'New Widget'}</h4>
+                     <span className="ml-2 text-xs bg-purple-600 text-gray-200 px-2 py-0.5 rounded-full">{widget.type}</span>
+                </div>
+                <div className="flex items-center">
+                    <button onClick={(e) => { e.stopPropagation(); handleDeleteWidget(index); }} className="text-red-500 hover:text-red-400 p-1 text-xs"> <FaTrash /> </button>
+                    <FaChevronDown className={`transition-transform duration-200 ml-2 ${isExpanded ? 'rotate-180' : ''}`} />
+                </div>
+            </div>
+            {isExpanded && (
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                     <input type="text" placeholder="Name" name="name" value={widget.name || ''} onChange={(e) => handleWidgetChange(e, index)} className="bg-gray-600 rounded p-2"/>
+                     <select name="type" value={widget.type || 'clock'} onChange={(e) => handleWidgetChange(e, index)} className="bg-gray-600 rounded p-2">
+                         <option value="clock">Clock</option>
+                         <option value="weather">Weather</option>
+                     </select>
+
+                     {widget.type === 'clock' && (
+                         <>
+                             <select name="timeZone" value={widget.timeZone || ''} onChange={(e) => handleWidgetChange(e, index)} className="bg-gray-600 rounded p-2">
+                                <option value="">Default (Browser)</option>
+                                {timezones.map(tz => <option key={tz} value={tz}>{tz}</option>)}
+                             </select>
+                             <select name="format" value={widget.format || '24h'} onChange={(e) => handleWidgetChange(e, index)} className="bg-gray-600 rounded p-2">
+                                 <option value="24h">24 Hour</option>
+                                 <option value="12h">12 Hour</option>
+                             </select>
+                         </>
+                     )}
+                     {widget.type === 'weather' && (
+                         <>
+                            <select name="provider" value={widget.provider || 'openweathermap'} onChange={(e) => handleWidgetChange(e, index)} className="bg-gray-600 rounded p-2 col-span-2">
+                                <option value="openweathermap">OpenWeatherMap</option>
+                                <option value="weatherapi">WeatherAPI.com</option>
+                            </select>
+                             <input type="text" placeholder="City" name="city" value={widget.city || ''} onChange={(e) => handleWidgetChange(e, index)} className="bg-gray-600 rounded p-2"/>
+                             <input type="text" placeholder="State/Province" name="state" value={widget.state || ''} onChange={(e) => handleWidgetChange(e, index)} className="bg-gray-600 rounded p-2"/>
+                             <input type="text" placeholder="Zip/Postcode" name="zipcode" value={widget.zipcode || ''} onChange={(e) => handleWidgetChange(e, index)} className="bg-gray-600 rounded p-2"/>
+                             <input type="text" placeholder="Country" name="country" value={widget.country || ''} onChange={(e) => handleWidgetChange(e, index)} className="bg-gray-600 rounded p-2"/>
+                             <input type="text" placeholder="API Key" name="apiKey" value={widget.apiKey || ''} onChange={(e) => handleWidgetChange(e, index)} className="bg-gray-600 rounded p-2 col-span-2"/>
+                            <select name="units" value={widget.units || 'metric'} onChange={(e) => handleWidgetChange(e, index)} className="bg-gray-600 rounded p-2 col-span-2">
+                                 <option value="metric">Metric (°C)</option>
+                                 <option value="imperial">Imperial (°F)</option>
+                                 {widget.provider !== 'weatherapi' && <option value="standard">Standard (K)</option>}
+                             </select>
+                         </>
+                     )}
+                    <div className="col-span-2">
+                      <ColorPicker label="Background Color (optional)" name="backgroundColor" value={widget.backgroundColor || ''} onChange={(e) => handleWidgetChange(e, index)} />
+                    </div>
+                     <div className="col-span-2">
+                      <ColorPicker label="Text Color (optional)" name="textColor" value={widget.textColor || ''} onChange={(e) => handleWidgetChange(e, index)} />
+                     </div>
+                 </div>
+            )}
+        </div>
+    );
+  }
 
   return (
       <div className="space-y-4">
@@ -368,6 +538,23 @@ const FormEditor = ({ configObject, setConfigObject, onConfigUpdate }: { configO
                 </CollapsibleSection>
               </div>
           </CollapsibleSection>
+          
+          <CollapsibleSection title="Widgets">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                 <div>
+                    <label className="block text-sm font-medium text-gray-400">Widgets per row</label>
+                    <input type="number" name="columns" value={configObject.widgets?.columns || 4} min="1" max="6" onChange={handleWidgetConfigChange} className="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3"/>
+                </div>
+            </div>
+             <div className="flex justify-end items-center mb-4">
+                  <button onClick={handleAddWidget} className="flex items-center gap-2 bg-purple-600 hover:bg-purple-500 px-3 py-1 rounded-md text-sm">
+                      <FaPlus /> Add Widget
+                  </button>
+             </div>
+             <div className="space-y-4">
+                {(configObject.widgets?.items || []).map((widget, index) => renderWidgetEditor(widget, index))}
+             </div>
+          </CollapsibleSection>
 
           <CollapsibleSection title="Service Groups" startOpen={true}>
              <div className="flex justify-end items-center mb-4">
@@ -418,71 +605,7 @@ const FormEditor = ({ configObject, setConfigObject, onConfigUpdate }: { configO
                                       <FaPlus /> Add Service
                                   </button>
                                 </div>
-                                {(group.services || []).map((service, serviceIndex) => {
-                                    const isExpanded = expandedServices[`${groupIndex}-${serviceIndex}`];
-                                    return (
-                                        <div key={serviceIndex} className="p-2 border-t border-gray-700 space-y-2">
-                                            <div className="flex justify-between items-center cursor-pointer" onClick={() => toggleService(groupIndex, serviceIndex)}>
-                                                <div className="flex items-center">
-                                                    <button onClick={(e) => { e.stopPropagation(); moveService(groupIndex, serviceIndex, 'up'); }} className="p-1 text-gray-400 hover:text-white"><FaArrowUp /></button>
-                                                    <button onClick={(e) => { e.stopPropagation(); moveService(groupIndex, serviceIndex, 'down'); }} className="p-1 text-gray-400 hover:text-white"><FaArrowDown /></button>
-                                                    <h4 className="font-semibold ml-2">{service.name || 'New Service'}</h4>
-                                                </div>
-                                                <div className="flex items-center">
-                                                    <label htmlFor={`local-${groupIndex}-${serviceIndex}`} className="text-sm text-gray-400 mr-2 flex items-center">
-                                                        <input type="checkbox" name="local" id={`local-${groupIndex}-${serviceIndex}`} checked={service.local || false} onChange={(e) => handleServiceChange(groupIndex, serviceIndex, e)} onClick={(e) => e.stopPropagation()} className="h-4 w-4 rounded border-gray-600 bg-gray-700 text-cyan-600 focus:ring-cyan-500 mr-2"/>
-                                                        Local
-                                                    </label>
-                                                    <button onClick={(e) => { e.stopPropagation(); handleDeleteService(groupIndex, serviceIndex); }} className="text-red-500 hover:text-red-400 p-1 text-xs">
-                                                        <FaTrash />
-                                                    </button>
-                                                    <FaChevronDown className={`transition-transform duration-200 ml-2 ${isExpanded ? 'rotate-180' : ''}`} />
-                                                </div>
-                                            </div>
-                                            {isExpanded && (
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 pt-2">
-                                                    <input type="text" placeholder="Name" name="name" value={service.name || ''} onChange={(e) => handleServiceChange(groupIndex, serviceIndex, e)} className="bg-gray-600 rounded p-1"/>
-                                                    <input type="text" placeholder="URL" name="url" value={service.url || ''} onChange={(e) => handleServiceChange(groupIndex, serviceIndex, e)} className="bg-gray-600 rounded p-1"/>
-                                                    <input type="text" placeholder="Subtitle" name="subtitle" value={service.subtitle || ''} onChange={(e) => handleServiceChange(groupIndex, serviceIndex, e)} className="bg-gray-600 rounded p-1"/>
-                                                    <input type="text" placeholder="Icon (e.g., FaGithub or icon.png)" name="icon" value={service.icon || ''} onChange={(e) => handleServiceChange(groupIndex, serviceIndex, e)} className="bg-gray-600 rounded p-1"/>
-                                                    <ColorPicker label="Background Color (optional)" name="backgroundColor" value={service.backgroundColor || ''} onChange={(e) => handleServiceChange(groupIndex, serviceIndex, e)} />
-                                                    <ColorPicker label="Text Color (optional)" name="textColor" value={service.textColor || ''} onChange={(e) => handleServiceChange(groupIndex, serviceIndex, e)} />
-                                                    <div className="col-span-1 md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-2">
-                                                        <div>
-                                                            <label className="text-xs text-gray-400">Ping URL (optional)</label>
-                                                            <input type="text" placeholder="Ping URL" name="ping" value={service.ping || ''} onChange={(e) => handleServiceChange(groupIndex, serviceIndex, e)} className="mt-1 block w-full bg-gray-600 border-gray-500 rounded-md shadow-sm py-1 px-2 text-sm"/>
-                                                        </div>
-                                                        <div>
-                                                            <label className="text-xs text-gray-400">Ping Method</label>
-                                                            <select name="pingMethod" value={service.pingMethod || 'HEAD'} onChange={(e) => handleServiceChange(groupIndex, serviceIndex, e)} className="mt-1 block w-full bg-gray-600 border-gray-500 rounded-md shadow-sm py-1 px-2 text-sm">
-                                                                <option value="HEAD">HEAD</option>
-                                                                <option value="GET">GET</option>
-                                                            </select>
-                                                        </div>
-                                                        <div>
-                                                            <label className="text-xs text-gray-400">Layout (optional)</label>
-                                                            <select name="layout" value={service.layout || ''} onChange={(e) => handleServiceChange(groupIndex, serviceIndex, e)} className="mt-1 block w-full bg-gray-600 border-gray-500 rounded-md shadow-sm py-1 px-2 text-sm">
-                                                                <option value="">Inherit from group</option>
-                                                                <option value="vertical">Vertical</option>
-                                                                <option value="horizontal">Horizontal</option>
-                                                                <option value="horizontal-reverse">Horizontal Reverse</option>
-                                                            </select>
-                                                        </div>
-                                                        <div>
-                                                            <label className="text-xs text-gray-400">Alignment (optional)</label>
-                                                            <select name="align" value={service.align || ''} onChange={(e) => handleServiceChange(groupIndex, serviceIndex, e)} className="mt-1 block w-full bg-gray-600 border-gray-500 rounded-md shadow-sm py-1 px-2 text-sm">
-                                                                <option value="">Inherit from group</option>
-                                                                <option value="left">Left</option>
-                                                                <option value="center">Center</option>
-                                                                <option value="right">Right</option>
-                                                            </select>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            )}
-                                        </div>
-                                    )
-                                })}
+                                {(group.services || []).map((service, serviceIndex) => renderServiceEditor(service, serviceIndex, groupIndex))}
                             </div>
                         </div>
                     </CollapsibleSection>
@@ -492,40 +615,35 @@ const FormEditor = ({ configObject, setConfigObject, onConfigUpdate }: { configO
       </div>
   );
 };
-
-// --- Cleanup function to remove empty/default values and unknown properties ---
+// --- Cleanup function and EditPage component ---
 const cleanupConfig = (config: any): DashboardConfig => {
   const cleanedConfig: any = {};
 
-  // Define allowed keys for each level
   const allowedKeys: { [key: string]: string[] } = {
-    root: ['title', 'defaultColumns', 'theme', 'backgrounds', 'groups', 'services', 'settings'],
+    root: ['title', 'defaultColumns', 'theme', 'backgrounds', 'widgets', 'groups', 'services', 'settings'],
     theme: ['mainBackground', 'titleBackground', 'text', 'serviceBackground', 'serviceBackgroundHover'],
     backgrounds: ['active', 'history'],
     settings: ['showTitleBackgrounds', 'backgroundBlur', 'localIp'],
+    widgets: ['columns', 'items'],
+    widget: ['name', 'type', 'provider', 'timeZone', 'format', 'city', 'state', 'zipcode', 'country', 'apiKey', 'units', 'backgroundColor', 'textColor'],
     group: ['name', 'columns', 'services', 'align', 'layout'],
     service: ['name', 'subtitle', 'url', 'icon', 'ping', 'pingMethod', 'align', 'layout', 'backgroundColor', 'textColor', 'local']
   };
 
-  // Clean root level
   for (const key of allowedKeys.root) {
     if (config[key] !== undefined && config[key] !== null) {
       cleanedConfig[key] = config[key];
     }
   }
 
-  // Clean theme
   if (cleanedConfig.theme) {
     const cleanedTheme: any = {};
     for (const key of allowedKeys.theme) {
-      if (cleanedConfig.theme[key]) {
-        cleanedTheme[key] = cleanedConfig.theme[key];
-      }
+      if (cleanedConfig.theme[key]) cleanedTheme[key] = cleanedConfig.theme[key];
     }
     cleanedConfig.theme = cleanedTheme;
   }
   
-  // Clean backgrounds
   if (cleanedConfig.backgrounds) {
     const cleanedBackgrounds: any = {};
     for (const key of allowedKeys.backgrounds) {
@@ -533,42 +651,47 @@ const cleanupConfig = (config: any): DashboardConfig => {
         cleanedBackgrounds[key] = cleanedConfig.backgrounds[key];
       }
     }
-    if (Object.keys(cleanedBackgrounds).length === 0) {
-        delete cleanedConfig.backgrounds;
-    } else {
-        cleanedConfig.backgrounds = cleanedBackgrounds;
-    }
+    if (Object.keys(cleanedBackgrounds).length === 0) delete cleanedConfig.backgrounds;
+    else cleanedConfig.backgrounds = cleanedBackgrounds;
+  }
+  
+  if (cleanedConfig.widgets) {
+      if(cleanedConfig.widgets.items) {
+          cleanedConfig.widgets.items = cleanedConfig.widgets.items.map((widget: any) => {
+              const cleanedWidget: any = {};
+              for(const key of allowedKeys.widget) {
+                  if (widget[key] !== undefined && widget[key] !== null && widget[key] !== '') {
+                      cleanedWidget[key] = widget[key];
+                  }
+              }
+              return cleanedWidget;
+          });
+      }
+      if(!cleanedConfig.widgets.items || cleanedConfig.widgets.items.length === 0){
+          delete cleanedConfig.widgets;
+      }
   }
 
-  // Clean settings
   if (cleanedConfig.settings) {
     const cleanedSettings: any = {};
     for (const key of allowedKeys.settings) {
-      if (cleanedConfig.settings[key]) {
-        cleanedSettings[key] = cleanedConfig.settings[key];
-      }
+      if (cleanedConfig.settings[key]) cleanedSettings[key] = cleanedConfig.settings[key];
     }
-    if (Object.keys(cleanedSettings).length === 0) {
-        delete cleanedConfig.settings;
-    } else {
-        cleanedConfig.settings = cleanedSettings;
-    }
+    if (Object.keys(cleanedSettings).length === 0) delete cleanedConfig.settings;
+    else cleanedConfig.settings = cleanedSettings;
   }
 
-  // Clean groups and services
   if (cleanedConfig.groups) {
     cleanedConfig.groups = cleanedConfig.groups.map((group: any) => {
       const cleanedGroup: any = {};
       for (const key of allowedKeys.group) {
-        if (group[key] !== undefined && group[key] !== null) {
-          cleanedGroup[key] = group[key];
-        }
+        if (group[key] !== undefined && group[key] !== null) cleanedGroup[key] = group[key];
       }
       if (cleanedGroup.services) {
         cleanedGroup.services = cleanedGroup.services.map((service: any) => {
           const cleanedService: any = {};
           for (const key of allowedKeys.service) {
-            if (service[key]) {
+            if (service[key] !== undefined && service[key] !== null && service[key] !== '') {
               cleanedService[key] = service[key];
             }
           }
@@ -579,22 +702,9 @@ const cleanupConfig = (config: any): DashboardConfig => {
     });
   }
   
-  // Clean root services
-  if (cleanedConfig.services) {
-    cleanedConfig.services = cleanedConfig.services.map((service: any) => {
-        const cleanedService: any = {};
-        for (const key of allowedKeys.service) {
-            if (service[key]) {
-                cleanedService[key] = service[key];
-            }
-        }
-        return cleanedService;
-    });
-    if (cleanedConfig.services.length === 0) {
-        delete cleanedConfig.services;
-    }
+  if (cleanedConfig.services && cleanedConfig.services.length === 0) {
+      delete cleanedConfig.services;
   }
-
 
   return cleanedConfig as DashboardConfig;
 };
@@ -604,7 +714,7 @@ export default function EditPage() {
   const [configText, setConfigText] = useState('');
   const [configObject, setConfigObject] = useState<DashboardConfig | null>(null);
   const [status, setStatus] = useState<'loading' | 'saved' | 'saving' | 'error' | 'ready'>('loading');
-  const [editorMode, setEditorMode] = useState<'raw' | 'form'>('form');
+  const [editorMode, setEditorMode] = useState<'form' | 'raw'>('form');
 
   const handleConfigUpdate = (newConfig: DashboardConfig) => {
     setConfigObject(newConfig);
