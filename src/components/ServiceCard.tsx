@@ -53,7 +53,6 @@ const getLayoutClass = (layout: Layout = 'vertical', align: Alignment = 'center'
 
 // --- Reusable Service Card with Status ---
 export const ServiceCard = ({ service, theme, groupAlign, groupLayout, columnCount }: { service: Service; theme: DashboardConfig['theme'], groupAlign?: Alignment, groupLayout?: Layout, columnCount: number }) => {
-  const [status, setStatus] = useState<'loading' | 'online' | 'offline'>('loading');
   const [hovered, setHovered] = useState(false);
 
   const align = service.align || groupAlign || 'center';
@@ -61,29 +60,6 @@ export const ServiceCard = ({ service, theme, groupAlign, groupLayout, columnCou
   const isVertical = (layout || 'vertical') === 'vertical';
 
   const paddingClass = columnCount <= 3 ? 'px-14' : 'px-4';
-
-  useEffect(() => {
-    if (!service.ping) {
-      setStatus('online');
-      return;
-    }
-    const checkStatus = async () => {
-      try {
-        const res = await fetch('/api/status', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ url: service.ping, method: service.pingMethod }),
-        });
-        const data = await res.json();
-        setStatus(data.status);
-      } catch (error) {
-        setStatus('offline');
-      }
-    };
-    checkStatus();
-    const interval = setInterval(checkStatus, 60000);
-    return () => clearInterval(interval);
-  }, [service.ping, service.pingMethod]);
 
   const backgroundColor = hovered
     ? service.backgroundColor
@@ -105,13 +81,6 @@ export const ServiceCard = ({ service, theme, groupAlign, groupLayout, columnCou
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      {service.ping && (
-        <div className="absolute top-3 right-3 h-3 w-3 rounded-full"
-          style={{
-            backgroundColor: status === 'online' ? 'rgba(34, 197, 94, 1)' : status === 'offline' ? 'rgba(239, 68, 68, 1)' : '#6b7280',
-          }}
-        />
-      )}
       <div className={`flex-shrink-0 ${isVertical ? 'mb-2 text-3xl' : 'mx-3 text-4xl'}`}>
         <IconComponent icon={service.icon} isVertical={isVertical} textColor={textColor} />
       </div>

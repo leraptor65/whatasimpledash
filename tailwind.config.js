@@ -6,7 +6,15 @@ module.exports = {
     "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        glass: {
+          surface: 'var(--glass-surface)',
+          border: 'var(--glass-border)',
+          highlight: 'var(--glass-highlight)',
+        }
+      }
+    },
   },
   plugins: [],
 };
