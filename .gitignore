@@ -25,7 +25,3 @@
 # Ignore custom user-uploaded icons
 /public/icons/*
 # /config/services.yaml
-
-# Local build and publish scripts
-build.sh
-publish.sh

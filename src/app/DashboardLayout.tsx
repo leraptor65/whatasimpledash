@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
-import { FaCog, FaSearch } from 'react-icons/fa';
+import { FaCog, FaSearch, FaChevronDown } from 'react-icons/fa';
 import { PiNetwork, PiNetworkFill } from 'react-icons/pi';
 import type { DashboardConfig, Service, ServiceGroup } from '../types';
 import Fuse, { type FuseResult } from 'fuse.js';
@@ -20,23 +20,7 @@ export default function DashboardLayout() {
   const [config, setConfig] = useState<DashboardConfig | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
-  const [currentUserIp, setCurrentUserIp] = useState<string | null>(null);
-  const [showLocalOnly, setShowLocalOnly] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    // Fetch the user's IP address when the component mounts
-    const fetchIp = async () => {
-        try {
-            const res = await fetch('/api/ip');
-            const data = await res.json();
-            setCurrentUserIp(data.ip);
-        } catch (error) {
-            console.error("Could not fetch IP address:", error);
-        }
-    };
-    fetchIp();
-  }, []);
 
   useEffect(() => {
     const fetchConfig = async () => {
@@ -77,51 +61,25 @@ export default function DashboardLayout() {
   const filteredConfig = useMemo(() => {
     if (!config) return null;
 
-    if (showLocalOnly) {
-        const localOnlyConfig = { ...config };
-        const filterServices = (services: Service[]) => services.filter(service => service.local);
-
-        if (localOnlyConfig.groups) {
-            localOnlyConfig.groups = localOnlyConfig.groups
-                .map(group => ({
-                    ...group,
-                    services: filterServices(group.services || []),
-                }))
-                .filter(group => group.services.length > 0);
-        }
-
-        if (localOnlyConfig.services) {
-            localOnlyConfig.services = filterServices(localOnlyConfig.services);
-        }
-        return localOnlyConfig;
-    }
-
-
-    if (!currentUserIp || !config.settings?.localIp) {
-        return config;
-    }
-
-    const isLocalUser = currentUserIp === config.settings.localIp;
-
-    const filterServices = (services: Service[]) => services.filter(service => !service.local || isLocalUser);
+    const filterServices = (services: Service[]) => services.filter(service => !service.hidden);
 
     const newConfig = { ...config };
 
     if (newConfig.groups) {
-        newConfig.groups = newConfig.groups
-            .map(group => ({
-                ...group,
-                services: filterServices(group.services || []),
-            }))
-            .filter(group => group.services.length > 0);
+      newConfig.groups = newConfig.groups
+        .map(group => ({
+          ...group,
+          services: filterServices(group.services || []),
+        }))
+        .filter(group => group.services.length > 0);
     }
 
     if (newConfig.services) {
-        newConfig.services = filterServices(newConfig.services);
+      newConfig.services = filterServices(newConfig.services);
     }
 
     return newConfig;
-  }, [config, currentUserIp, showLocalOnly]);
+  }, [config]);
 
   const allServices = useMemo(() => {
     if (!filteredConfig) return [];
@@ -172,13 +130,39 @@ export default function DashboardLayout() {
   }, []);
 
   useEffect(() => {
-      if (isSearching) {
-          setTimeout(() => searchInputRef.current?.focus(), 0);
-      }
+    if (isSearching) {
+      setTimeout(() => searchInputRef.current?.focus(), 0);
+    }
   }, [isSearching]);
 
+  // --- Collapsed State Management ---
+  const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
+
+  // Initialize collapsed state from config when it loads
+  useEffect(() => {
+    if (config?.groups) {
+      setCollapsedGroups(prev => {
+        const next = { ...prev };
+        config.groups.forEach(group => {
+          // If not already set in state, use config default
+          if (next[group.name] === undefined) {
+            next[group.name] = group.collapsed || false;
+          }
+        });
+        return next;
+      });
+    }
+  }, [config]);
+
+  const toggleGroup = (groupName: string) => {
+    setCollapsedGroups(prev => ({
+      ...prev,
+      [groupName]: !prev[groupName]
+    }));
+  };
+
   if (!config || !filteredConfig) {
-    return <main className="min-h-screen p-8" style={{backgroundColor: '#111827', color: '#ef4444'}}>Loading configuration...</main>;
+    return <main className="min-h-screen p-8" style={{ backgroundColor: '#111827', color: '#ef4444' }}>Loading configuration...</main>;
   }
 
   const backgroundUrl = config.backgrounds?.active ? `/api/images/backgrounds/${config.backgrounds.active}` : '';
@@ -204,25 +188,25 @@ export default function DashboardLayout() {
         <div className="fixed inset-0 z-50 flex flex-col items-center p-4 pt-[20vh] bg-black/70 backdrop-blur-sm">
           <div className="relative w-full max-w-lg">
             <input
-                ref={searchInputRef}
-                type="text"
-                placeholder="Search for a service..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-gray-800 border border-gray-700 rounded-full py-3 pl-12 pr-4 text-white text-lg focus:outline-none focus:ring-2 focus:ring-cyan-500"
+              ref={searchInputRef}
+              type="text"
+              placeholder="Search for a service..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-gray-800 border border-gray-700 rounded-full py-3 pl-12 pr-4 text-white text-lg focus:outline-none focus:ring-2 focus:ring-cyan-500"
             />
             <FaSearch className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-500" />
           </div>
           <p className="mt-2 text-xs text-gray-400">Press Esc to close</p>
           <div className="mt-4 w-full max-w-5xl overflow-y-auto">
             <div className={`grid grid-cols-1 ${getGridColsClass(config.defaultColumns)} gap-4 p-4`}>
-                {searchResults.length > 0 ? (
-                    searchResults.map((service: Service) => (
-                        <ServiceCard key={service.name} service={service} theme={config.theme} columnCount={config.defaultColumns} />
-                    ))
-                ) : (
-                    <p className="col-span-full text-center" style={{ color: config.theme.text, opacity: 0.8 }}>No services found.</p>
-                )}
+              {searchResults.length > 0 ? (
+                searchResults.map((service: Service) => (
+                  <ServiceCard key={service.name} service={service} theme={config.theme} columnCount={config.defaultColumns} />
+                ))
+              ) : (
+                <p className="col-span-full text-center" style={{ color: config.theme.text, opacity: 0.8 }}>No services found.</p>
+              )}
             </div>
           </div>
         </div>
@@ -243,32 +227,24 @@ export default function DashboardLayout() {
           />
         )}
         <div className="max-w-5xl mx-auto relative z-10">
-          <div className="absolute top-0 left-0 h-14 flex items-center rounded-lg" style={titleBackgroundStyle}>
-              <button onClick={() => setShowLocalOnly(!showLocalOnly)} className="p-4 group" title="Toggle Local View" style={{ color: config.theme.text }}>
-                  {showLocalOnly ? <PiNetworkFill size={24} /> : <PiNetwork size={24} />}
-                  <span className="absolute bottom-full left-0 mb-2 hidden group-hover:block bg-gray-800 text-white text-xs rounded py-1 px-2 whitespace-nowrap">
-                      {showLocalOnly ? 'Show All Services' : 'Show Local Only'}
-                  </span>
-              </button>
-            </div>
-            <div className="absolute top-0 right-0 h-14 flex items-center rounded-lg" style={titleBackgroundStyle}>
-            <Link href="/edit" className="p-4 group" title="Settings" style={{ color: config.theme.text }}>
-                <FaCog size={24} className="transition-transform group-hover:rotate-90" />
-                <span className="absolute bottom-full right-0 mb-2 hidden group-hover:block bg-gray-800 text-white text-xs rounded py-1 px-2">
+          <div className="absolute top-0 right-0 h-14 flex items-center rounded-lg" style={titleBackgroundStyle}>
+            <Link href="/settings" className="p-4 group" title="Settings" style={{ color: config.theme.text }}>
+              <FaCog size={24} className="transition-transform group-hover:rotate-90" />
+              <span className="absolute bottom-full right-0 mb-2 hidden group-hover:block bg-gray-800 text-white text-xs rounded py-1 px-2">
                 Settings
-                </span>
+              </span>
             </Link>
           </div>
 
 
           <div className="text-center mb-8">
-              {config.settings?.showTitleBackgrounds ? (
-                  <div className="p-2 rounded-lg inline-block" style={titleBackgroundStyle}>
-                      <h1 className="text-3xl md:text-4xl font-bold" style={{ color: config.theme.text }}>{config.title}</h1>
-                  </div>
-              ) : (
-                  <h1 className="text-3xl md:text-4xl font-bold" style={{ color: config.theme.text }}>{config.title}</h1>
-              )}
+            {config.settings?.showTitleBackgrounds ? (
+              <div className="p-2 rounded-lg inline-block" style={titleBackgroundStyle}>
+                <h1 className="text-3xl md:text-4xl font-bold" style={{ color: config.theme.text }}>{config.title}</h1>
+              </div>
+            ) : (
+              <h1 className="text-3xl md:text-4xl font-bold" style={{ color: config.theme.text }}>{config.title}</h1>
+            )}
           </div>
 
           {/* Widgets Section */}
@@ -284,24 +260,34 @@ export default function DashboardLayout() {
 
           {filteredConfig.groups.map((group: ServiceGroup) => {
             const columnCount = group.columns || config.defaultColumns;
+            const isCollapsed = collapsedGroups[group.name];
+
             return (
               <div key={group.name} className="mb-8">
-                {config.settings?.showTitleBackgrounds ? (
-                  <div className="p-2 rounded-lg mb-4" style={titleBackgroundStyle}>
-                    <h2 className="text-2xl font-semibold" style={{ color: config.theme.text }}>{group.name}</h2>
+                <div className="flex items-center mb-4 cursor-pointer" onClick={() => toggleGroup(group.name)}>
+                  <div className="mr-2 transition-transform duration-200" style={{ transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)' }}>
+                    <FaChevronDown style={{ color: config.theme.text }} />
                   </div>
-                ) : (
-                  <h2 className="text-2xl font-semibold mb-4" style={{ color: config.theme.text }}>{group.name}</h2>
-                )}
-                <div className={`grid grid-cols-1 ${getGridColsClass(columnCount)} gap-4`}>
-                  {group.services.map((service: Service) => {
-                      return <ServiceCard key={service.name} service={service} theme={config.theme} groupAlign={group.align} groupLayout={group.layout} columnCount={columnCount} />;
-                  })}
+                  {config.settings?.showTitleBackgrounds ? (
+                    <div className="p-2 rounded-lg" style={titleBackgroundStyle}>
+                      <h2 className="text-2xl font-semibold select-none" style={{ color: config.theme.text }}>{group.name}</h2>
+                    </div>
+                  ) : (
+                    <h2 className="text-2xl font-semibold select-none" style={{ color: config.theme.text }}>{group.name}</h2>
+                  )}
                 </div>
+
+                {!isCollapsed && (
+                  <div className={`grid grid-cols-1 ${getGridColsClass(columnCount)} gap-4`}>
+                    {group.services.map((service: Service) => {
+                      return <ServiceCard key={service.name} service={service} theme={config.theme} groupAlign={group.align} groupLayout={group.layout} columnCount={columnCount} />;
+                    })}
+                  </div>
+                )}
               </div>
             );
           })}
-          
+
         </div>
       </main>
     </>
