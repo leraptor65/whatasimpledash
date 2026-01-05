@@ -1,11 +1,11 @@
 title: Welcome to What A Simple Dash!
 defaultColumns: 4
 theme:
-  mainBackground: rgba(20, 20, 20, 1)
-  titleBackground: rgba(0, 0, 0, 0.4)
-  text: rgba(255, 255, 255, 1)
-  serviceBackground: rgba(22, 27, 34, 1)
-  serviceBackgroundHover: rgba(33, 38, 45, 1)
+  mainBackground: '#111828'
+  titleBackground: ''
+  text: '#ffffff'
+  serviceBackground: '#1f2937'
+  serviceBackgroundHover: '#374151'
 backgrounds:
   active: 1756499126393.jpeg
   history:
@@ -19,8 +19,6 @@ widgets:
   items:
     - name: Clock
       type: clock
-    - name: New Widget
-      type: clock
 groups:
   - name: Getting Started
     services:
@@ -30,12 +28,10 @@ groups:
         icon: FaWrench
         backgroundColor: rgba(2,65,4,.5)
         textColor: rgba(255,255,255,1)
-        local: true
       - name: My GitHub
         subtitle: Visit the project repo
         url: https://github.com/leraptor65/whatasimpledash
         icon: FaGithub
-        ping: https://github.com/leraptor65/whatasimpledash
       - name: Test 1
         align: right
         layout: horizontal-reverse
@@ -57,7 +53,6 @@ groups:
         subtitle: This is a test service card
 services:
   - name: New Item
-    type: service
 settings:
   showTitleBackgrounds: true
   backgroundBlur: 4

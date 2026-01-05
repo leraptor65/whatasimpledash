@@ -19,13 +19,11 @@ export type Service = {
   subtitle?: string;
   url?: string;
   icon?: string;
-  ping?: string;
-  pingMethod?: 'HEAD' | 'GET';
   align?: 'left' | 'center' | 'right';
   layout?: 'vertical' | 'horizontal' | 'horizontal-reverse';
   backgroundColor?: string;
   textColor?: string;
-  local?: boolean;
+  hidden?: boolean;
 };
 
 export type ServiceGroup = {
@@ -34,6 +32,7 @@ export type ServiceGroup = {
   services: Service[];
   align?: 'left' | 'center' | 'right';
   layout?: 'vertical' | 'horizontal' | 'horizontal-reverse';
+  collapsed?: boolean;
 };
 
 export type Theme = {
