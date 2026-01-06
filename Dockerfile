@@ -49,7 +49,7 @@ COPY --from=frontend-builder /app/out ./public
 COPY config.sample.yml ./config.sample.yml
 
 # Create necessary directories
-RUN mkdir -p config public/icons public/uploads
+RUN mkdir -p config public/icons public/backgrounds public/uploads
 
 # Expose port
 EXPOSE 3000

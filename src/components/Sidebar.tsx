@@ -9,7 +9,6 @@ const navItems = [
     { name: 'Services', href: '/settings/services', icon: FaList },
     { name: 'Widgets', href: '/settings/widgets', icon: FaPuzzlePiece },
     { name: 'Icons', href: '/settings/icons', icon: FaImage },
-    { name: 'Theme', href: '/settings/theme', icon: FaPalette },
     { name: 'Backgrounds', href: '/settings/backgrounds', icon: FaImage }, // Note: duplicate icon for backgrounds, maybe better to keep distinct if possible, but user didnt ask to fix.
     { name: 'Raw Editor', href: '/settings/raw', icon: FaCode },
 ];

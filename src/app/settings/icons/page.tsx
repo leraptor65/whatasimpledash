@@ -12,10 +12,10 @@ export default function IconsPage() {
 
     const fetchIcons = async () => {
         try {
-            const res = await fetch('/api/icons');
+            const res = await fetch('/api/files/icons');
             const data = await res.json();
             if (data.success) {
-                setIcons(data.icons);
+                setIcons(data.files);
             }
         } catch (e) {
             console.error('Failed to fetch icons', e);
@@ -37,7 +37,7 @@ export default function IconsPage() {
         formData.append('file', file);
 
         try {
-            const res = await fetch('/api/icons', {
+            const res = await fetch('/api/files/icons', {
                 method: 'POST',
                 body: formData,
             });
@@ -60,7 +60,7 @@ export default function IconsPage() {
         if (!confirm(`Are you sure you want to delete ${fileName}?`)) return;
 
         try {
-            const res = await fetch(`/api/icons?name=${encodeURIComponent(fileName)}`, {
+            const res = await fetch(`/api/files/icons/${encodeURIComponent(fileName)}`, {
                 method: 'DELETE',
             });
             if (res.ok) {

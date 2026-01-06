@@ -1,19 +1,30 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import type { DashboardConfig } from '@/types';
-import { FaSave, FaCheck, FaExclamationCircle } from 'react-icons/fa';
+import type { DashboardConfig, Theme } from '@/types';
+import { FaSave, FaCheck, FaExclamationCircle, FaUndo } from 'react-icons/fa';
+import { ColorInput } from '@/components/ColorInput';
+
+const defaultTheme: Theme = {
+    mainBackground: '#111827',
+    titleBackground: '',
+    text: '#ffffff',
+    serviceBackground: '#1f2937',
+    serviceBackgroundHover: '#374151'
+};
 
 export default function GeneralSettingsPage() {
     const [config, setConfig] = useState<DashboardConfig | null>(null);
     const [status, setStatus] = useState<'loading' | 'saved' | 'saving' | 'error' | 'idle'>('loading');
     const [message, setMessage] = useState('');
+    const [theme, setTheme] = useState<Theme>(defaultTheme);
 
     useEffect(() => {
         fetch('/api/config')
             .then(res => res.json())
             .then(data => {
                 setConfig(data);
+                setTheme(data.theme || defaultTheme);
                 setStatus('idle');
             })
             .catch(() => setStatus('error'));
@@ -28,10 +39,10 @@ export default function GeneralSettingsPage() {
         }
     }, [status]);
 
-    const handleChange = (key: string, value: any, nestedCheck?: boolean) => {
+    const handleChange = (key: string, value: any) => {
         if (!config) return;
 
-        let newConfig = { ...config };
+        let newConfig = { ...config, theme };
 
         if (key.includes('.')) {
             const [parent, child] = key.split('.');
@@ -46,13 +57,39 @@ export default function GeneralSettingsPage() {
         saveConfig(newConfig);
     };
 
+    const handleThemeChange = (key: keyof Theme, value: string) => {
+        if (!config) return;
+        const newTheme = { ...theme, [key]: value };
+        setTheme(newTheme);
+        // Auto-save or wait? The original general page auto-saves on change. 
+        // Theme page had manual save. Let's make it consistent: Auto-save or debounce?
+        // General page uses direct saveConfig on change locally but maybe debounce is better?
+        // The original code call saveConfig(newConfig) immediately.
+        // Let's stick to immediately for consistency, user can see 'Saving...'
+
+        const newConfig = { ...config, theme: newTheme };
+        setConfig(newConfig);
+        saveConfig(newConfig);
+    };
+
+    const handleResetTheme = () => {
+        if (window.confirm('Reset theme to defaults? This will apply immediately.')) {
+            setTheme(defaultTheme);
+            if (config) {
+                const newConfig = { ...config, theme: defaultTheme };
+                setConfig(newConfig);
+                saveConfig(newConfig);
+            }
+        }
+    };
+
     const saveConfig = async (newConfig: DashboardConfig) => {
         setStatus('saving');
         try {
             const res = await fetch('/api/config', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(newConfig) // Sending JSON now, route should handle conversion or we update route
+                body: JSON.stringify(newConfig)
             });
             if (res.ok) {
                 setStatus('saved');
@@ -72,7 +109,7 @@ export default function GeneralSettingsPage() {
             <header className="flex justify-between items-center mb-8">
                 <div>
                     <h2 className="text-3xl font-bold mb-2">General Settings</h2>
-                    <p className="text-gray-400">Configure the basics of your dashboard.</p>
+                    <p className="text-gray-400">Configure the basics and theme of your dashboard.</p>
                 </div>
                 <div className="flex items-center gap-2">
                     {status === 'saving' && <span className="text-yellow-500 animate-pulse flex items-center gap-2"><FaSave /> Saving...</span>}
@@ -119,6 +156,64 @@ export default function GeneralSettingsPage() {
             </section>
 
             <section className="glass-panel p-6 rounded-2xl space-y-6">
+                <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-xl font-semibold">Theme Settings</h3>
+                    <button
+                        onClick={handleResetTheme}
+                        className="px-3 py-1.5 border border-white/10 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 flex items-center gap-2 text-sm"
+                    >
+                        <FaUndo size={10} /> Reset Theme
+                    </button>
+                </div>
+
+                <div className="space-y-4">
+                    <ColorInput
+                        label="Main Background"
+                        value={theme.mainBackground}
+                        onChange={(c) => handleThemeChange('mainBackground', c)}
+                        description="The main background color of the entire page."
+                    />
+                    <ColorInput
+                        label="Title Background"
+                        value={theme.titleBackground || ''}
+                        onChange={(c) => handleThemeChange('titleBackground', c)}
+                        description="Background for the header/title section. Leave empty for transparent."
+                    />
+                    <ColorInput
+                        label="Text Color"
+                        value={theme.text}
+                        onChange={(c) => handleThemeChange('text', c)}
+                        description="Primary text color used throughout the dashboard."
+                    />
+                    <ColorInput
+                        label="Service Card Background"
+                        value={theme.serviceBackground}
+                        onChange={(c) => handleThemeChange('serviceBackground', c)}
+                        description="Background color for service cards."
+                    />
+                    <ColorInput
+                        label="Service Card Hover"
+                        value={theme.serviceBackgroundHover}
+                        onChange={(c) => handleThemeChange('serviceBackgroundHover', c)}
+                        description="Background color when hovering over service cards."
+                    />
+                    <div className="border-t border-white/10 my-4" />
+                    <ColorInput
+                        label="Default Group Title Background"
+                        value={theme.groupTitleBackground || ''}
+                        onChange={(c) => handleThemeChange('groupTitleBackground', c)}
+                        description="Default background for group titles (if enabled). Leave empty for none."
+                    />
+                    <ColorInput
+                        label="Default Group Title Text"
+                        value={theme.groupTitleText || ''}
+                        onChange={(c) => handleThemeChange('groupTitleText', c)}
+                        description="Default text color for group titles."
+                    />
+                </div>
+            </section>
+
+            <section className="glass-panel p-6 rounded-2xl space-y-6">
                 <h3 className="text-xl font-semibold">Display Options</h3>
                 <div className="space-y-4">
                     {/* 1. Show Background Wallpaper */}
@@ -144,9 +239,6 @@ export default function GeneralSettingsPage() {
                                             if (!newConfig.backgrounds) newConfig.backgrounds = {};
                                             newConfig.backgrounds.active = newConfig.settings.lastActiveBackground;
                                         } else {
-                                            // No history, maybe alert or just do nothing (empty active is fine)
-                                            // Ideally we would fetch list and pick one, but we don't have list here easily without fetching.
-                                            // Leaving active as undefined/empty is visually correct (no bg).
                                             if (!newConfig.backgrounds?.active) {
                                                 alert('No previous background found. Please select one from the Backgrounds tab.');
                                             }

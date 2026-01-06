@@ -94,13 +94,26 @@ export default function ServicesPage() {
         }
     };
 
-    const handleDeleteService = async (groupIndex: number, serviceIndex: number) => {
+    const handleDeleteService = async (groupIndex: number, serviceIndex?: number) => {
+        // Confirmation is done in modal now usually, but if called directly we might want it.
+        // Modal logic wraps confirm, so here we just execute? 
+        // Wait, GroupModal does confirm. ServiceModal does NOT do confirm in my previous code!
+        // GroupModal code: `if (window.confirm...) onDelete()`.
+        // ServiceModal code: Just `onClick={() => onDelete(...)}`.
+        // So `handleDeleteService` MUST confirm.
         if (!config || !window.confirm('Delete this service?')) return;
         const newGroups = [...config.groups];
+        if (typeof serviceIndex !== 'number' || serviceIndex < 0) return; // Safety
+
         newGroups[groupIndex].services.splice(serviceIndex, 1);
         const success = await saveConfig({ ...config, groups: newGroups });
-        if (success) alert('Service deleted successfully!');
-        else alert('Failed to delete service.');
+        if (success) {
+            alert('Service deleted successfully!');
+            setIsServiceModalOpen(false);
+            setEditingService(null);
+        } else {
+            alert('Failed to delete service.');
+        }
     };
 
     // --- Group Handlers ---
@@ -115,7 +128,10 @@ export default function ServicesPage() {
                 ...newGroups[editingGroupIndex],
                 name: groupData.name!,
                 columns: groupData.columns!,
-                collapsed: groupData.collapsed
+                collapsed: groupData.collapsed,
+                titleAlign: groupData.titleAlign,
+                titleBackgroundColor: groupData.titleBackgroundColor,
+                titleTextColor: groupData.titleTextColor
             };
         } else {
             // Add new
@@ -123,7 +139,10 @@ export default function ServicesPage() {
                 name: groupData.name!,
                 columns: groupData.columns || 3,
                 services: [],
-                collapsed: groupData.collapsed
+                collapsed: groupData.collapsed,
+                titleAlign: groupData.titleAlign,
+                titleBackgroundColor: groupData.titleBackgroundColor,
+                titleTextColor: groupData.titleTextColor
             });
         }
 
@@ -138,12 +157,31 @@ export default function ServicesPage() {
     };
 
     const handleDeleteGroup = async (index: number) => {
-        if (!config || !window.confirm('Delete this group and all its services?')) return;
+        // Confirmation done in GroupModal? Yes. 
+        // BUT wait, GroupModal calls `onDelete` which is THIS function. 
+        // IF GroupModal has confirm, we don't need double confirm here. 
+        // GroupModal: `if (window.confirm('Delete this group...')) onDelete()`.
+        // So we can remove confirm here, OR rely on it. 
+        // Let's remove confirm here if it's annoying, or keeping it is safer. 
+        // Actually double alert is bad.
+        // Let's assume passed callback is "action" only.
+        // BUT wait. If I click Delete in modal, it confirms, then calls this. 
+        // This calls `!window.confirm` -> double confirm. 
+        // I should remove confirm here OR remove it from modal.
+        // I already edited GroupModal to have confirm. I will remove it here.
+        // ServiceModal did NOT have confirm in my modification. So I keep confirm here for service.
+
+        if (!config) return;
         const newGroups = [...config.groups];
         newGroups.splice(index, 1);
         const success = await saveConfig({ ...config, groups: newGroups });
-        if (success) alert('Group deleted successfully!');
-        else alert('Failed to delete group.');
+        if (success) {
+            alert('Group deleted successfully!');
+            setIsGroupModalOpen(false);
+            setEditingGroupIndex(null);
+        } else {
+            alert('Failed to delete group.');
+        }
     };
 
 
@@ -324,13 +362,6 @@ export default function ServicesPage() {
                                                 >
                                                     <FaEdit size={12} />
                                                 </button>
-                                                <button
-                                                    onClick={() => handleDeleteService(groupIndex, serviceIndex)}
-                                                    className="p-1.5 bg-red-600/20 text-red-400 rounded-md hover:bg-red-600 hover:text-white transition-colors"
-                                                    title="Delete"
-                                                >
-                                                    <FaTrash size={12} />
-                                                </button>
                                             </div>
                                         </div>
                                     </div>
@@ -366,8 +397,10 @@ export default function ServicesPage() {
                 isOpen={isServiceModalOpen}
                 onClose={() => setIsServiceModalOpen(false)}
                 onSave={handleSaveService}
+                onDelete={handleDeleteService}
                 initialService={editingService?.service}
                 groupIndex={editingService?.groupIndex}
+                serviceIndex={editingService?.serviceIndex}
                 groups={config.groups}
             />
 
@@ -375,6 +408,7 @@ export default function ServicesPage() {
                 isOpen={isGroupModalOpen}
                 onClose={() => setIsGroupModalOpen(false)}
                 onSave={handleSaveGroup}
+                onDelete={() => editingGroupIndex !== null && handleDeleteGroup(editingGroupIndex)}
                 initialGroup={editingGroupIndex !== null ? config.groups[editingGroupIndex] : undefined}
             />
         </div>

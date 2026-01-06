@@ -9,5 +9,6 @@ services:
       # This volume is now writable so the entrypoint can create the sample config
       - /var/run/docker.sock:/var/run/docker.sock
       - ./config:/app/config
-      - ./public:/app/public
       - ./public/icons:/app/public/icons
+      - ./public/uploads:/app/public/uploads
+      - ./public/backgrounds:/app/public/backgrounds
