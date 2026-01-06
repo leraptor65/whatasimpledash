@@ -8,15 +8,15 @@ import * as SiIcons from 'react-icons/si';
 
 // --- Type Definitions ---
 type Alignment = 'left' | 'center' | 'right';
-type Layout = 'vertical' | 'horizontal' | 'horizontal-reverse';
+type Layout = 'vertical' | 'horizontal' | 'horizontal-reverse' | 'vertical-reverse';
 
 // --- Icon Handling ---
 const AllIcons: Record<string, ElementType> = { ...FaIcons, ...SiIcons };
 const IconComponent = ({ icon, isVertical, textColor }: { icon?: string, isVertical: boolean, textColor?: string }) => {
   if (!icon) return <FaGlobe style={{ color: textColor }} />;
   const iconSize = isVertical ? "h-8 w-8" : "h-10 w-10";
-  if (icon.endsWith('.png') || icon.endsWith('.svg')) {
-    return <img src={`/api/images/icons/${icon}`} alt="" className={iconSize} />;
+  if (icon.endsWith('.png') || icon.endsWith('.svg') || icon.endsWith('.jpg') || icon.endsWith('.webp')) {
+    return <img src={`/icons/${icon}`} alt="" className={iconSize} />;
   }
   const Icon = AllIcons[icon];
   return Icon ? <Icon style={{ color: textColor }} /> : <FaGlobe style={{ color: textColor }} />;
@@ -28,19 +28,24 @@ const getTextAlignClass = (align: Alignment = 'center') => ({
 }[align]);
 
 const getLayoutClass = (layout: Layout = 'vertical', align: Alignment = 'center') => {
-  if (layout === 'vertical') {
-    const alignmentClass = {
-      left: "items-start",
-      center: "items-center",
-      right: "items-end"
-    }[align];
-    return `flex-col justify-center ${alignmentClass}`;
-  }
+  const alignmentClass = {
+    left: "items-start",
+    center: "items-center",
+    right: "items-end"
+  }[align];
+
   const justifyContentClass = {
     left: "justify-start",
     center: "justify-center",
     right: "justify-end"
   }[align];
+
+  if (layout === 'vertical') {
+    return `flex-col justify-center ${alignmentClass}`;
+  }
+  if (layout === 'vertical-reverse') {
+    return `flex-col-reverse justify-center ${alignmentClass}`;
+  }
   if (layout === 'horizontal') {
     return `flex-row items-center ${justifyContentClass}`;
   }
@@ -52,40 +57,48 @@ const getLayoutClass = (layout: Layout = 'vertical', align: Alignment = 'center'
 
 
 // --- Reusable Service Card with Status ---
-export const ServiceCard = ({ service, theme, groupAlign, groupLayout, columnCount }: { service: Service; theme: DashboardConfig['theme'], groupAlign?: Alignment, groupLayout?: Layout, columnCount: number }) => {
+export const ServiceCard = ({ service, theme, groupAlign, groupLayout, columnCount, showBackground = true }: { service: Service; theme: DashboardConfig['theme'], groupAlign?: Alignment, groupLayout?: Layout, columnCount: number, showBackground?: boolean }) => {
   const [hovered, setHovered] = useState(false);
 
+  // Defaults
   const align = service.align || groupAlign || 'center';
   const layout = service.layout || groupLayout || 'vertical';
-  const isVertical = (layout || 'vertical') === 'vertical';
+  const showIcon = service.showIcon !== false; // Default true
+
+  const isVertical = layout === 'vertical' || layout === 'vertical-reverse';
 
   const paddingClass = columnCount <= 3 ? 'px-14' : 'px-4';
 
-  const backgroundColor = hovered
-    ? service.backgroundColor
-      ? service.backgroundColor // a bit darker maybe?
-      : theme.serviceBackgroundHover
-    : service.backgroundColor || theme.serviceBackground;
-  const textColor = service.textColor || theme.text;
+  const backgroundColor = showBackground
+    ? (hovered
+      ? service.backgroundColor
+        ? service.backgroundColor
+        : theme.serviceBackgroundHover
+      : service.backgroundColor || theme.serviceBackground)
+    : 'transparent';
 
+  const textColor = service.textColor || theme.text;
+  const shadowClass = showBackground ? 'shadow-lg' : '';
 
   return (
     <a
       href={service.url}
       target="_blank"
       rel="noopener noreferrer"
-      className={`relative rounded-xl py-2 ${paddingClass} shadow-lg flex h-24 transition-colors ${getLayoutClass(layout, align)}`}
+      className={`relative rounded-xl py-2 ${paddingClass} ${shadowClass} flex h-24 transition-colors ${getLayoutClass(layout, align)} gap-2`}
       style={{
         backgroundColor,
       }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      <div className={`flex-shrink-0 ${isVertical ? 'mb-2 text-3xl' : 'mx-3 text-4xl'}`}>
-        <IconComponent icon={service.icon} isVertical={isVertical} textColor={textColor} />
-      </div>
+      {showIcon && (
+        <div className={`flex-shrink-0 ${isVertical ? 'text-3xl' : 'text-4xl'}`}>
+          <IconComponent icon={service.icon} isVertical={isVertical} textColor={textColor} />
+        </div>
+      )}
       <div className={getTextAlignClass(align)}>
-        <h3 className={`font-semibold ${isVertical ? 'text-md' : 'text-lg'}`} style={{ color: textColor }}>{service.name}</h3>
+        <h3 className={`font-semibold ${isVertical ? 'text-md' : 'text-lg'} leading-tight`} style={{ color: textColor }}>{service.name}</h3>
         {service.subtitle && columnCount < 5 && <p className="text-xs" style={{ color: textColor, opacity: 0.8 }}>{service.subtitle}</p>}
       </div>
     </a>

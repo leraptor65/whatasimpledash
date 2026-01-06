@@ -19,8 +19,9 @@ export type Service = {
   subtitle?: string;
   url?: string;
   icon?: string;
+  showIcon?: boolean; // Default to true if undefined
   align?: 'left' | 'center' | 'right';
-  layout?: 'vertical' | 'horizontal' | 'horizontal-reverse';
+  layout?: 'vertical' | 'horizontal' | 'horizontal-reverse' | 'vertical-reverse';
   backgroundColor?: string;
   textColor?: string;
   hidden?: boolean;
@@ -31,6 +32,7 @@ export type ServiceGroup = {
   columns: number;
   services: Service[];
   align?: 'left' | 'center' | 'right';
+  titleAlign?: 'left' | 'center' | 'right'; // New option for title alignment
   layout?: 'vertical' | 'horizontal' | 'horizontal-reverse';
   collapsed?: boolean;
 };
@@ -63,6 +65,9 @@ export type DashboardConfig = {
   services?: Service[]; // This will now be officially for ungrouped services
   settings?: {
     showTitleBackgrounds?: boolean;
+    showServiceBackgrounds?: boolean; // New option
+    showBackground?: boolean; // New option for main wallpaper
+    lastActiveBackground?: string; // To restore bg when toggled back on
     backgroundBlur?: number;
     localIp?: string;
   };

@@ -4,14 +4,15 @@ import { useEffect, useState } from 'react';
 import type { DashboardConfig, Service, ServiceGroup } from '@/types';
 import { ServiceModal } from '@/components/ServiceModal';
 import { GroupModal } from '@/components/GroupModal';
-import { FaPlus, FaEdit, FaTrash, FaCheck } from 'react-icons/fa';
+import { FaPlus, FaEdit, FaTrash, FaCheck, FaChevronUp, FaChevronDown } from 'react-icons/fa';
 import * as InitialIcons from 'react-icons/fa'; // Load icons for display
 
 const allIcons: any = InitialIcons;
 
 export default function ServicesPage() {
     const [config, setConfig] = useState<DashboardConfig | null>(null);
-    const [status, setStatus] = useState<'loading' | 'saved' | 'saving' | 'error'>('loading');
+    const [status, setStatus] = useState<'loading' | 'saved' | 'saving' | 'error' | 'idle'>('loading');
+    const [draggedItem, setDraggedItem] = useState<{ groupIndex: number, serviceIndex: number } | null>(null);
 
     // modal states
     const [isServiceModalOpen, setIsServiceModalOpen] = useState(false);
@@ -26,10 +27,19 @@ export default function ServicesPage() {
             .then(data => {
                 if (!data.groups) data.groups = [];
                 setConfig(data);
-                setStatus('saved');
+                setStatus('idle');
             })
             .catch(() => setStatus('error'));
     }, []);
+
+    useEffect(() => {
+        if (status === 'saved') {
+            const timer = setTimeout(() => {
+                setStatus('idle');
+            }, 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [status]);
 
     const saveConfig = async (newConfig: DashboardConfig) => {
         setStatus('saving');
@@ -137,6 +147,60 @@ export default function ServicesPage() {
     };
 
 
+    const handleMoveService = async (groupIndex: number, serviceIndex: number, direction: 'up' | 'down') => {
+        if (!config) return;
+        const newGroups = [...config.groups];
+        const group = newGroups[groupIndex];
+        const services = group.services;
+
+        if (direction === 'up') {
+            if (serviceIndex === 0) return;
+            [services[serviceIndex], services[serviceIndex - 1]] = [services[serviceIndex - 1], services[serviceIndex]];
+        } else {
+            if (serviceIndex === services.length - 1) return;
+            [services[serviceIndex], services[serviceIndex + 1]] = [services[serviceIndex + 1], services[serviceIndex]];
+        }
+
+        await saveConfig({ ...config, groups: newGroups });
+    };
+
+    // --- DnD Handlers ---
+    const handleDragStart = (e: React.DragEvent, groupIndex: number, serviceIndex: number) => {
+        setDraggedItem({ groupIndex, serviceIndex });
+        e.dataTransfer.effectAllowed = 'move';
+        // Make ghost image look cleaner if possible, or just default
+    };
+
+    const handleDragOver = (e: React.DragEvent) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+    };
+
+    const handleDrop = async (e: React.DragEvent, targetGroupIndex: number, targetServiceIndex: number) => {
+        e.preventDefault();
+        if (!config || !draggedItem) return;
+
+        // Only allow reordering within the SAME group for simplicity (user asked for reorganizer, usually implies sort)
+        // If user wants to move between groups, we can support that, but let's start with safe reorder.
+        // Actually, user just said "for services in groups", implying reordering. Moving between groups is nice but maybe complex?
+        // Let's support same-group reordering first to avoid data loss edge cases.
+
+        if (draggedItem.groupIndex !== targetGroupIndex) return;
+        if (draggedItem.serviceIndex === targetServiceIndex) return;
+
+        const newGroups = [...config.groups];
+        const group = newGroups[targetGroupIndex];
+        const services = [...group.services];
+
+        const [removed] = services.splice(draggedItem.serviceIndex, 1);
+        services.splice(targetServiceIndex, 0, removed);
+
+        newGroups[targetGroupIndex].services = services;
+
+        setDraggedItem(null);
+        await saveConfig({ ...config, groups: newGroups });
+    };
+
     if (!config) return <div className="p-8">Loading...</div>;
 
     return (
@@ -187,35 +251,87 @@ export default function ServicesPage() {
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                        <div className="space-y-2">
                             {(group.services || []).map((service: Service, serviceIndex: number) => {
-                                const Icon = allIcons[service.icon as keyof typeof allIcons] || allIcons.FaGlobe;
+                                const iconName = service.icon;
+                                let IconElement;
+
+                                if (iconName && (iconName.endsWith('.png') || iconName.endsWith('.svg') || iconName.endsWith('.jpg') || iconName.endsWith('.webp'))) {
+                                    IconElement = <img src={`/icons/${iconName}`} alt="" className="w-full h-full object-contain" />;
+                                } else {
+                                    const Icon = (iconName && allIcons[iconName]) ? allIcons[iconName] : allIcons.FaGlobe;
+                                    IconElement = <Icon />;
+                                }
+
+                                const isFirst = serviceIndex === 0;
+                                const isLast = serviceIndex === (group.services || []).length - 1;
+
                                 return (
-                                    <div key={serviceIndex} className={`glass-card p-4 rounded-xl flex items-center gap-4 group relative ${service.hidden ? 'opacity-50 grayscale' : ''}`}>
-                                        <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center text-cyan-400 text-xl">
-                                            <Icon />
+                                    <div
+                                        key={serviceIndex}
+                                        draggable={true}
+                                        onDragStart={(e) => handleDragStart(e, groupIndex, serviceIndex)}
+                                        onDragOver={handleDragOver}
+                                        onDrop={(e) => handleDrop(e, groupIndex, serviceIndex)}
+                                        className={`glass-card px-4 py-3 rounded-xl flex items-center gap-4 group relative transition-all ${service.hidden ? 'opacity-50 grayscale' : ''} ${draggedItem?.groupIndex === groupIndex && draggedItem?.serviceIndex === serviceIndex ? 'opacity-50 border-2 border-dashed border-cyan-500' : 'hover:border-white/20'}`}
+                                        style={{ cursor: 'grab' }}
+                                    >
+                                        <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-cyan-400 text-lg overflow-hidden p-1">
+                                            {IconElement}
                                         </div>
-                                        <div className="flex-1 min-w-0">
-                                            <h4 className="font-semibold truncate">{service.name}</h4>
-                                            <p className="text-xs text-gray-500 truncate">{service.url}</p>
-                                            {service.hidden && <span className="text-[10px] bg-red-500/20 text-red-500 px-1.5 py-0.5 rounded uppercase font-bold tracking-wider">Hidden</span>}
+                                        <div className="flex-1 min-w-0 flex items-center gap-4">
+                                            <div>
+                                                <h4 className="font-semibold truncate text-sm">{service.name}</h4>
+                                                <p className="text-xs text-gray-500 truncate">{service.url}</p>
+                                            </div>
+                                            {(service.layout || service.align || service.showIcon === false) && (
+                                                <span className="text-[10px] bg-white/5 text-gray-400 px-1.5 py-0.5 rounded border border-white/10">Custom Style</span>
+                                            )}
                                         </div>
-                                        <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
-                                            <button
-                                                onClick={() => {
-                                                    setEditingService({ service, groupIndex, serviceIndex });
-                                                    setIsServiceModalOpen(true);
-                                                }}
-                                                className="p-1.5 bg-blue-600 rounded-md text-white hover:bg-blue-500"
-                                            >
-                                                <FaEdit size={12} />
-                                            </button>
-                                            <button
-                                                onClick={() => handleDeleteService(groupIndex, serviceIndex)}
-                                                className="p-1.5 bg-red-600 rounded-md text-white hover:bg-red-500"
-                                            >
-                                                <FaTrash size={12} />
-                                            </button>
+                                        {service.hidden && <span className="text-[10px] bg-red-500/20 text-red-500 px-1.5 py-0.5 rounded uppercase font-bold tracking-wider">Hidden</span>}
+
+                                        <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            {/* Reorder Controls */}
+                                            <div className="flex flex-col gap-0.5">
+                                                <button
+                                                    onClick={(e) => { e.stopPropagation(); handleMoveService(groupIndex, serviceIndex, 'up'); }}
+                                                    disabled={isFirst}
+                                                    className={`p-1 rounded text-gray-400 hover:text-white hover:bg-white/10 disabled:opacity-20 disabled:hover:bg-transparent transition-colors`}
+                                                    title="Move Up"
+                                                >
+                                                    <FaChevronUp size={10} />
+                                                </button>
+                                                <button
+                                                    onClick={(e) => { e.stopPropagation(); handleMoveService(groupIndex, serviceIndex, 'down'); }}
+                                                    disabled={isLast}
+                                                    className={`p-1 rounded text-gray-400 hover:text-white hover:bg-white/10 disabled:opacity-20 disabled:hover:bg-transparent transition-colors`}
+                                                    title="Move Down"
+                                                >
+                                                    <FaChevronDown size={10} />
+                                                </button>
+                                            </div>
+
+                                            <div className="w-px bg-white/10 mx-1"></div>
+
+                                            <div className="flex gap-1 items-center">
+                                                <button
+                                                    onClick={() => {
+                                                        setEditingService({ service, groupIndex, serviceIndex });
+                                                        setIsServiceModalOpen(true);
+                                                    }}
+                                                    className="p-1.5 bg-blue-600/20 text-blue-400 rounded-md hover:bg-blue-600 hover:text-white transition-colors"
+                                                    title="Edit"
+                                                >
+                                                    <FaEdit size={12} />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDeleteService(groupIndex, serviceIndex)}
+                                                    className="p-1.5 bg-red-600/20 text-red-400 rounded-md hover:bg-red-600 hover:text-white transition-colors"
+                                                    title="Delete"
+                                                >
+                                                    <FaTrash size={12} />
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 );
@@ -226,9 +342,9 @@ export default function ServicesPage() {
                                     setEditingService({ service: { name: '', url: '', icon: 'FaPlus' }, groupIndex, serviceIndex: -1 });
                                     setIsServiceModalOpen(true);
                                 }}
-                                className="glass-card border-dashed border-white/20 p-4 rounded-xl flex flex-col items-center justify-center gap-2 text-gray-500 hover:text-cyan-400 hover:border-cyan-500/50 cursor-pointer min-h-[88px]"
+                                className="w-full glass-card border-dashed border-white/20 p-3 rounded-xl flex items-center justify-center gap-2 text-gray-500 hover:text-cyan-400 hover:border-cyan-500/50 cursor-pointer transition-all hover:bg-white/5"
                             >
-                                <FaPlus />
+                                <FaPlus size={12} />
                                 <span className="text-sm">Add Service</span>
                             </button>
                         </div>

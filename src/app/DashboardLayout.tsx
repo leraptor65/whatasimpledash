@@ -202,7 +202,7 @@ export default function DashboardLayout() {
             <div className={`grid grid-cols-1 ${getGridColsClass(config.defaultColumns)} gap-4 p-4`}>
               {searchResults.length > 0 ? (
                 searchResults.map((service: Service) => (
-                  <ServiceCard key={service.name} service={service} theme={config.theme} columnCount={config.defaultColumns} />
+                  <ServiceCard key={service.name} service={service} theme={config.theme} columnCount={config.defaultColumns} showBackground={config.settings?.showServiceBackgrounds !== false} />
                 ))
               ) : (
                 <p className="col-span-full text-center" style={{ color: config.theme.text, opacity: 0.8 }}>No services found.</p>
@@ -261,10 +261,12 @@ export default function DashboardLayout() {
           {filteredConfig.groups.map((group: ServiceGroup) => {
             const columnCount = group.columns || config.defaultColumns;
             const isCollapsed = collapsedGroups[group.name];
+            const titleAlign = group.titleAlign || 'left';
+            const flexJustify = titleAlign === 'center' ? 'justify-center' : titleAlign === 'right' ? 'justify-end' : 'justify-start';
 
             return (
               <div key={group.name} className="mb-8">
-                <div className="flex items-center mb-4 cursor-pointer" onClick={() => toggleGroup(group.name)}>
+                <div className={`flex items-center mb-4 cursor-pointer ${flexJustify}`} onClick={() => toggleGroup(group.name)}>
                   <div className="mr-2 transition-transform duration-200" style={{ transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)' }}>
                     <FaChevronDown style={{ color: config.theme.text }} />
                   </div>
@@ -280,7 +282,7 @@ export default function DashboardLayout() {
                 {!isCollapsed && (
                   <div className={`grid grid-cols-1 ${getGridColsClass(columnCount)} gap-4`}>
                     {group.services.map((service: Service) => {
-                      return <ServiceCard key={service.name} service={service} theme={config.theme} groupAlign={group.align} groupLayout={group.layout} columnCount={columnCount} />;
+                      return <ServiceCard key={service.name} service={service} theme={config.theme} groupAlign={group.align} groupLayout={group.layout} columnCount={columnCount} showBackground={config.settings?.showServiceBackgrounds !== false} />;
                     })}
                   </div>
                 )}

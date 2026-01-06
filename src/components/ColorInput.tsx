@@ -35,7 +35,7 @@ export function ColorInput({ label, description, value, onChange }: ColorInputPr
             <div className="flex-1">
                 <h3 className="font-semibold text-gray-200">{label}</h3>
                 {description && <p className="text-sm text-gray-500 mt-1">{description}</p>}
-                <div className="mt-2 text-xs font-mono text-gray-600 bg-black/20 inline-block px-2 py-1 rounded">
+                <div className="mt-2 text-xs font-mono text-cyan-200 bg-black/40 border border-white/10 inline-block px-2 py-1 rounded">
                     {value}
                 </div>
             </div>
@@ -51,22 +51,49 @@ export function ColorInput({ label, description, value, onChange }: ColorInputPr
 
                 {displayPicker && (
                     <div className="absolute top-14 right-0 z-[100]">
-                        <div className="fixed inset-0" onClick={handleClose} />
-                        <div className="relative z-50 shadow-2xl rounded-xl overflow-hidden">
-                            <SketchPicker
-                                color={value}
-                                onChange={handleChange}
-                                styles={{
-                                    default: {
-                                        picker: {
-                                            background: '#1f2937', // dark mode bg
-                                            border: '1px solid rgba(255,255,255,0.1)',
-                                            color: 'white',
-                                            borderRadius: '12px',
+                        <div className="absolute z-50 mt-2">
+                            <div className="fixed inset-0 z-40" onClick={() => setDisplayPicker(false)} />
+                            <div className="absolute z-50 mt-2">
+                                <div className="fixed inset-0 z-40" onClick={() => setDisplayPicker(false)} />
+                                <div className="relative z-50">
+                                    <SketchPicker
+                                        color={value}
+                                        onChange={handleChange}
+                                        disableAlpha={false}
+                                        presetColors={[]}
+                                        styles={{
+                                            default: {
+                                                picker: {
+                                                    background: '#18181b', // zinc-900
+                                                    border: '1px solid rgba(255,255,255,0.1)',
+                                                    color: '#e4e4e7', // zinc-200
+                                                    borderRadius: '12px',
+                                                    boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.4)',
+                                                },
+                                                controls: {
+                                                    paddingBottom: '10px',
+                                                },
+                                                saturation: {
+                                                    borderRadius: '12px 12px 0 0',
+                                                },
+                                                // @ts-ignore
+                                                input: {
+                                                    color: '#000000',
+                                                }
+                                            }
+                                        } as any}
+                                    />
+                                    {/* Hack to hide HEX input if possible via adjacent css or just leave it since library limits */}
+                                    <style jsx global>{`
+                                        .sketch-picker > div:last-child > div:first-child > div:first-child {
+                                             display: none !important;
                                         }
-                                    }
-                                }}
-                            />
+                                        .sketch-picker > div:last-child > div:first-child > div:nth-child(2) {
+                                             flex: 4 !important; /* Expand RGBA fields to fill space */
+                                        }
+                                    `}</style>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 )}

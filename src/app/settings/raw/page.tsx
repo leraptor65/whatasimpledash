@@ -1,12 +1,17 @@
 "use client";
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import Editor from 'react-simple-code-editor';
+import { highlight, languages } from 'prismjs';
+import 'prismjs/components/prism-yaml';
+import 'prismjs/themes/prism-dark.css';
 import { FaSave, FaCheck, FaExclamationCircle, FaCopy } from 'react-icons/fa';
 import { dashboardConfigSchema } from '@/lib/schema';
 
 export default function RawEditorPage() {
     const [configText, setConfigText] = useState('');
-    const [status, setStatus] = useState<'loading' | 'saved' | 'saving' | 'error' | 'unsaved'>('loading');
+    const [status, setStatus] = useState<'loading' | 'saved' | 'saving' | 'error' | 'unsaved' | 'idle'>('loading');
     const [lastSavedText, setLastSavedText] = useState('');
 
     useEffect(() => {
@@ -17,16 +22,25 @@ export default function RawEditorPage() {
                     const text = yaml.dump(data, { indent: 2, lineWidth: -1 });
                     setConfigText(text);
                     setLastSavedText(text);
-                    setStatus('saved');
+                    setStatus('idle');
                 });
             })
             .catch(() => setStatus('error'));
     }, []);
 
-    const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-        setConfigText(e.target.value);
-        if (e.target.value !== lastSavedText) setStatus('unsaved');
-        else setStatus('saved');
+    useEffect(() => {
+        if (status === 'saved') {
+            const timer = setTimeout(() => {
+                setStatus('idle');
+            }, 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [status]);
+
+    const handleChange = (newCode: string) => {
+        setConfigText(newCode);
+        if (newCode !== lastSavedText) setStatus('unsaved');
+        else setStatus('idle');
     };
 
     const handleSave = async () => {
@@ -67,7 +81,7 @@ export default function RawEditorPage() {
             if (res.ok) {
                 setStatus('saved');
                 setLastSavedText(configText);
-                alert("Settings saved successfully!");
+                // alert("Settings saved successfully!"); // Removed to rely on button state
             } else {
                 const errData = await res.json();
                 alert(`Server Error: ${errData.message}`);
@@ -82,7 +96,7 @@ export default function RawEditorPage() {
     // Copy to clipboard
     const handleCopy = () => {
         navigator.clipboard.writeText(configText);
-        alert('Copied to clipboard!');
+        // alert('Copied to clipboard!'); // Optional, maybe toast?
     };
 
     if (status === 'loading') return <div className="p-8">Loading...</div>;
@@ -107,7 +121,7 @@ export default function RawEditorPage() {
                         onClick={handleSave}
                         className={`px-6 py-2 rounded-lg font-medium flex items-center gap-2 transition-all shadow-lg ${status === 'saving' ? 'bg-gray-600 cursor-wait' :
                             status === 'saved' ? 'bg-green-600 hover:bg-green-500 text-white' :
-                                'bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white hover:scale-105 shadow-cyan-500/20'
+                                'bg-white/10 text-white hover:bg-white/20'
                             }`}
                         disabled={status === 'saving'}
                     >
@@ -118,14 +132,23 @@ export default function RawEditorPage() {
                 </div>
             </header>
 
-            <div className="flex-1 glass-panel p-1 rounded-xl overflow-hidden relative">
-                <textarea
-                    value={configText}
-                    onChange={handleChange}
-                    className="w-full h-full bg-black/50 text-emerald-400 font-mono text-sm p-6 resize-none focus:outline-none custom-scrollbar"
-                    spellCheck="false"
-                    placeholder="# Edit your configuration here..."
-                />
+            <div className="flex-1 glass-panel p-1 rounded-xl overflow-hidden relative bg-black/50">
+                <div className="absolute inset-0 overflow-auto custom-scrollbar">
+                    <Editor
+                        value={configText}
+                        onValueChange={handleChange}
+                        highlight={code => highlight(code, languages.yaml, 'yaml')}
+                        padding={24}
+                        className="font-mono text-sm"
+                        style={{
+                            fontFamily: '"Fira Code", "Fira Mono", monospace',
+                            fontSize: 14,
+                            backgroundColor: 'transparent',
+                            minHeight: '100%',
+                        }}
+                        textareaClassName="focus:outline-none"
+                    />
+                </div>
             </div>
         </div>
     );

@@ -39,7 +39,7 @@ export function ServiceModal({ isOpen, onClose, onSave, initialService, groupInd
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
             <div className="glass-panel w-full max-w-2xl rounded-2xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
                 <div className="p-6 border-b border-white/10 flex justify-between items-center bg-white/5">
-                    <h3 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-500">
+                    <h3 className="text-xl font-bold text-white">
                         {initialService ? 'Edit Service' : 'Add New Service'}
                     </h3>
                     <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors">
@@ -97,6 +97,48 @@ export function ServiceModal({ isOpen, onClose, onSave, initialService, groupInd
 
                         <div>
                             <IconPicker value={service.icon || 'FaGlobe'} onChange={icon => setService({ ...service, icon })} />
+                        </div>
+
+                        <div className="col-span-1 md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-6 border-t border-white/10 pt-6">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-400 mb-2">Icon Position</label>
+                                <select
+                                    value={service.layout || 'vertical'}
+                                    onChange={e => setService({ ...service, layout: e.target.value as any })}
+                                    className="w-full glass-input px-4 py-3 rounded-lg"
+                                >
+                                    <option value="vertical" className="bg-gray-900">Top (Default)</option>
+                                    <option value="vertical-reverse" className="bg-gray-900">Bottom</option>
+                                    <option value="horizontal" className="bg-gray-900">Left</option>
+                                    <option value="horizontal-reverse" className="bg-gray-900">Right</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-400 mb-2">Alignment</label>
+                                <select
+                                    value={service.align || 'center'}
+                                    onChange={e => setService({ ...service, align: e.target.value as any })}
+                                    className="w-full glass-input px-4 py-3 rounded-lg"
+                                >
+                                    <option value="center" className="bg-gray-900">Center (Default)</option>
+                                    <option value="left" className="bg-gray-900">Left</option>
+                                    <option value="right" className="bg-gray-900">Right</option>
+                                </select>
+                            </div>
+                            <div className="flex flex-col justify-center">
+                                <label className="flex items-center gap-3 cursor-pointer group">
+                                    <div className={`w-12 h-6 rounded-full p-1 transition-colors duration-200 ${service.showIcon !== false ? 'bg-cyan-600' : 'bg-gray-700'}`}>
+                                        <div className={`w-4 h-4 bg-white rounded-full shadow-md transform transition-transform duration-200 ${service.showIcon !== false ? 'translate-x-6' : 'translate-x-0'}`} />
+                                    </div>
+                                    <input
+                                        type="checkbox"
+                                        className="hidden"
+                                        checked={service.showIcon !== false}
+                                        onChange={(e) => setService({ ...service, showIcon: e.target.checked })}
+                                    />
+                                    <span className="text-gray-300 group-hover:text-white transition-colors">Show Icon</span>
+                                </label>
+                            </div>
                         </div>
 
                         <div className="col-span-1 md:col-span-2 border-t border-white/10 pt-4 mt-2">

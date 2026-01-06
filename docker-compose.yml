@@ -1,5 +1,5 @@
 services:
-  dashboard:
+  whatasimpledash:
     image: leraptor65/whatasimpledash:latest
     container_name: whatasimpledash
     restart: unless-stopped
@@ -11,4 +11,3 @@ services:
       - ./config:/app/config
       - ./public:/app/public
       - ./public/icons:/app/public/icons
-      
