@@ -53,7 +53,7 @@ export function Sidebar() {
                     className="flex items-center gap-3 px-4 py-2 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-all text-sm"
                 >
                     <FaInfoCircle />
-                    <span>About whatasimpledash</span>
+                    <span>About</span>
                 </a>
                 <div className="px-4 text-xs text-gray-600 font-mono">
                     v2.0.0
