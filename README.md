@@ -60,8 +60,8 @@ services:
       # These folders will be created on your host machine automatically
       - /var/run/docker.sock:/var/run/docker.sock
       - ./config:/app/config
-      - ./public:/app/public
       - ./public/icons:/app/public/icons
+      - ./public/uploads:/app/public/uploads
 ```
 
 #### 3. Start the Dashboard
