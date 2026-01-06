@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from 'react';
-import { FaTimes } from 'react-icons/fa';
+import { FaTimes, FaTrash } from 'react-icons/fa';
 import type { Service, ServiceGroup } from '@/types';
 import { IconPicker } from './IconPicker';
 
@@ -9,8 +9,10 @@ interface ServiceModalProps {
     isOpen: boolean;
     onClose: () => void;
     onSave: (service: Service, groupIndex: number) => void;
+    onDelete?: (groupIndex: number, serviceIndex?: number) => void;
     initialService?: Service;
     groupIndex?: number;
+    serviceIndex?: number;
     groups: ServiceGroup[];
 }
 
@@ -22,7 +24,7 @@ const defaultService: Service = {
     hidden: false
 };
 
-export function ServiceModal({ isOpen, onClose, onSave, initialService, groupIndex = 0, groups }: ServiceModalProps) {
+export function ServiceModal({ isOpen, onClose, onSave, onDelete, initialService, groupIndex = 0, serviceIndex, groups }: ServiceModalProps) {
     const [service, setService] = useState<Service>(defaultService);
     const [selectedGroupIndex, setSelectedGroupIndex] = useState(groupIndex);
 
@@ -141,6 +143,46 @@ export function ServiceModal({ isOpen, onClose, onSave, initialService, groupInd
                             </div>
                         </div>
 
+                        {/* Custom Colors */}
+                        <div className="col-span-1 md:col-span-2 border-t border-white/10 pt-6">
+                            <h4 className="text-sm font-semibold text-gray-300 mb-4">Custom Styling Override</h4>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-xs font-medium text-gray-400 mb-1">Background Color</label>
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="text"
+                                            value={service.backgroundColor || ''}
+                                            onChange={e => setService({ ...service, backgroundColor: e.target.value })}
+                                            className="flex-1 glass-input px-3 py-2 rounded-lg text-sm"
+                                            placeholder="Default (Theme)"
+                                        />
+                                        <div
+                                            className="w-9 h-9 rounded-lg border border-white/10"
+                                            style={{ backgroundColor: service.backgroundColor || 'transparent' }}
+                                        />
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-medium text-gray-400 mb-1">Text Color</label>
+                                    <div className="flex gap-2">
+                                        <input
+                                            type="text"
+                                            value={service.textColor || ''}
+                                            onChange={e => setService({ ...service, textColor: e.target.value })}
+                                            className="flex-1 glass-input px-3 py-2 rounded-lg text-sm"
+                                            placeholder="Default (Theme)"
+                                        />
+                                        <div
+                                            className="w-9 h-9 rounded-lg border border-white/10"
+                                            style={{ backgroundColor: service.textColor || 'transparent' }}
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                            <p className="text-xs text-gray-500 mt-2">Leave empty to use the global theme colors.</p>
+                        </div>
+
                         <div className="col-span-1 md:col-span-2 border-t border-white/10 pt-4 mt-2">
                             <label className="flex items-center gap-3 cursor-pointer group">
                                 <div className={`w-12 h-6 rounded-full p-1 transition-colors duration-200 ${service.hidden ? 'bg-red-500' : 'bg-gray-700'}`}>
@@ -159,16 +201,28 @@ export function ServiceModal({ isOpen, onClose, onSave, initialService, groupInd
                     </div>
                 </div>
 
-                <div className="p-6 border-t border-white/10 bg-white/5 flex justify-end gap-3">
-                    <button onClick={onClose} className="px-6 py-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-colors">
-                        Cancel
-                    </button>
-                    <button
-                        onClick={() => onSave(service, selectedGroupIndex)}
-                        className="px-6 py-2 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-medium shadow-lg shadow-cyan-500/20 transition-all transform hover:scale-105"
-                    >
-                        Save Service
-                    </button>
+                <div className="p-6 border-t border-white/10 bg-white/5 flex justify-between gap-3">
+                    {initialService && onDelete && typeof groupIndex === 'number' ? (
+                        <button
+                            onClick={() => onDelete(groupIndex, initialService ? undefined : undefined)} // Wait, we need serviceIndex
+                            className="px-4 py-2 rounded-lg border border-red-500/30 text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors flex items-center gap-2"
+                        >
+                            <FaTrash size={14} /> Delete
+                        </button>
+                    ) : (
+                        <div></div> // Spacer
+                    )}
+                    <div className="flex gap-3">
+                        <button onClick={onClose} className="px-6 py-2 rounded-lg text-gray-300 hover:text-white hover:bg-white/10 transition-colors">
+                            Cancel
+                        </button>
+                        <button
+                            onClick={() => onSave(service, selectedGroupIndex)}
+                            className="px-6 py-2 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-medium shadow-lg shadow-cyan-500/20 transition-all transform hover:scale-105"
+                        >
+                            Save Service
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

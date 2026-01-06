@@ -32,7 +32,9 @@ export type ServiceGroup = {
   columns: number;
   services: Service[];
   align?: 'left' | 'center' | 'right';
-  titleAlign?: 'left' | 'center' | 'right'; // New option for title alignment
+  titleAlign?: 'left' | 'center' | 'right';
+  titleBackgroundColor?: string; // Custom background color for group title
+  titleTextColor?: string;       // Custom text color for group title
   layout?: 'vertical' | 'horizontal' | 'horizontal-reverse';
   collapsed?: boolean;
 };
@@ -43,6 +45,8 @@ export type Theme = {
   text: string;
   serviceBackground: string;
   serviceBackgroundHover: string;
+  groupTitleBackground?: string;
+  groupTitleText?: string;
 };
 
 export type Backgrounds = {

@@ -264,19 +264,31 @@ export default function DashboardLayout() {
             const titleAlign = group.titleAlign || 'left';
             const flexJustify = titleAlign === 'center' ? 'justify-center' : titleAlign === 'right' ? 'justify-end' : 'justify-start';
 
+            // Custom or Default Styles
+            const customBg = group.titleBackgroundColor;
+            const customText = group.titleTextColor;
+            const hasCustomBg = !!customBg;
+
+            const finalTitleStyle = {
+              color: customText || config.theme.text,
+              ...(hasCustomBg ? { backgroundColor: customBg } : (config.settings?.showTitleBackgrounds ? titleBackgroundStyle : {}))
+            };
+
+            // If custom BG is used, we always want the p-2 rounded look. 
+            // If global setting is on, we also want it.
+            const showBgContainer = config.settings?.showTitleBackgrounds || hasCustomBg;
+
             return (
               <div key={group.name} className="mb-8">
-                <div className={`flex items-center mb-4 cursor-pointer ${flexJustify}`} onClick={() => toggleGroup(group.name)}>
+                <div
+                  className={`flex items-center mb-4 cursor-pointer ${flexJustify} ${showBgContainer ? 'w-full p-2 rounded-lg' : ''}`}
+                  onClick={() => toggleGroup(group.name)}
+                  style={finalTitleStyle}
+                >
                   <div className="mr-2 transition-transform duration-200" style={{ transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)' }}>
-                    <FaChevronDown style={{ color: config.theme.text }} />
+                    <FaChevronDown style={{ color: customText || config.theme.text }} />
                   </div>
-                  {config.settings?.showTitleBackgrounds ? (
-                    <div className="p-2 rounded-lg" style={titleBackgroundStyle}>
-                      <h2 className="text-2xl font-semibold select-none" style={{ color: config.theme.text }}>{group.name}</h2>
-                    </div>
-                  ) : (
-                    <h2 className="text-2xl font-semibold select-none" style={{ color: config.theme.text }}>{group.name}</h2>
-                  )}
+                  <h2 className="text-2xl font-semibold select-none" style={{ color: customText || config.theme.text }}>{group.name}</h2>
                 </div>
 
                 {!isCollapsed && (

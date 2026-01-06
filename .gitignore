@@ -25,4 +25,6 @@
 # Ignore custom user-uploaded icons
 /public/icons/*
 # /config/services.yaml
+# /config/services.yaml
 publish.sh
+git-ready.sh
