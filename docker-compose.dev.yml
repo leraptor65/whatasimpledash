@@ -1,5 +1,5 @@
 services:
-  dashboard:
+  whatasimpledash:
     build: .
     container_name: whatasimpledash
     restart: unless-stopped

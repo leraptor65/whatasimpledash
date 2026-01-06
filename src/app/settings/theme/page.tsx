@@ -16,7 +16,7 @@ const defaultTheme: Theme = {
 export default function ThemePage() {
     const [config, setConfig] = useState<DashboardConfig | null>(null);
     const [theme, setTheme] = useState<Theme>(defaultTheme);
-    const [status, setStatus] = useState<'loading' | 'saved' | 'saving' | 'error' | 'unsaved'>('loading');
+    const [status, setStatus] = useState<'loading' | 'saved' | 'saving' | 'error' | 'unsaved' | 'idle'>('loading');
 
     useEffect(() => {
         fetch('/api/config')
@@ -24,10 +24,19 @@ export default function ThemePage() {
             .then(data => {
                 setConfig(data);
                 setTheme(data.theme || defaultTheme);
-                setStatus('saved');
+                setStatus('idle');
             })
             .catch(() => setStatus('error'));
     }, []);
+
+    useEffect(() => {
+        if (status === 'saved') {
+            const timer = setTimeout(() => {
+                setStatus('idle');
+            }, 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [status]);
 
     const handleSave = async () => {
         if (!config) return;
@@ -113,7 +122,7 @@ export default function ThemePage() {
                         onClick={handleSave}
                         disabled={status === 'saved' || status === 'loading'}
                         className={`px-6 py-2 rounded-lg font-medium flex items-center gap-2 transition-all shadow-lg ${status === 'saved' ? 'bg-green-600/20 text-green-500 cursor-default' :
-                                'bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white hover:scale-105 shadow-cyan-500/20'
+                            'bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white hover:scale-105 shadow-cyan-500/20'
                             }`}
                     >
                         {status === 'saving' ? 'Saving...' : status === 'saved' ? 'Saved' : 'Save Changes'}

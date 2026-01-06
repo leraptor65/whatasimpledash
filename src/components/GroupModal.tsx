@@ -15,12 +15,14 @@ export function GroupModal({ isOpen, onClose, onSave, initialGroup }: GroupModal
     const [name, setName] = useState('');
     const [columns, setColumns] = useState(3);
     const [collapsed, setCollapsed] = useState(false);
+    const [titleAlign, setTitleAlign] = useState<'left' | 'center' | 'right'>('left');
 
     useEffect(() => {
         if (isOpen) {
             setName(initialGroup?.name || '');
             setColumns(initialGroup?.columns || 3);
             setCollapsed(initialGroup?.collapsed || false);
+            setTitleAlign(initialGroup?.titleAlign || 'left');
         }
     }, [isOpen, initialGroup]);
 
@@ -31,7 +33,8 @@ export function GroupModal({ isOpen, onClose, onSave, initialGroup }: GroupModal
         onSave({
             name,
             columns,
-            collapsed
+            collapsed,
+            titleAlign
         });
     };
 
@@ -39,8 +42,8 @@ export function GroupModal({ isOpen, onClose, onSave, initialGroup }: GroupModal
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
             <div className="glass-panel w-full max-w-md rounded-2xl overflow-hidden shadow-2xl flex flex-col">
                 <div className="p-6 border-b border-white/10 flex justify-between items-center bg-white/5">
-                    <h3 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-500">
-                        {initialGroup ? 'Edit Group' : 'Add New Group'}
+                    <h3 className="text-xl font-bold text-white">
+                        {initialGroup ? 'Edit Group' : 'New Group'}
                     </h3>
                     <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors">
                         <FaTimes size={20} />
@@ -73,6 +76,19 @@ export function GroupModal({ isOpen, onClose, onSave, initialGroup }: GroupModal
                         </select>
                     </div>
 
+                    <div>
+                        <label className="block text-sm font-medium text-gray-400 mb-2">Title Alignment</label>
+                        <select
+                            value={titleAlign}
+                            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setTitleAlign(e.target.value as any)}
+                            className="w-full glass-input px-4 py-3 rounded-lg"
+                        >
+                            <option value="left" className="bg-gray-900">Left</option>
+                            <option value="center" className="bg-gray-900">Center</option>
+                            <option value="right" className="bg-gray-900">Right</option>
+                        </select>
+                    </div>
+
                     <div className="border-t border-white/10 pt-4">
                         <label className="flex items-center gap-3 cursor-pointer group">
                             <div className={`w-12 h-6 rounded-full p-1 transition-colors duration-200 ${collapsed ? 'bg-cyan-600' : 'bg-gray-700'}`}>
@@ -101,7 +117,7 @@ export function GroupModal({ isOpen, onClose, onSave, initialGroup }: GroupModal
                         Save Group
                     </button>
                 </div>
-            </div>
-        </div>
+            </div >
+        </div >
     );
 }

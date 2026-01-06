@@ -6,7 +6,7 @@ import { FaSave, FaCheck, FaExclamationCircle } from 'react-icons/fa';
 
 export default function GeneralSettingsPage() {
     const [config, setConfig] = useState<DashboardConfig | null>(null);
-    const [status, setStatus] = useState<'loading' | 'saved' | 'saving' | 'error'>('loading');
+    const [status, setStatus] = useState<'loading' | 'saved' | 'saving' | 'error' | 'idle'>('loading');
     const [message, setMessage] = useState('');
 
     useEffect(() => {
@@ -14,10 +14,19 @@ export default function GeneralSettingsPage() {
             .then(res => res.json())
             .then(data => {
                 setConfig(data);
-                setStatus('saved');
+                setStatus('idle');
             })
             .catch(() => setStatus('error'));
     }, []);
+
+    useEffect(() => {
+        if (status === 'saved') {
+            const timer = setTimeout(() => {
+                setStatus('idle');
+            }, 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [status]);
 
     const handleChange = (key: string, value: any, nestedCheck?: boolean) => {
         if (!config) return;
@@ -111,19 +120,84 @@ export default function GeneralSettingsPage() {
 
             <section className="glass-panel p-6 rounded-2xl space-y-6">
                 <h3 className="text-xl font-semibold">Display Options</h3>
-                <div className="flex items-center gap-4">
-                    <label className="flex items-center gap-3 cursor-pointer group">
-                        <div className={`w-12 h-6 rounded-full p-1 transition-colors duration-200 ${config.settings?.showTitleBackgrounds ? 'bg-cyan-600' : 'bg-gray-700'}`}>
-                            <div className={`w-4 h-4 bg-white rounded-full shadow-md transform transition-transform duration-200 ${config.settings?.showTitleBackgrounds ? 'translate-x-6' : 'translate-x-0'}`} />
-                        </div>
-                        <input
-                            type="checkbox"
-                            className="hidden"
-                            checked={config.settings?.showTitleBackgrounds || false}
-                            onChange={(e) => handleChange('settings.showTitleBackgrounds', e.target.checked)}
-                        />
-                        <span className="text-gray-300 group-hover:text-white transition-colors">Show Title Backgrounds</span>
-                    </label>
+                <div className="space-y-4">
+                    {/* 1. Show Background Wallpaper */}
+                    <div className="flex items-center justify-between">
+                        <span className="text-gray-300">Show Background Wallpaper</span>
+                        <label className="flex items-center gap-3 cursor-pointer group">
+                            <div className={`w-12 h-6 rounded-full p-1 transition-colors duration-200 ${config.settings?.showBackground !== false ? 'bg-cyan-600' : 'bg-gray-700'}`}>
+                                <div className={`w-4 h-4 bg-white rounded-full shadow-md transform transition-transform duration-200 ${config.settings?.showBackground !== false ? 'translate-x-6' : 'translate-x-0'}`} />
+                            </div>
+                            <input
+                                type="checkbox"
+                                className="hidden"
+                                checked={config.settings?.showBackground !== false}
+                                onChange={(e) => {
+                                    const enabled = e.target.checked;
+                                    let newConfig = { ...config };
+                                    if (!newConfig.settings) newConfig.settings = {};
+                                    newConfig.settings.showBackground = enabled;
+
+                                    if (enabled) {
+                                        // Restore background
+                                        if (newConfig.settings.lastActiveBackground) {
+                                            if (!newConfig.backgrounds) newConfig.backgrounds = {};
+                                            newConfig.backgrounds.active = newConfig.settings.lastActiveBackground;
+                                        } else {
+                                            // No history, maybe alert or just do nothing (empty active is fine)
+                                            // Ideally we would fetch list and pick one, but we don't have list here easily without fetching.
+                                            // Leaving active as undefined/empty is visually correct (no bg).
+                                            if (!newConfig.backgrounds?.active) {
+                                                alert('No previous background found. Please select one from the Backgrounds tab.');
+                                            }
+                                        }
+                                    } else {
+                                        // Disable background
+                                        if (!newConfig.settings) newConfig.settings = {};
+                                        // Save current active to history if exists
+                                        if (newConfig.backgrounds?.active) {
+                                            newConfig.settings.lastActiveBackground = newConfig.backgrounds.active;
+                                            newConfig.backgrounds.active = undefined;
+                                        }
+                                    }
+                                    setConfig(newConfig);
+                                    saveConfig(newConfig);
+                                }}
+                            />
+                        </label>
+                    </div>
+
+                    {/* 2. Show Title Backgrounds */}
+                    <div className="flex items-center justify-between">
+                        <span className="text-gray-300">Show Title Backgrounds</span>
+                        <label className="flex items-center gap-3 cursor-pointer group">
+                            <div className={`w-12 h-6 rounded-full p-1 transition-colors duration-200 ${config.settings?.showTitleBackgrounds ? 'bg-cyan-600' : 'bg-gray-700'}`}>
+                                <div className={`w-4 h-4 bg-white rounded-full shadow-md transform transition-transform duration-200 ${config.settings?.showTitleBackgrounds ? 'translate-x-6' : 'translate-x-0'}`} />
+                            </div>
+                            <input
+                                type="checkbox"
+                                className="hidden"
+                                checked={config.settings?.showTitleBackgrounds || false}
+                                onChange={(e) => handleChange('settings.showTitleBackgrounds', e.target.checked)}
+                            />
+                        </label>
+                    </div>
+
+                    {/* 3. Show Service Card Backgrounds */}
+                    <div className="flex items-center justify-between">
+                        <span className="text-gray-300">Show Service Card Backgrounds</span>
+                        <label className="flex items-center gap-3 cursor-pointer group">
+                            <div className={`w-12 h-6 rounded-full p-1 transition-colors duration-200 ${config.settings?.showServiceBackgrounds !== false ? 'bg-cyan-600' : 'bg-gray-700'}`}>
+                                <div className={`w-4 h-4 bg-white rounded-full shadow-md transform transition-transform duration-200 ${config.settings?.showServiceBackgrounds !== false ? 'translate-x-6' : 'translate-x-0'}`} />
+                            </div>
+                            <input
+                                type="checkbox"
+                                className="hidden"
+                                checked={config.settings?.showServiceBackgrounds !== false}
+                                onChange={(e) => handleChange('settings.showServiceBackgrounds', e.target.checked)}
+                            />
+                        </label>
+                    </div>
                 </div>
             </section>
         </div>
