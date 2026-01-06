@@ -7,9 +7,11 @@ import type { DashboardConfig } from '@/types';
 type FileManagerProps = {
     type: 'backgrounds' | 'icons';
     onConfigUpdate?: (newConfig: DashboardConfig) => void;
+    currentConfig?: DashboardConfig;
+    activeFile?: string;
 };
 
-export const GlassFileManager = ({ type, onConfigUpdate }: FileManagerProps) => {
+export const GlassFileManager = ({ type, onConfigUpdate, currentConfig, activeFile }: FileManagerProps) => {
     const [files, setFiles] = useState<string[]>([]);
     const [selectedFile, setSelectedFile] = useState<string | null>(null);
     const [newName, setNewName] = useState("");
@@ -38,9 +40,6 @@ export const GlassFileManager = ({ type, onConfigUpdate }: FileManagerProps) => 
 
         if (data.success) {
             fetchFiles();
-            if (data.config && onConfigUpdate) {
-                onConfigUpdate(data.config);
-            }
         } else {
             alert(`Error: ${data.error}`);
         }
@@ -55,9 +54,6 @@ export const GlassFileManager = ({ type, onConfigUpdate }: FileManagerProps) => 
         if (data.success) {
             fetchFiles();
             setSelectedFile(null);
-            if (data.config && onConfigUpdate) {
-                onConfigUpdate(data.config);
-            }
         } else {
             alert(`Error: ${data.error}`);
         }
@@ -75,12 +71,19 @@ export const GlassFileManager = ({ type, onConfigUpdate }: FileManagerProps) => 
         if (data.success) {
             fetchFiles();
             setSelectedFile(newName);
-            if (data.config && onConfigUpdate) {
-                onConfigUpdate(data.config);
-            }
         } else {
             alert(`Error: ${data.error}`);
         }
+    };
+
+    const handleSetActive = (filename: string | null) => {
+        if (!currentConfig || type !== 'backgrounds' || !onConfigUpdate) return;
+
+        const newConfig = { ...currentConfig };
+        if (!newConfig.backgrounds) newConfig.backgrounds = {};
+
+        newConfig.backgrounds.active = filename || undefined;
+        onConfigUpdate(newConfig);
     };
 
     return (
@@ -113,22 +116,45 @@ export const GlassFileManager = ({ type, onConfigUpdate }: FileManagerProps) => 
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                {files.map(file => (
+                {/* None Option for Backgrounds */}
+                {type === 'backgrounds' && (
                     <div
-                        key={file}
-                        onClick={() => { setSelectedFile(file); setNewName(file); }}
-                        className="group relative aspect-square glass-card rounded-xl overflow-hidden cursor-pointer hover:ring-2 hover:ring-cyan-500/50 transition-all"
+                        onClick={() => handleSetActive(null)}
+                        className={`group relative aspect-square glass-card rounded-xl overflow-hidden cursor-pointer hover:ring-2 hover:ring-cyan-500/50 transition-all flex items-center justify-center bg-black/20 ${!activeFile ? 'ring-2 ring-cyan-500' : ''}`}
                     >
-                        <img
-                            src={`/api/images/${type}/${file}`}
-                            alt={file}
-                            className="w-full h-full object-cover transition-transform group-hover:scale-110"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-3">
-                            <span className="text-xs font-medium truncate">{file}</span>
-                        </div>
+                        <span className="text-gray-400 font-medium group-hover:text-white">None</span>
+                        {!activeFile && (
+                            <div className="absolute top-2 right-2 bg-cyan-500 text-white text-[10px] px-2 py-0.5 rounded-full shadow-lg">
+                                Active
+                            </div>
+                        )}
                     </div>
-                ))}
+                )}
+
+                {files.map(file => {
+                    const isActive = activeFile === file;
+                    return (
+                        <div
+                            key={file}
+                            onClick={() => { setSelectedFile(file); setNewName(file); }}
+                            className={`group relative aspect-square glass-card rounded-xl overflow-hidden cursor-pointer hover:ring-2 hover:ring-cyan-500/50 transition-all ${isActive ? 'ring-2 ring-cyan-500' : ''}`}
+                        >
+                            <img
+                                src={`/api/images/${type}/${file}`}
+                                alt={file}
+                                className="w-full h-full object-cover transition-transform group-hover:scale-110"
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-3">
+                                <span className="text-xs font-medium truncate">{file}</span>
+                            </div>
+                            {isActive && (
+                                <div className="absolute top-2 right-2 bg-cyan-500 text-white text-[10px] px-2 py-0.5 rounded-full shadow-lg">
+                                    Active
+                                </div>
+                            )}
+                        </div>
+                    );
+                })}
             </div>
 
             {selectedFile && (
@@ -142,6 +168,15 @@ export const GlassFileManager = ({ type, onConfigUpdate }: FileManagerProps) => 
                             <img src={`/api/images/${type}/${selectedFile}`} alt="Preview" className="max-w-full max-h-[60vh] rounded-lg shadow-2xl" />
                         </div>
                         <div className="p-6 border-t border-white/10 bg-white/5 space-y-4">
+                            {type === 'backgrounds' && (
+                                <button
+                                    onClick={() => { handleSetActive(selectedFile); setSelectedFile(null); }}
+                                    className="w-full py-3 bg-cyan-600 hover:bg-cyan-500 rounded-lg text-white font-bold shadow-lg shadow-cyan-500/20 mb-4"
+                                >
+                                    Set as Active Background
+                                </button>
+                            )}
+
                             <div className="flex gap-2">
                                 <input
                                     type="text"

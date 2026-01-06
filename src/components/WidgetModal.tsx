@@ -37,8 +37,8 @@ export function WidgetModal({ isOpen, onClose, onSave, initialWidget }: WidgetMo
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
             <div className="glass-panel w-full max-w-2xl rounded-2xl overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
                 <div className="p-6 border-b border-white/10 flex justify-between items-center bg-white/5">
-                    <h3 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-purple-500">
-                        {initialWidget ? 'Edit Widget' : 'Add New Widget'}
+                    <h3 className="text-xl font-bold text-white">
+                        {initialWidget ? 'Edit Widget' : 'Add Widget'}
                     </h3>
                     <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors">
                         <FaTimes size={20} />
