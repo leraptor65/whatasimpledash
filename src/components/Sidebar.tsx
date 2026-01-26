@@ -1,14 +1,14 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { FaCog, FaPalette, FaThLarge, FaCode, FaImage, FaArrowLeft, FaIcons, FaInfoCircle, FaList, FaPuzzlePiece } from 'react-icons/fa';
-import packageInfo from '../../package.json';
+import { APP_VERSION } from '@/version';
 
 const navItems = [
     { name: 'General', href: '/settings', icon: FaCog },
     { name: 'Services', href: '/settings/services', icon: FaList },
     { name: 'Widgets', href: '/settings/widgets', icon: FaPuzzlePiece },
     { name: 'Icons', href: '/settings/icons', icon: FaImage },
-    { name: 'Backgrounds', href: '/settings/backgrounds', icon: FaImage }, // Note: duplicate icon for backgrounds, maybe better to keep distinct if possible, but user didnt ask to fix.
+    { name: 'Backgrounds', href: '/settings/backgrounds', icon: FaImage },
     { name: 'Raw Editor', href: '/settings/raw', icon: FaCode },
 ];
 
@@ -54,7 +54,7 @@ export function Sidebar() {
                     <span>About</span>
                 </a>
                 <div className="px-4 text-xs text-gray-600 font-mono">
-                    v{packageInfo.version}
+                    v{APP_VERSION}
                 </div>
             </div>
         </div>
