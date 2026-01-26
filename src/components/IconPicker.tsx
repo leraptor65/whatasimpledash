@@ -18,7 +18,7 @@ export function IconPicker({ value, onChange }: { value: string, onChange: (icon
                 .then(res => res.json())
                 .then(data => {
                     if (data.success) {
-                        setLocalIcons(data.icons);
+                        setLocalIcons(data.icons || []);
                     }
                 })
                 .catch(console.error);

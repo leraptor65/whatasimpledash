@@ -113,7 +113,7 @@ func handleListFiles(w http.ResponseWriter, dir string) {
 		return
 	}
 
-	var filenames []string
+	filenames := []string{}
 	for _, file := range files {
 		if !file.IsDir() && hasImageExtension(file.Name()) {
 			filenames = append(filenames, file.Name())
