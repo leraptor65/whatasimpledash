@@ -166,21 +166,37 @@ export default function DashboardLayout() {
   }
 
   const backgroundUrl = config.backgrounds?.active ? `/api/images/backgrounds/${config.backgrounds.active}` : '';
-  const backgroundBlur = config.settings?.backgroundBlur || 0;
+
+  // Wallpaper modifier styles
+  const modifier = config.backgrounds?.modifier || 'none';
+  const showWallpaper = modifier !== 'no-wallpaper' && backgroundUrl;
 
   const mainStyle: React.CSSProperties = {
     backgroundColor: config.theme.mainBackground,
     color: config.theme.text,
   };
 
-  if (backgroundUrl) {
-    mainStyle.backgroundImage = `url(${backgroundUrl})`;
-  }
-
   const titleBackgroundStyle: React.CSSProperties = {};
   if (config.settings?.showTitleBackgrounds && config.theme.titleBackground) {
     titleBackgroundStyle.backgroundColor = config.theme.titleBackground;
   }
+
+  // Effect for background layer
+  const bgLayerStyle: React.CSSProperties = showWallpaper ? {
+    backgroundImage: `url(${backgroundUrl})`,
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    backgroundAttachment: 'fixed',
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
+    zIndex: 0,
+    // Modifier specific styles
+    filter: modifier === 'blur' ? `blur(${config.settings?.backgroundBlur || 20}px)` : 'none',
+    imageRendering: modifier === 'pixelate' ? 'pixelated' : 'auto',
+  } : { display: 'none' };
 
   return (
     <>
@@ -212,98 +228,100 @@ export default function DashboardLayout() {
         </div>
       )}
 
-      <main
-        className={`min-h-screen w-full p-4 md:p-8 relative ${backgroundUrl ? 'bg-cover bg-center bg-fixed' : ''}`}
-        style={mainStyle}
-      >
-        {backgroundUrl && backgroundBlur > 0 && (
+      <div className="min-h-screen w-full relative" style={{ backgroundColor: mainStyle.backgroundColor, color: mainStyle.color }}>
+        {/* Fixed Background Layer */}
+        <div style={bgLayerStyle} />
+
+        {/* Vignette Layer */}
+        {modifier === 'vignette' && showWallpaper && (
           <div
-            className="absolute inset-0 bg-cover bg-center bg-fixed"
+            className="fixed inset-0 pointer-events-none z-0"
             style={{
-              backgroundImage: `url(${backgroundUrl})`,
-              filter: `blur(${backgroundBlur}px)`,
-              zIndex: 0,
+              background: 'radial-gradient(circle, transparent 40%, rgba(0,0,0,0.8) 100%)'
             }}
           />
         )}
-        <div className="max-w-5xl mx-auto relative z-10">
-          <div className="absolute top-0 right-0 h-14 flex items-center rounded-lg" style={titleBackgroundStyle}>
-            <Link href="/settings" className="p-4 group" title="Settings" style={{ color: config.theme.text }}>
-              <FaCog size={24} className="transition-transform group-hover:rotate-90" />
-              <span className="absolute bottom-full right-0 mb-2 hidden group-hover:block bg-gray-800 text-white text-xs rounded py-1 px-2">
-                Settings
-              </span>
-            </Link>
-          </div>
 
-
-          <div className="text-center mb-8">
-            {config.settings?.showTitleBackgrounds ? (
-              <div className="p-2 rounded-lg inline-block" style={titleBackgroundStyle}>
-                <h1 className="text-3xl md:text-4xl font-bold" style={{ color: config.theme.text }}>{config.title}</h1>
-              </div>
-            ) : (
-              <h1 className="text-3xl md:text-4xl font-bold" style={{ color: config.theme.text }}>{config.title}</h1>
-            )}
-          </div>
-
-          {/* Widgets Section */}
-          {filteredConfig.widgets && filteredConfig.widgets.items.length > 0 && (
-            <div className="mb-8">
-              <div className={`grid grid-cols-1 ${getGridColsClass(filteredConfig.widgets.columns)} gap-4`}>
-                {filteredConfig.widgets.items.map((widget, index) => (
-                  <WidgetCard key={index} widget={widget} theme={config.theme} />
-                ))}
-              </div>
+        <main className="p-4 md:p-8 relative z-10">
+          <div className="max-w-5xl mx-auto relative z-10">
+            <div className="absolute top-0 right-0 h-14 flex items-center rounded-lg" style={titleBackgroundStyle}>
+              <Link href="/settings" className="p-4 group" title="Settings" style={{ color: config.theme.text }}>
+                <FaCog size={24} className="transition-transform group-hover:rotate-90" />
+                <span className="absolute bottom-full right-0 mb-2 hidden group-hover:block bg-gray-800 text-white text-xs rounded py-1 px-2">
+                  Settings
+                </span>
+              </Link>
             </div>
-          )}
 
-          {filteredConfig.groups.map((group: ServiceGroup) => {
-            const columnCount = group.columns || config.defaultColumns;
-            const isCollapsed = collapsedGroups[group.name];
-            const titleAlign = group.titleAlign || 'left';
-            const flexJustify = titleAlign === 'center' ? 'justify-center' : titleAlign === 'right' ? 'justify-end' : 'justify-start';
 
-            // Custom or Default Styles
-            const customBg = group.titleBackgroundColor;
-            const customText = group.titleTextColor;
-            const hasCustomBg = !!customBg;
-
-            const finalTitleStyle = {
-              color: customText || config.theme.text,
-              ...(hasCustomBg ? { backgroundColor: customBg } : (config.settings?.showTitleBackgrounds ? titleBackgroundStyle : {}))
-            };
-
-            // If custom BG is used, we always want the p-2 rounded look. 
-            // If global setting is on, we also want it.
-            const showBgContainer = config.settings?.showTitleBackgrounds || hasCustomBg;
-
-            return (
-              <div key={group.name} className="mb-8">
-                <div
-                  className={`flex items-center mb-4 cursor-pointer ${flexJustify} ${showBgContainer ? 'w-full p-2 rounded-lg' : ''}`}
-                  onClick={() => toggleGroup(group.name)}
-                  style={finalTitleStyle}
-                >
-                  <div className="mr-2 transition-transform duration-200" style={{ transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)' }}>
-                    <FaChevronDown style={{ color: customText || config.theme.text }} />
-                  </div>
-                  <h2 className="text-2xl font-semibold select-none" style={{ color: customText || config.theme.text }}>{group.name}</h2>
+            <div className="text-center mb-8">
+              {config.settings?.showTitleBackgrounds ? (
+                <div className="p-2 rounded-lg inline-block" style={titleBackgroundStyle}>
+                  <h1 className="text-3xl md:text-4xl font-bold" style={{ color: config.theme.text }}>{config.title}</h1>
                 </div>
+              ) : (
+                <h1 className="text-3xl md:text-4xl font-bold" style={{ color: config.theme.text }}>{config.title}</h1>
+              )}
+            </div>
 
-                {!isCollapsed && (
-                  <div className={`grid grid-cols-1 ${getGridColsClass(columnCount)} gap-4`}>
-                    {group.services.map((service: Service) => {
-                      return <ServiceCard key={service.name} service={service} theme={config.theme} groupAlign={group.align} groupLayout={group.layout} columnCount={columnCount} showBackground={config.settings?.showServiceBackgrounds !== false} />;
-                    })}
-                  </div>
-                )}
+            {/* Widgets Section */}
+            {filteredConfig.widgets && filteredConfig.widgets.items.length > 0 && (
+              <div className="mb-8">
+                <div className={`grid grid-cols-1 ${getGridColsClass(filteredConfig.widgets.columns)} gap-4`}>
+                  {filteredConfig.widgets.items.map((widget, index) => (
+                    <WidgetCard key={index} widget={widget} theme={config.theme} />
+                  ))}
+                </div>
               </div>
-            );
-          })}
+            )}
 
-        </div>
-      </main>
+            {filteredConfig.groups.map((group: ServiceGroup) => {
+              const columnCount = group.columns || config.defaultColumns;
+              const isCollapsed = collapsedGroups[group.name];
+              const titleAlign = group.titleAlign || 'left';
+              const flexJustify = titleAlign === 'center' ? 'justify-center' : titleAlign === 'right' ? 'justify-end' : 'justify-start';
+
+              // Custom or Default Styles
+              const customBg = group.titleBackgroundColor;
+              const customText = group.titleTextColor;
+              const hasCustomBg = !!customBg;
+
+              const finalTitleStyle = {
+                color: customText || config.theme.text,
+                ...(hasCustomBg ? { backgroundColor: customBg } : (config.settings?.showTitleBackgrounds ? titleBackgroundStyle : {}))
+              };
+
+              // If custom BG is used, we always want the p-2 rounded look. 
+              // If global setting is on, we also want it.
+              const showBgContainer = config.settings?.showTitleBackgrounds || hasCustomBg;
+
+              return (
+                <div key={group.name} className="mb-8">
+                  <div
+                    className={`flex items-center mb-4 cursor-pointer ${flexJustify} ${showBgContainer ? 'w-full p-2 rounded-lg' : ''}`}
+                    onClick={() => toggleGroup(group.name)}
+                    style={finalTitleStyle}
+                  >
+                    <div className="mr-2 transition-transform duration-200" style={{ transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)' }}>
+                      <FaChevronDown style={{ color: customText || config.theme.text }} />
+                    </div>
+                    <h2 className="text-2xl font-semibold select-none" style={{ color: customText || config.theme.text }}>{group.name}</h2>
+                  </div>
+
+                  {!isCollapsed && (
+                    <div className={`grid grid-cols-1 ${getGridColsClass(columnCount)} gap-4`}>
+                      {group.services.map((service: Service) => {
+                        return <ServiceCard key={service.name} service={service} theme={config.theme} groupAlign={group.align} groupLayout={group.layout} columnCount={columnCount} showBackground={config.settings?.showServiceBackgrounds !== false} />;
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+
+          </div>
+        </main>
+      </div>
     </>
   );
 }

@@ -52,6 +52,7 @@ export type Theme = {
 export type Backgrounds = {
   active?: string;
   history?: string[];
+  modifier?: 'none' | 'blur' | 'vignette' | 'pixelate' | 'no-wallpaper';
 };
 
 export type WidgetSection = {

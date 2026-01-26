@@ -38,11 +38,42 @@ export default function BackgroundsPage() {
             />
 
             <div className="mt-8 glass-panel p-6 rounded-2xl">
+                <h3 className="text-lg font-bold mb-4">Wallpaper Modifiers</h3>
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                    {(['none', 'blur', 'vignette', 'pixelate', 'no-wallpaper'] as const).map((modifier) => {
+                        const currentModifier = config?.backgrounds?.modifier || 'none';
+                        const isActive = currentModifier === modifier;
+
+                        return (
+                            <button
+                                key={modifier}
+                                onClick={() => {
+                                    if (!config) return;
+                                    handleConfigUpdate({
+                                        ...config,
+                                        backgrounds: {
+                                            ...config.backgrounds,
+                                            modifier
+                                        }
+                                    });
+                                }}
+                                className={`p-4 rounded-xl border transition-all flex flex-col items-center gap-2 ${isActive ? 'bg-cyan-500/20 border-cyan-500' : 'bg-white/5 border-white/10 hover:bg-white/10'}`}
+                            >
+                                <span className="capitalize font-medium text-gray-200">
+                                    {modifier === 'no-wallpaper' ? 'No Wallpaper' : modifier}
+                                </span>
+                            </button>
+                        );
+                    })}
+                </div>
+            </div>
+
+            <div className="mt-8 glass-panel p-6 rounded-2xl">
                 <h3 className="text-lg font-bold mb-4">Tips</h3>
                 <ul className="list-disc list-inside text-gray-400 space-y-2 text-sm">
                     <li>Upload high-quality images (JPG, PNG, WebP).</li>
                     <li>Files are stored in <code>/public/backgrounds</code>.</li>
-                    <li>Select "None" to use your theme's background color instead.</li>
+                    <li>Images are automatically resized to 1920x1080 (Fill) on upload.</li>
                 </ul>
             </div>
         </div>
