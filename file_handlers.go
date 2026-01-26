@@ -7,6 +7,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/disintegration/imaging"
 )
 
 // FilesHandler handles dynamic file operations (List, Upload, Delete)
@@ -146,24 +148,73 @@ func handleUploadFile(w http.ResponseWriter, r *http.Request, dir string) {
 	filename := filepath.Base(handler.Filename)
 	filename = strings.ReplaceAll(filename, "..", "") // prevent directory traversal
 
-	dstPath := filepath.Join(dir, filename)
-	dst, err := os.Create(dstPath)
-	if err != nil {
-		http.Error(w, "Error creating destination file", http.StatusInternalServerError)
-		return
-	}
-	defer dst.Close()
+	// If uploading to backgrounds, resize to 1920x1080
+	if filepath.Base(dir) == "backgrounds" && hasImageExtension(filename) {
+		// Create temporary file for original
+		tmpFile, err := os.CreateTemp("", "upload-*.tmp")
+		if err != nil {
+			http.Error(w, "Error creating temp file", http.StatusInternalServerError)
+			return
+		}
+		defer os.Remove(tmpFile.Name()) // clean up
 
-	if _, err := io.Copy(dst, file); err != nil {
-		http.Error(w, "Error saving file", http.StatusInternalServerError)
-		return
+		if _, err := io.Copy(tmpFile, file); err != nil {
+			http.Error(w, "Error saving temp file", http.StatusInternalServerError)
+			return
+		}
+		tmpFile.Seek(0, 0) // rewind
+
+		// Decode and resize
+		src, err := imaging.Open(tmpFile.Name())
+		if err != nil {
+			// Failed to decode as image? Just save original (fallback)
+			// Reset file pointer probably needed if we want to copy again?
+			// Simpler: Just save original from request again?
+			// We can't rewind the multipart file easily without re-reading?
+			// Actually file.Seek(0, 0) should work if it's an OS file, but it's a multipart file.
+			file.Seek(0, 0)
+
+			dstPath := filepath.Join(dir, filename)
+			dst, err := os.Create(dstPath)
+			if err != nil {
+				http.Error(w, "Error creating destination file", http.StatusInternalServerError)
+				return
+			}
+			defer dst.Close()
+			io.Copy(dst, file)
+		} else {
+			// Resize to Fill 1920x1080 (Crop if needed to maintain aspect ratio)
+			dstImage := imaging.Fill(src, 1920, 1080, imaging.Center, imaging.Lanczos)
+
+			dstPath := filepath.Join(dir, filename)
+			if err := imaging.Save(dstImage, dstPath); err != nil {
+				http.Error(w, "Error saving resized image", http.StatusInternalServerError)
+				return
+			}
+		}
+	} else {
+		// Standard save for non-backgrounds or non-images
+		dstPath := filepath.Join(dir, filename)
+		dst, err := os.Create(dstPath)
+		if err != nil {
+			http.Error(w, "Error creating destination file", http.StatusInternalServerError)
+			return
+		}
+		defer dst.Close()
+
+		if _, err := io.Copy(dst, file); err != nil {
+			http.Error(w, "Error saving file", http.StatusInternalServerError)
+			return
+		}
 	}
+
+	finalPath := filepath.Join(dir, filename)
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(map[string]interface{}{
 		"success": true,
 		"message": "File uploaded successfully",
-		"path":    dstPath,
+		"path":    finalPath,
 	})
 }
 
