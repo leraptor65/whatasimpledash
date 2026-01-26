@@ -1,3 +1,5 @@
+"use client";
+
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { FaCog, FaPalette, FaThLarge, FaCode, FaImage, FaArrowLeft, FaIcons, FaInfoCircle, FaList, FaPuzzlePiece } from 'react-icons/fa';
