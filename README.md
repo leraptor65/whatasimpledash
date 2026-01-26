@@ -63,7 +63,7 @@ Configuration is stored in `config/services.yml` but can be edited via the Setti
 ## 🛠️ Build from Source
 
 1.  **Clone**: `git clone https://github.com/leraptor65/whatasimpledash.git`
-2.  **Build**: `./build-go.sh` (Requires Docker)
+2.  **Build**: `./build.sh` (Requires Docker)
 3.  **Run**: Access `http://localhost:8081` (Dev port)
 
 ## 💻 Tech Stack

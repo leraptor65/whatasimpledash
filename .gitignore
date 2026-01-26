@@ -30,5 +30,4 @@
 publish.sh
 git-ready.sh
 build.sh
-build-go.sh
 
