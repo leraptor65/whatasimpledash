@@ -1,7 +1,9 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { FaCog, FaPalette, FaThLarge, FaCode, FaImage, FaArrowLeft, FaIcons, FaInfoCircle, FaList, FaPuzzlePiece } from 'react-icons/fa';
-import { APP_VERSION } from '@/version';
+
+// Hardcoded version to avoid import issues with package.json or aliases during build
+const APP_VERSION = '3.0.0';
 
 const navItems = [
     { name: 'General', href: '/settings', icon: FaCog },
