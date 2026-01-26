@@ -66,6 +66,43 @@ export default function BackgroundsPage() {
                         );
                     })}
                 </div>
+
+                {config?.backgrounds?.modifier && ['blur', 'vignette', 'pixelate'].includes(config.backgrounds.modifier) && (
+                    <div className="mt-6 p-4 bg-white/5 rounded-xl border border-white/10">
+                        <div className="flex justify-between items-center mb-2">
+                            <label className="font-medium text-gray-200 capitalize">
+                                {config.backgrounds.modifier} Intensity
+                            </label>
+                            <span className="text-sm text-cyan-400 font-bold bg-cyan-900/40 px-2 py-0.5 rounded">
+                                {config.backgrounds[`${config.backgrounds.modifier}Intensity` as keyof typeof config.backgrounds] || 5}
+                            </span>
+                        </div>
+                        <input
+                            type="range"
+                            min="1"
+                            max="10"
+                            step="1"
+                            value={config.backgrounds[`${config.backgrounds.modifier}Intensity` as keyof typeof config.backgrounds] || 5}
+                            onChange={(e) => {
+                                if (!config?.backgrounds) return;
+                                const modifier = config.backgrounds.modifier as string; // safe cast due to check above
+                                const val = parseInt(e.target.value);
+                                handleConfigUpdate({
+                                    ...config,
+                                    backgrounds: {
+                                        ...config.backgrounds,
+                                        [`${modifier}Intensity`]: val
+                                    }
+                                });
+                            }}
+                            className="w-full"
+                        />
+                        <div className="flex justify-between text-xs text-gray-500 mt-1">
+                            <span>Low</span>
+                            <span>High</span>
+                        </div>
+                    </div>
+                )}
             </div>
 
             <div className="mt-8 glass-panel p-6 rounded-2xl">
