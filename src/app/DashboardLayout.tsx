@@ -184,33 +184,52 @@ export default function DashboardLayout() {
   // Effect for background layer
   const intensity = config.backgrounds?.[`${modifier}Intensity` as keyof Backgrounds] as number || 5;
 
-  const bgLayerStyle: React.CSSProperties = showWallpaper ? {
+  let finalBgStyle: React.CSSProperties = {
     backgroundImage: `url(${backgroundUrl})`,
     backgroundSize: 'cover',
     backgroundPosition: 'center',
     backgroundAttachment: 'fixed',
     position: 'fixed',
-    top: 0,
-    left: 0,
-    width: '100vw',
-    height: '100vh',
     zIndex: 0,
-    // Modifier specific styles
-    // Blur: 1-10 => 2px - 20px
-    filter: modifier === 'blur' ? `blur(${intensity * 2}px)` : 'none',
-    // Pixelate: Not really adjustable via standard CSS 'pixelated' without canvas/svg tricks.
-    // For now, sticking to standard behavior. Or could try backdrop-filter with svg?
-    // Let's stick to standard pixelated for reliability, maybe users just want the retro effect.
-    // Wait, user asked for variable. 
-    // Actually for pixelate, maybe we can use zoom? No, that breaks layout.
-    // I will honor the request by using the standard pixelated property, 
-    // but honestly "intensity" for pixelate is hard in pure CSS on a background image element without downscaling.
-    imageRendering: modifier === 'pixelate' ? 'pixelated' : 'auto',
-  } : { display: 'none' };
+  };
+
+  if (modifier === 'pixelate') {
+    // For pixelate, we shrink the container and scale it up with nearest-neighbor
+    // Intensity 1: Scale 1 (Normal). Intensity 10: Scale 10 (Blocky).
+    const scale = intensity; // 1 to 10
+    const invScale = 100 / scale; // 100% to 10%
+
+    finalBgStyle = {
+      ...finalBgStyle,
+      top: 0,
+      left: 0,
+      width: `${invScale}vw`,
+      height: `${invScale}vh`,
+      transform: `scale(${scale})`,
+      transformOrigin: 'top left',
+      imageRendering: 'pixelated', // Crucial for sharp edges
+    };
+  } else {
+    // Normal full screen
+    finalBgStyle = {
+      ...finalBgStyle,
+      top: 0,
+      left: 0,
+      width: '100vw',
+      height: '100vh',
+      filter: modifier === 'blur' ? `blur(${intensity * 2}px)` : 'none',
+    };
+  }
+
+  const bgLayerStyle: React.CSSProperties = showWallpaper ? finalBgStyle : { display: 'none' };
 
   // For Vignette Intensity, we can control opacity/gradient size
+  // More aggressive formula based on feedback:
+  // Intensity 1: transparent 65% -> black 100% (Subtle corners)
+  // Intensity 10: transparent 0% -> black 100% (Heavy tunnel vision)
+  const vignetteStart = Math.max(0, 75 - (intensity * 7)); // 68% down to 5%
   const vignetteStyle: React.CSSProperties = {
-    background: `radial-gradient(circle, transparent ${60 - (intensity * 4)}%, rgba(0,0,0,${0.4 + (intensity * 0.06)}) 100%)`
+    background: `radial-gradient(circle, transparent ${vignetteStart}%, rgba(0,0,0,${0.2 + (intensity * 0.08)}) 100%)`
   };
 
   return (
