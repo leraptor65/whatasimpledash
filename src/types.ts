@@ -53,6 +53,9 @@ export type Backgrounds = {
   active?: string;
   history?: string[];
   modifier?: 'none' | 'blur' | 'vignette' | 'pixelate' | 'no-wallpaper';
+  blurIntensity?: number;
+  vignetteIntensity?: number;
+  pixelateIntensity?: number;
 };
 
 export type WidgetSection = {
@@ -73,7 +76,6 @@ export type DashboardConfig = {
     showServiceBackgrounds?: boolean; // New option
     showBackground?: boolean; // New option for main wallpaper
     lastActiveBackground?: string; // To restore bg when toggled back on
-    backgroundBlur?: number;
     localIp?: string;
   };
 };

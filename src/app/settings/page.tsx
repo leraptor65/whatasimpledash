@@ -142,16 +142,6 @@ export default function GeneralSettingsPage() {
                             ))}
                         </select>
                     </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-400 mb-2">Background Blur (px)</label>
-                        <input
-                            type="number"
-                            value={config.settings?.backgroundBlur || 0}
-                            onChange={(e) => handleChange('settings.backgroundBlur', parseInt(e.target.value))}
-                            className="w-full glass-input px-4 py-3 rounded-lg"
-                            min="0" max="50"
-                        />
-                    </div>
                 </div>
             </section>
 

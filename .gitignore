@@ -26,5 +26,9 @@
 /public/icons/*
 # /config/services.yaml
 # /config/services.yaml
+# Scripts
 publish.sh
 git-ready.sh
+build.sh
+build-go.sh
+
