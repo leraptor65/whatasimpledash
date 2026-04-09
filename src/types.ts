@@ -5,8 +5,6 @@ export type Service = {
   url?: string;
   icon?: string;
   showIcon?: boolean; // Default to true if undefined
-  align?: 'left' | 'center' | 'right';
-  layout?: 'vertical' | 'horizontal' | 'horizontal-reverse' | 'vertical-reverse';
   backgroundColor?: string;
   textColor?: string;
   hidden?: boolean;
@@ -16,11 +14,8 @@ export type ServiceGroup = {
   name: string;
   columns: number;
   services: Service[];
-  align?: 'left' | 'center' | 'right';
-  titleAlign?: 'left' | 'center' | 'right';
   titleBackgroundColor?: string; // Custom background color for group title
   titleTextColor?: string;       // Custom text color for group title
-  layout?: 'vertical' | 'horizontal' | 'horizontal-reverse';
   collapsed?: boolean;
 };
 
@@ -37,7 +32,6 @@ export type Theme = {
 
 export type Backgrounds = {
   active?: string;
-  history?: string[];
 };
 
 

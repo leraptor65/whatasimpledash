@@ -49,7 +49,7 @@ export function IconPicker({ value, onChange }: { value: string, onChange: (icon
                 className="flex items-center gap-3 glass-input px-4 py-3 rounded-lg cursor-pointer hover:bg-white/10 transition-colors"
             >
                 {valueIsLocal ? (
-                    <img src={`/icons/${value}`} alt="Selected" className="w-6 h-6 object-contain" />
+                    <img src={`/api/images/icons/${value}`} alt="Selected" className="w-6 h-6 object-contain" />
                 ) : (
                     SelectedIconComp ? <SelectedIconComp className="text-xl text-white/60" /> : <FaImage className="text-xl text-gray-500" />
                 )}
@@ -92,7 +92,7 @@ export function IconPicker({ value, onChange }: { value: string, onChange: (icon
                             {activeTab === 'standard' ? 'No standard icons found' : 'No custom icons found'}
                         </div>
                     ) : (
-                        <div className="grid grid-cols-5 gap-2 overflow-y-auto max-h-60 pr-2 custom-scrollbar">
+                        <div className="flex flex-col gap-1 overflow-y-auto max-h-60 pr-2 custom-scrollbar">
                             {filteredIcons.map(name => {
                                 const isLocal = activeTab === 'custom';
                                 const IconComp = !isLocal ? FaIcons[name as keyof typeof FaIcons] : null;
@@ -101,15 +101,17 @@ export function IconPicker({ value, onChange }: { value: string, onChange: (icon
                                     <button
                                         key={name}
                                         onClick={() => { onChange(name); setIsOpen(false); }}
-                                        className={`p-2 rounded-lg flex flex-col items-center justify-center gap-1 hover:bg-white/10 transition-colors border border-transparent ${value === name ? 'bg-white/10 border-white/20' : ''}`}
+                                        className={`p-2 px-3 rounded-lg flex items-center gap-3 hover:bg-white/10 transition-colors border border-transparent ${value === name ? 'bg-white/10 border-white/20' : 'active:bg-white/20'}`}
                                         title={name}
                                     >
-                                        {isLocal ? (
-                                            <img src={`/api/images/icons/${name}`} alt={name} className="w-8 h-8 object-contain" />
-                                        ) : (
-                                            IconComp && <IconComp className="text-2xl text-gray-300" />
-                                        )}
-                                        <span className="text-[10px] text-gray-400 truncate w-full text-center">{name.substring(0, 10)}</span>
+                                        <div className="w-8 h-8 flex-shrink-0 flex items-center justify-center bg-white/5 rounded-md">
+                                            {isLocal ? (
+                                                <img src={`/api/images/icons/${name}`} alt={name} className="w-6 h-6 object-contain" />
+                                            ) : (
+                                                IconComp && <IconComp className="text-xl text-gray-300" />
+                                            )}
+                                        </div>
+                                        <span className="text-sm text-gray-300 truncate font-medium">{name}</span>
                                     </button>
                                 );
                             })}

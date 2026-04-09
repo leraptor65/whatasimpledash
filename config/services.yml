@@ -1,3 +1,17 @@
+# title: Test Dashboard
+# defaultColumns: 4
+# theme:
+#   mainBackground: '#111827'
+#   text: '#ffffff'
+#   serviceBackground: '#1f2937'
+#   serviceBackgroundHover: '#374151'
+# groups:
+#   - name: Test Group
+#     services:
+#       - name: Test Service
+#         layout: vertical-reverse
+
+
 title: What A Simple Dash
 defaultColumns: 3
 theme:

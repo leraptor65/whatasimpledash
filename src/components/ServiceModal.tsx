@@ -101,46 +101,19 @@ export function ServiceModal({ isOpen, onClose, onSave, onDelete, initialService
                             <IconPicker value={service.icon || 'FaGlobe'} onChange={icon => setService({ ...service, icon })} />
                         </div>
 
-                        <div className="col-span-1 md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4 border-t border-white/10 pt-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-400 mb-2">Icon Position</label>
-                                <select
-                                    value={service.layout || 'vertical'}
-                                    onChange={e => setService({ ...service, layout: e.target.value as any })}
-                                    className="w-full glass-input px-3 py-2 text-sm rounded-lg"
-                                >
-                                    <option value="vertical" className="bg-gray-900">Top (Default)</option>
-                                    <option value="vertical-reverse" className="bg-gray-900">Bottom</option>
-                                    <option value="horizontal" className="bg-gray-900">Left</option>
-                                    <option value="horizontal-reverse" className="bg-gray-900">Right</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-400 mb-2">Alignment</label>
-                                <select
-                                    value={service.align || 'center'}
-                                    onChange={e => setService({ ...service, align: e.target.value as any })}
-                                    className="w-full glass-input px-3 py-2 text-sm rounded-lg"
-                                >
-                                    <option value="center" className="bg-gray-900">Center (Default)</option>
-                                    <option value="left" className="bg-gray-900">Left</option>
-                                    <option value="right" className="bg-gray-900">Right</option>
-                                </select>
-                            </div>
-                            <div className="flex flex-col justify-center">
-                                <label className="flex items-center gap-3 cursor-pointer group">
-                                    <div className={`w-12 h-6 rounded-full p-1 transition-colors duration-200 ${service.showIcon !== false ? 'bg-white/40' : 'bg-gray-700'}`}>
-                                        <div className={`w-4 h-4 bg-white rounded-full shadow-md transform transition-transform duration-200 ${service.showIcon !== false ? 'translate-x-6' : 'translate-x-0'}`} />
-                                    </div>
-                                    <input
-                                        type="checkbox"
-                                        className="hidden"
-                                        checked={service.showIcon !== false}
-                                        onChange={(e) => setService({ ...service, showIcon: e.target.checked })}
-                                    />
-                                    <span className="text-gray-300 group-hover:text-white transition-colors">Show Icon</span>
-                                </label>
-                            </div>
+                        <div className="col-span-1 md:col-span-2 flex flex-col justify-center border-t border-white/10 pt-4">
+                            <label className="flex items-center gap-3 cursor-pointer group">
+                                <div className={`w-12 h-6 rounded-full p-1 transition-colors duration-200 ${service.showIcon !== false ? 'bg-white/40' : 'bg-gray-700'}`}>
+                                    <div className={`w-4 h-4 bg-white rounded-full shadow-md transform transition-transform duration-200 ${service.showIcon !== false ? 'translate-x-6' : 'translate-x-0'}`} />
+                                </div>
+                                <input
+                                    type="checkbox"
+                                    className="hidden"
+                                    checked={service.showIcon !== false}
+                                    onChange={(e) => setService({ ...service, showIcon: e.target.checked })}
+                                />
+                                <span className="text-gray-300 group-hover:text-white transition-colors">Show Icon</span>
+                            </label>
                         </div>
 
                         {/* Custom Colors */}

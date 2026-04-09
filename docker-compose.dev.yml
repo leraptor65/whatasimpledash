@@ -1,6 +1,7 @@
 services:
   whatasimpledash:
     build: .
+    image: leraptor65/whatasimpledash:local-build
     container_name: whatasimpledash-dev
     restart: unless-stopped
     ports:

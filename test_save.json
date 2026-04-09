@@ -1,0 +1,14 @@
+{
+  "title": "Test Dashboard",
+  "groups": [
+    {
+      "name": "Test Group",
+      "services": [
+        {
+          "name": "Test Service",
+          "layout": "vertical-reverse"
+        }
+      ]
+    }
+  ]
+}
