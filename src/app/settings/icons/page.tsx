@@ -41,11 +41,11 @@ export default function IconsPage() {
                 method: 'POST',
                 body: formData,
             });
+            const data = await res.json();
             if (res.ok) {
                 await fetchIcons();
-                alert('Icon uploaded successfully!');
             } else {
-                alert('Upload failed');
+                alert(data.error || 'Upload failed');
             }
         } catch (e) {
             console.error(e);
@@ -96,7 +96,7 @@ export default function IconsPage() {
                     <button
                         onClick={() => fileInputRef.current?.click()}
                         disabled={uploading}
-                        className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-lg text-white font-medium hover:scale-105 transition-transform flex items-center gap-2 shadow-lg shadow-cyan-500/20 disabled:opacity-50"
+                        className="px-5 py-2.5 bg-white/10 hover:bg-white/20 border border-white/20 rounded-xl text-white font-bold tracking-wide transition-all active:scale-95 shadow-xl shadow-black/20 disabled:opacity-50 flex items-center gap-2"
                     >
                         {uploading ? 'Uploading...' : <><FaUpload /> Upload New Icon</>}
                     </button>
@@ -124,7 +124,7 @@ export default function IconsPage() {
                         {filteredIcons.map((icon, idx) => (
                             <div key={idx} className="glass-card p-4 rounded-xl flex flex-col items-center gap-3 relative group">
                                 <div className="w-12 h-12 flex items-center justify-center">
-                                    <img src={`/icons/${icon}`} alt={icon} className="max-w-full max-h-full object-contain" />
+                                    <img src={`/api/images/icons/${icon}`} alt={icon} className="max-w-full max-h-full object-contain" />
                                 </div>
                                 <span className="text-xs text-gray-400 truncate w-full text-center" title={icon}>
                                     {icon}

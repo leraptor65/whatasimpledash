@@ -16,11 +16,11 @@ RUN npm run build
 FROM node:18-alpine AS runner
 WORKDIR /app
 
+# The built-in node user has UID 1000, matching the common host user
+# This avoids permission issues on mapped volumes while keeping the build simple
+
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
-
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
 
 # Copy the standalone build
 COPY --from=builder /app/.next/standalone ./
@@ -29,11 +29,10 @@ COPY --from=builder /app/public ./public
 COPY --from=builder /app/config.sample.yml ./config.sample.yml
 
 # Ensure user directories exist with correct permissions BEFORE switching user
-# We create them and chown them to the nextjs user
 RUN mkdir -p config public/icons public/backgrounds public/uploads && \
-    chown -R nextjs:nodejs config public
+    chown -R node:node config public
 
-USER nextjs
+USER node
 
 EXPOSE 3000
 ENV PORT=3000
