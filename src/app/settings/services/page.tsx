@@ -289,7 +289,7 @@ export default function ServicesPage() {
                 <div className="flex items-center gap-3">
                     <button
                         onClick={handleStripOverrides}
-                        className="px-4 py-2 bg-[#1a1a1a] border border-[#333] hover:bg-[#2a2a2a] hover:border-red-500/50 hover:text-red-400 rounded-lg text-white/80 font-medium transition-all text-sm shadow-sm"
+                        className="px-4 py-2 bg-[#1a1a1a] border border-[#333] hover:bg-white hover:text-black rounded-lg text-white/80 font-medium transition-all text-sm shadow-sm"
                         title="Remove all custom styling from groups & services"
                     >
                         Strip Overrides

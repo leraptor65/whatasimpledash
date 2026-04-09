@@ -6,6 +6,9 @@ services:
     restart: unless-stopped
     ports:
       - "3000:3000"
+    environment:
+      - PORT=3000
+      - CONFIG_PATH=/app/config/services.dev.yml
     volumes:
       - ./config:/app/config
       - ./public/icons:/app/public/icons

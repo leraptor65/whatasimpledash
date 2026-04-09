@@ -57,11 +57,11 @@ export const Sidebar = () => {
           isSidebarOpen ? 'w-64' : (isMobile ? 'w-64' : 'w-20')
         } ${isMobile && !isSidebarOpen ? '-translate-x-full' : 'translate-x-0'}`}
       >
-        <div className="p-6 flex items-center justify-between">
-          <div className="flex-1"></div>
+        <div className={`flex items-center ${isSidebarOpen ? 'p-6 justify-between' : 'p-4 py-6 justify-center'}`}>
+          {isSidebarOpen && <div className="flex-1"></div>}
           <button 
             onClick={toggleSidebar}
-            className="p-2 hover:bg-white/5 rounded-lg text-white/50 hover:text-white transition-colors"
+            className={`p-2 hover:bg-white/5 rounded-lg text-white/50 hover:text-white transition-colors flex items-center justify-center ${!isSidebarOpen ? 'w-full' : ''}`}
           >
             {isSidebarOpen ? (isMobile ? <FaTimes /> : <FaChevronLeft />) : <FaChevronRight />}
           </button>
@@ -76,7 +76,7 @@ export const Sidebar = () => {
                 key={item.href}
                 href={item.href}
                 className={`flex items-center rounded-xl transition-all group ${
-                  isSidebarOpen ? 'gap-4 px-3 py-3 w-full' : 'p-3 justify-center'
+                  isSidebarOpen ? 'gap-4 px-3 py-3 w-full' : 'p-3 w-full justify-center'
                 } ${
                   isActive 
                     ? 'bg-white/10 text-white border border-white/20' 
@@ -84,7 +84,7 @@ export const Sidebar = () => {
                 }`}
                 title={!isSidebarOpen ? item.name : ''}
               >
-                <div className="flex-shrink-0 min-w-[24px] flex justify-center">
+                <div className="flex-shrink-0 flex items-center justify-center">
                   <Icon size={20} className={isActive ? 'text-white' : 'opacity-80'} />
                 </div>
                 <span className={`text-sm font-medium whitespace-nowrap transition-opacity duration-200 ${

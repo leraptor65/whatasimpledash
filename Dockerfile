@@ -19,15 +19,14 @@ WORKDIR /app
 ENV NODE_ENV production
 ENV NEXT_TELEMETRY_DISABLED 1
 
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+RUN addgroup --system --gid 1000 nodejs
+RUN adduser --system --uid 1000 nextjs
 
 # Copy the standalone build
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
 COPY --from=builder /app/config.sample.yml ./config.sample.yml
-COPY --from=builder /app/config/services.yml ./config/services.yml
 
 # Ensure user directories exist with correct permissions BEFORE switching user
 # We create them and chown them to the nextjs user

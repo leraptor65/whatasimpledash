@@ -47,30 +47,30 @@ export function ColorPickerProvider({ children }: { children: ReactNode }) {
             {isOpen && (
                 <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
                     {/* Backdrop */}
-                    <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={closePicker} />
+                    <div className="absolute inset-0 bg-[#0a0a0a]/90 backdrop-blur-2xl" onClick={closePicker} />
                     {/* Modal */}
-                    <div className="relative bg-white/5 backdrop-blur-xl border border-white/10 p-6 rounded-3xl shadow-2xl flex flex-col gap-5 w-[280px] animate-in fade-in zoom-in duration-200">
-                        <div className="flex flex-col items-center gap-1">
-                            <h3 className="text-lg font-semibold tracking-tight text-white/90">{label}</h3>
-                            <div className="h-1 w-12 bg-white/40 rounded-full" />
+                    <div className="relative bg-[#111111] border border-white/10 p-8 rounded-[2rem] shadow-[0_0_50px_rgba(0,0,0,0.5)] flex flex-col gap-6 w-[320px] animate-in fade-in zoom-in duration-200">
+                        <div className="flex flex-col items-center gap-2">
+                            <h3 className="text-xl font-bold tracking-tight text-white/95">{label}</h3>
+                            <div className="h-1 w-8 bg-white/20 rounded-full" />
                         </div>
 
-                        <div className="flex justify-center py-2">
+                        <div className="flex justify-center py-2 bg-white/[0.02] rounded-2xl border border-white/5 p-4">
                             <RgbaStringColorPicker color={color} onChange={handleColorChange} />
                         </div>
 
                         <div className="space-y-3">
-                            <label className="text-[10px] text-white/40 uppercase tracking-widest font-bold ml-1">Color Value (HEX or RGBA)</label>
-                            <div className="flex gap-2">
+                            <label className="text-[10px] text-white/30 uppercase tracking-[0.2em] font-bold ml-1">Color Value</label>
+                            <div className="flex items-center gap-3 bg-white/5 p-2 rounded-2xl border border-white/5">
                                 <input
                                     type="text"
                                     value={inputValue}
                                     onChange={handleInputChange}
-                                    className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm font-mono focus:ring-2 focus:ring-white/20 outline-none transition-all placeholder:text-white/20"
+                                    className="flex-1 bg-transparent px-2 py-1 text-sm font-mono focus:outline-none text-white/90 placeholder:text-white/20"
                                     placeholder="#000000"
                                 />
                                 <div
-                                    className="w-11 h-11 rounded-xl border border-white/20 shadow-inner flex-shrink-0"
+                                    className="w-8 h-8 rounded-lg border border-white/10 shadow-inner flex-shrink-0"
                                     style={{ backgroundColor: color }}
                                 />
                             </div>
@@ -78,7 +78,7 @@ export function ColorPickerProvider({ children }: { children: ReactNode }) {
 
                         <button
                             onClick={closePicker}
-                            className="mt-2 w-full py-3 bg-white/10 hover:bg-white/20 border border-white/10 hover:border-white/20 rounded-xl font-bold tracking-wide transition-all active:scale-95 shadow-xl shadow-black/20"
+                            className="w-full py-4 bg-white text-black hover:bg-white/90 rounded-2xl font-bold tracking-wide transition-all active:scale-95 shadow-xl shadow-white/5"
                         >
                             Done
                         </button>

@@ -50,9 +50,8 @@ export type DashboardConfig = {
   services?: Service[]; // This will now be officially for ungrouped services
   settings?: {
     showTitleBackgrounds?: boolean;
-    showServiceBackgrounds?: boolean; // New option
-    showBackground?: boolean; // New option for main wallpaper
-    lastActiveBackground?: string; // To restore bg when toggled back on
+    showServiceBackgrounds?: boolean;
+    showBackground?: boolean;
 
     localIp?: string;
     customGreeting?: string;

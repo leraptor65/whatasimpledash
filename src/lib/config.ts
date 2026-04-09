@@ -5,16 +5,15 @@ import yaml from 'js-yaml';
 import { dashboardConfigSchema, type DashboardConfig } from './schema';
 
 const PROD_CONFIG_PATH = path.join(process.cwd(), 'config', 'services.yml');
-const DEV_CONFIG_PATH = path.join(process.cwd(), 'config', 'services.dev.yml');
 
 // Helper to determine which config path to use
 async function getActiveConfigPath(): Promise<string> {
-    try {
-        await fs.access(DEV_CONFIG_PATH);
-        return DEV_CONFIG_PATH;
-    } catch {
-        return PROD_CONFIG_PATH;
+    // If an explicit path is provided via environment variable, use it
+    if (process.env.CONFIG_PATH) {
+        return process.env.CONFIG_PATH;
     }
+
+    return PROD_CONFIG_PATH;
 }
 
 // Default backup config in case of failure/empty
