@@ -4,7 +4,18 @@ import path from 'path';
 import yaml from 'js-yaml';
 import { dashboardConfigSchema, type DashboardConfig } from './schema';
 
-const CONFIG_PATH = path.join(process.cwd(), 'config', 'services.yml');
+const PROD_CONFIG_PATH = path.join(process.cwd(), 'config', 'services.yml');
+const DEV_CONFIG_PATH = path.join(process.cwd(), 'config', 'services.dev.yml');
+
+// Helper to determine which config path to use
+async function getActiveConfigPath(): Promise<string> {
+    try {
+        await fs.access(DEV_CONFIG_PATH);
+        return DEV_CONFIG_PATH;
+    } catch {
+        return PROD_CONFIG_PATH;
+    }
+}
 
 // Default backup config in case of failure/empty
 const DEFAULT_CONFIG: DashboardConfig = {
@@ -22,16 +33,33 @@ const DEFAULT_CONFIG: DashboardConfig = {
 
 export async function getConfig(): Promise<DashboardConfig> {
     try {
+        // Ensure necessary directories exist
+        const dirs = [
+            path.join(process.cwd(), 'config'),
+            path.join(process.cwd(), 'public', 'icons'),
+            path.join(process.cwd(), 'public', 'backgrounds'),
+            path.join(process.cwd(), 'public', 'uploads')
+        ];
+        
+        for (const dir of dirs) {
+            try {
+                await fs.access(dir);
+            } catch {
+                await fs.mkdir(dir, { recursive: true });
+            }
+        }
+
         // Check if file exists first
+        const configPath = await getActiveConfigPath();
         try {
-            await fs.access(CONFIG_PATH);
+            await fs.access(configPath);
         } catch {
             // Create default if not exists
             await saveConfig(DEFAULT_CONFIG);
             return DEFAULT_CONFIG;
         }
 
-        const fileContents = await fs.readFile(CONFIG_PATH, 'utf8');
+        const fileContents = await fs.readFile(configPath, 'utf8');
         const rawData = yaml.load(fileContents);
 
         const result = dashboardConfigSchema.safeParse(rawData);
@@ -61,6 +89,7 @@ export async function saveConfig(config: DashboardConfig | unknown): Promise<voi
         throw new Error(`Invalid configuration: ${result.error.message}`);
     }
 
-    const yamlString = yaml.dump(result.data);
-    await fs.writeFile(CONFIG_PATH, yamlString, 'utf8');
+    const configPath = await getActiveConfigPath();
+    const yamlString = yaml.dump(result.data, { indent: 2 });
+    await fs.writeFile(configPath, yamlString, 'utf8');
 }

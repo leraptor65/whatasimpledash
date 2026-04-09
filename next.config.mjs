@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'export',
+  output: 'standalone',
   webpack: (config, { isServer }) => {
     // This is the recommended way to enable polling for file watching
     if (!isServer) {

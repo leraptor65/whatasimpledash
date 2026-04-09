@@ -22,12 +22,15 @@
 .DS_Store
 *.pem
 
-# Ignore custom user-uploaded icons
+# Ignore custom user-uploaded icons and backgrounds
 /public/icons/*
-# /config/services.yaml
-# /config/services.yaml
-# Scripts
-publish.sh
-git-ready.sh
-build.sh
+/public/backgrounds/*
+/public/uploads/*
+/config/services.dev.yml
+
+# Keep directory structure
+!/public/icons/.gitkeep
+!/public/backgrounds/.gitkeep
+!/public/uploads/.gitkeep
+!/config/.gitkeep
 

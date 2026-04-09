@@ -15,7 +15,7 @@ export function IconPicker({ value, onChange }: { value: string, onChange: (icon
 
     useEffect(() => {
         if (isOpen) {
-            fetch('/api/icons')
+            fetch('/api/files/icons')
                 .then(res => res.json())
                 .then(data => {
                     if (data.success) {
@@ -51,7 +51,7 @@ export function IconPicker({ value, onChange }: { value: string, onChange: (icon
                 {valueIsLocal ? (
                     <img src={`/icons/${value}`} alt="Selected" className="w-6 h-6 object-contain" />
                 ) : (
-                    SelectedIconComp ? <SelectedIconComp className="text-xl text-cyan-400" /> : <FaImage className="text-xl text-gray-500" />
+                    SelectedIconComp ? <SelectedIconComp className="text-xl text-white/60" /> : <FaImage className="text-xl text-gray-500" />
                 )}
                 <span className="text-gray-300 truncate">{value || 'Select an icon...'}</span>
             </div>
@@ -61,17 +61,17 @@ export function IconPicker({ value, onChange }: { value: string, onChange: (icon
                     <div className="flex gap-2 mb-4 border-b border-white/10 pb-2">
                         <button
                             onClick={() => setActiveTab('standard')}
-                            className={`flex-1 pb-2 text-sm font-medium transition-colors relative ${activeTab === 'standard' ? 'text-cyan-400' : 'text-gray-400 hover:text-gray-200'}`}
+                            className={`flex-1 pb-2 text-sm font-medium transition-colors relative ${activeTab === 'standard' ? 'text-white' : 'text-gray-400 hover:text-gray-200'}`}
                         >
                             Standard
-                            {activeTab === 'standard' && <div className="absolute bottom-[-9px] left-0 w-full h-0.5 bg-cyan-400 rounded-full" />}
+                            {activeTab === 'standard' && <div className="absolute bottom-[-9px] left-0 w-full h-0.5 bg-white/80 rounded-full" />}
                         </button>
                         <button
                             onClick={() => setActiveTab('custom')}
-                            className={`flex-1 pb-2 text-sm font-medium transition-colors relative ${activeTab === 'custom' ? 'text-cyan-400' : 'text-gray-400 hover:text-gray-200'}`}
+                            className={`flex-1 pb-2 text-sm font-medium transition-colors relative ${activeTab === 'custom' ? 'text-white' : 'text-gray-400 hover:text-gray-200'}`}
                         >
                             Custom
-                            {activeTab === 'custom' && <div className="absolute bottom-[-9px] left-0 w-full h-0.5 bg-cyan-400 rounded-full" />}
+                            {activeTab === 'custom' && <div className="absolute bottom-[-9px] left-0 w-full h-0.5 bg-white/80 rounded-full" />}
                         </button>
                     </div>
 
@@ -101,11 +101,11 @@ export function IconPicker({ value, onChange }: { value: string, onChange: (icon
                                     <button
                                         key={name}
                                         onClick={() => { onChange(name); setIsOpen(false); }}
-                                        className={`p-2 rounded-lg flex flex-col items-center justify-center gap-1 hover:bg-cyan-500/20 transition-colors border border-transparent ${value === name ? 'bg-cyan-500/30 border-cyan-500/50' : ''}`}
+                                        className={`p-2 rounded-lg flex flex-col items-center justify-center gap-1 hover:bg-white/10 transition-colors border border-transparent ${value === name ? 'bg-white/10 border-white/20' : ''}`}
                                         title={name}
                                     >
                                         {isLocal ? (
-                                            <img src={`/icons/${name}`} alt={name} className="w-8 h-8 object-contain" />
+                                            <img src={`/api/images/icons/${name}`} alt={name} className="w-8 h-8 object-contain" />
                                         ) : (
                                             IconComp && <IconComp className="text-2xl text-gray-300" />
                                         )}

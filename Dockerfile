@@ -1,58 +1,43 @@
-# Stage 1: Build the Next.js Frontend
-FROM node:18-alpine AS frontend-builder
+# Stage 1: Dependencies
+FROM node:18-alpine AS deps
+RUN apk add --no-cache libc6-compat
 WORKDIR /app
-
-# Copy dependency definitions
 COPY package.json package-lock.json ./
 RUN npm ci
 
-# Copy source code
+# Stage 2: Build
+FROM node:18-alpine AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-
-# Build the application (Static Export)
-# Note: We need to ensure 'output: export' is set in next.config.mjs
-# For now, we assume the user/code will update config shortly.
 RUN npm run build
 
-# Stage 2: Build the Go Backend
-FROM golang:1.24-alpine AS backend-builder
+# Stage 3: Production
+FROM node:18-alpine AS runner
 WORKDIR /app
 
-# Copy Go module files
-COPY go.mod ./
+ENV NODE_ENV production
+ENV NEXT_TELEMETRY_DISABLED 1
 
-# Copy Go source (needed for go mod tidy)
-COPY . .
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
 
-# Download dependencies and generate go.sum
-RUN go mod tidy
+# Copy the standalone build
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/config.sample.yml ./config.sample.yml
+COPY --from=builder /app/config/services.yml ./config/services.yml
 
-# Build the binary
-# CGO_ENABLED=0 creates a statically linked binary suitable for scratch
-RUN CGO_ENABLED=0 GOOS=linux go build -o whatasimpledash .
+# Ensure user directories exist with correct permissions BEFORE switching user
+# We create them and chown them to the nextjs user
+RUN mkdir -p config public/icons public/backgrounds public/uploads && \
+    chown -R nextjs:nodejs config public
 
-# Stage 3: Final Production Image
-FROM alpine:latest
-WORKDIR /app
+USER nextjs
 
-# Install basic certificates for external API calls (Weather)
-RUN apk --no-cache add ca-certificates
-
-# Copy the binary from the backend builder
-COPY --from=backend-builder /app/whatasimpledash .
-
-# Copy the static frontend assets from the frontend builder
-# Next.js 'output: export' writes to 'out' by default
-COPY --from=frontend-builder /app/out ./public
-
-# Copy the entrypoint script if needed, or other config defaults
-COPY config.sample.yml ./config.sample.yml
-
-# Create necessary directories
-RUN mkdir -p config public/icons public/backgrounds public/uploads
-
-# Expose port
 EXPOSE 3000
+ENV PORT 3000
+ENV HOSTNAME "0.0.0.0"
 
-# Run the binary
-CMD ["./whatasimpledash"]
+CMD ["node", "server.js"]

@@ -13,22 +13,23 @@ export function ColorInput({ label, description, value, onChange }: ColorInputPr
     const { openPicker } = useColorPicker();
 
     return (
-        <div className="glass-card p-6 rounded-xl flex items-center justify-between group">
-            <div className="flex-1">
-                <h3 className="font-semibold text-gray-200">{label}</h3>
-                {description && <p className="text-sm text-gray-500 mt-1">{description}</p>}
-                <div className="mt-2 text-xs font-mono text-cyan-200 bg-black/40 border border-white/10 inline-block px-2 py-1 rounded">
-                    {value}
-                </div>
+        <div className="flex items-center justify-between p-4 group transition-all duration-300 hover:bg-white/[0.03]">
+            <div className="pr-4 w-2/3">
+                <p className="text-sm font-medium text-white/90">{label}</p>
+                {description && <p className="text-xs text-white/40 mt-0.5 font-light">{description}</p>}
             </div>
 
-            <div className="ml-6 relative">
+            <div className="flex items-center gap-3 justify-end w-1/3">
+                <div className="hidden sm:block text-[10px] font-mono text-white/30 bg-white/5 border border-white/5 px-2 py-1 rounded-md tracking-tighter">
+                    {value || 'none'}
+                </div>
                 <div
-                    className="w-12 h-12 rounded-lg border border-white/20 cursor-pointer shadow-lg relative overflow-hidden"
-                    style={{ backgroundColor: value }}
+                    className="w-9 h-9 rounded-xl border border-white/10 cursor-pointer shadow-lg relative overflow-hidden flex-shrink-0 transition-transform active:scale-90"
+                    style={{ backgroundColor: value || 'transparent' }}
                     onClick={() => openPicker(label, value, onChange)}
                 >
                     <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                    {!value && <div className="absolute inset-0 flex items-center justify-center text-[10px] text-white/20">None</div>}
                 </div>
             </div>
         </div>

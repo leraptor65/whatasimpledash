@@ -30,26 +30,6 @@ export const serviceGroupSchema = z.object({
     collapsed: z.boolean().optional(),
 });
 
-export const widgetConfigSchema = z.object({
-    name: z.string(),
-    type: z.enum(['clock', 'weather']),
-    provider: z.enum(['openweathermap', 'weatherapi']).optional(),
-    timeZone: z.string().optional(),
-    format: z.enum(['12h', '24h']).optional(),
-    city: z.string().optional(),
-    state: z.string().optional(),
-    zipcode: z.string().optional(),
-    country: z.string().optional(),
-    apiKey: z.string().optional(),
-    units: z.enum(['metric', 'imperial', 'standard']).optional(),
-    backgroundColor: z.string().optional(),
-    textColor: z.string().optional(),
-});
-
-export const widgetSectionSchema = z.object({
-    columns: z.number(),
-    items: z.array(widgetConfigSchema),
-});
 
 export const backgroundsSchema = z.object({
     active: z.string().optional(),
@@ -60,6 +40,11 @@ export const settingsSchema = z.object({
     showTitleBackgrounds: z.boolean().optional(),
     backgroundBlur: z.number().optional(),
     localIp: z.string().optional(),
+    customGreeting: z.string().optional(),
+    customHelpText: z.string().optional(),
+    hideGreeting: z.boolean().optional(),
+    showGreetingBackground: z.boolean().optional(),
+    greetingRadius: z.number().optional(),
 });
 
 export const dashboardConfigSchema = z.object({
@@ -67,7 +52,6 @@ export const dashboardConfigSchema = z.object({
     defaultColumns: z.number().default(4),
     theme: themeSchema.default({}),
     backgrounds: backgroundsSchema.optional(),
-    widgets: widgetSectionSchema.optional(),
     groups: z.array(serviceGroupSchema).default([]),
     services: z.array(serviceSchema).optional(),
     settings: settingsSchema.optional(),

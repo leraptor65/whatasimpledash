@@ -1,18 +1,3 @@
-export type WidgetConfig = {
-  name: string; // Add name for easier identification in the editor
-  type: 'clock' | 'weather';
-  provider?: 'openweathermap' | 'weatherapi';
-  timeZone?: string;
-  format?: '12h' | '24h';
-  city?: string;
-  state?: string;
-  zipcode?: string;
-  country?: string;
-  apiKey?: string;
-  units?: 'metric' | 'imperial' | 'standard';
-  backgroundColor?: string;
-  textColor?: string;
-};
 
 export type Service = {
   name: string;
@@ -47,28 +32,20 @@ export type Theme = {
   serviceBackgroundHover: string;
   groupTitleBackground?: string;
   groupTitleText?: string;
+  serviceText?: string;
 };
 
 export type Backgrounds = {
   active?: string;
   history?: string[];
-  modifier?: 'none' | 'blur' | 'vignette' | 'pixelate' | 'no-wallpaper';
-  blurIntensity?: number;
-  vignetteIntensity?: number;
-  pixelateIntensity?: number;
 };
 
-export type WidgetSection = {
-  columns: number;
-  items: WidgetConfig[];
-}
 
 export type DashboardConfig = {
   title: string;
   defaultColumns: number;
   theme: Theme;
   backgrounds?: Backgrounds;
-  widgets?: WidgetSection; // New dedicated section for widgets
   groups: ServiceGroup[];
   services?: Service[]; // This will now be officially for ungrouped services
   settings?: {
@@ -76,6 +53,12 @@ export type DashboardConfig = {
     showServiceBackgrounds?: boolean; // New option
     showBackground?: boolean; // New option for main wallpaper
     lastActiveBackground?: string; // To restore bg when toggled back on
+
     localIp?: string;
+    customGreeting?: string;
+    customHelpText?: string;
+    hideGreeting?: boolean;
+    showGreetingBackground?: boolean;
+    greetingRadius?: number;
   };
 };
