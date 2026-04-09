@@ -191,7 +191,7 @@ export const GlassFileManager = ({ type, onConfigUpdate, currentConfig, activeFi
                                 </button>
                             </div>
                             <div className="flex justify-between gap-4 pt-2">
-                                <a href={`/${type}/${selectedFile}`} download className="px-5 py-2.5 bg-white/10 hover:bg-white/20 border border-white/10 rounded-xl text-white font-medium flex items-center gap-2 transition-all active:scale-95">
+                                <a href={`/api/images/${type}/${selectedFile}`} download className="px-5 py-2.5 bg-white/10 hover:bg-white/20 border border-white/10 rounded-xl text-white font-medium flex items-center gap-2 transition-all active:scale-95">
                                     <FaDownload className="text-green-400" /> Download
                                 </a>
                                 <button onClick={handleDelete} className="px-5 py-2.5 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 hover:border-red-500/40 rounded-xl text-red-500 font-medium flex items-center gap-2 transition-all active:scale-95">

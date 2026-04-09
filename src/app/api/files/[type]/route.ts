@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { writeFile, mkdir, readdir, unlink } from 'fs/promises';
+import { writeFile, mkdir, readdir, unlink, access } from 'fs/promises';
 import path from 'path';
 
 export async function GET(
@@ -46,16 +46,22 @@ export async function POST(
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
 
-    // Create unique filename to prevent overwrites
-    const ext = path.extname(file.name);
-    const filename = `${Date.now()}-${Math.random().toString(36).substring(7)}${ext}`;
-    
+    // Use original filename as requested
+    const filename = file.name;
     const uploadDir = path.join(process.cwd(), 'public', type);
     
     // Ensure directory exists
     await mkdir(uploadDir, { recursive: true });
     
     const filepath = path.join(uploadDir, filename);
+
+    // Check if exists
+    try {
+      await access(filepath);
+      return NextResponse.json({ error: `File '${filename}' already exists.` }, { status: 409 });
+    } catch {
+      // file doesn't exist, proceed
+    }
     await writeFile(filepath, buffer);
 
     return NextResponse.json({ 
