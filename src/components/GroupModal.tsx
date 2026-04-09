@@ -16,7 +16,6 @@ export function GroupModal({ isOpen, onClose, onSave, onDelete, initialGroup }: 
     const [name, setName] = useState('');
     const [columns, setColumns] = useState(3);
     const [collapsed, setCollapsed] = useState(false);
-    const [titleAlign, setTitleAlign] = useState<'left' | 'center' | 'right'>('left');
     const [titleBackgroundColor, setTitleBackgroundColor] = useState('');
     const [titleTextColor, setTitleTextColor] = useState('');
 
@@ -25,7 +24,6 @@ export function GroupModal({ isOpen, onClose, onSave, onDelete, initialGroup }: 
             setName(initialGroup?.name || '');
             setColumns(initialGroup?.columns || 3);
             setCollapsed(initialGroup?.collapsed || false);
-            setTitleAlign(initialGroup?.titleAlign || 'left');
             setTitleBackgroundColor(initialGroup?.titleBackgroundColor || '');
             setTitleTextColor(initialGroup?.titleTextColor || '');
         }
@@ -39,7 +37,6 @@ export function GroupModal({ isOpen, onClose, onSave, onDelete, initialGroup }: 
             name,
             columns,
             collapsed,
-            titleAlign,
             titleBackgroundColor: titleBackgroundColor || undefined,
             titleTextColor: titleTextColor || undefined
         });
@@ -83,18 +80,6 @@ export function GroupModal({ isOpen, onClose, onSave, onDelete, initialGroup }: 
                         </select>
                     </div>
 
-                    <div>
-                        <label className="block text-sm font-medium text-gray-400 mb-2">Title Alignment</label>
-                        <select
-                            value={titleAlign}
-                            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setTitleAlign(e.target.value as any)}
-                            className="w-full glass-input px-4 py-3 rounded-lg"
-                        >
-                            <option value="left" className="bg-gray-900">Left</option>
-                            <option value="center" className="bg-gray-900">Center</option>
-                            <option value="right" className="bg-gray-900">Right</option>
-                        </select>
-                    </div>
 
                     <div className="border-t border-white/10 pt-4">
                         <h4 className="text-sm font-semibold text-gray-300 mb-4">Custom Title Styling</h4>

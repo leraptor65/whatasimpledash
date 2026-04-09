@@ -95,13 +95,15 @@ export default function DashboardLayout() {
   const showWallpaper = config.settings?.showBackground !== false && backgroundUrl;
 
   const finalBgStyle: React.CSSProperties = {
-    backgroundImage: `url(${backgroundUrl})`,
+    backgroundImage: `url("${backgroundUrl}")`,
     backgroundSize: 'cover',
     backgroundPosition: 'center',
     backgroundAttachment: 'fixed',
     position: 'fixed',
-    zIndex: 0,
+    zIndex: -1,
     top: 0, left: 0, right: 0, bottom: 0,
+    width: '100vw',
+    height: '100vh',
   };
 
   return (
@@ -110,9 +112,18 @@ export default function DashboardLayout() {
 
       <div 
         className="min-h-screen w-full relative overflow-x-hidden font-sans" 
-        style={{ backgroundColor: config.theme.mainBackground, color: config.theme.text }}
+        style={{ 
+          backgroundColor: showWallpaper ? 'transparent' : config.theme.mainBackground, 
+          color: config.theme.text 
+        }}
       >
-        {showWallpaper && <div style={finalBgStyle} />}
+        {showWallpaper && <div style={finalBgStyle} id="wallpaper-bg" />}
+        {showWallpaper && config.theme.mainBackground && (
+          <div 
+            className="fixed inset-0 z-[-1]" 
+            style={{ backgroundColor: config.theme.mainBackground, opacity: 0.4 }} 
+          />
+        )}
 
         {/* Top bar for Search and Settings */}
         <header className="absolute top-0 w-full p-6 flex justify-between items-center z-20 gap-3">

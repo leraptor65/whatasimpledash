@@ -1,6 +1,5 @@
 services:
   whatasimpledash:
-    build: .
     image: leraptor65/whatasimpledash:latest
     container_name: whatasimpledash
     restart: unless-stopped
@@ -8,7 +7,6 @@ services:
       - "3000:3000"
     environment:
       - PORT=3000
-      - CONFIG_PATH=/app/config/services.dev.yml
     volumes:
       - ./config:/app/config
       - ./public/icons:/app/public/icons

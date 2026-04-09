@@ -129,7 +129,6 @@ export default function ServicesPage() {
                 name: groupData.name!,
                 columns: groupData.columns!,
                 collapsed: groupData.collapsed,
-                titleAlign: groupData.titleAlign,
                 titleBackgroundColor: groupData.titleBackgroundColor,
                 titleTextColor: groupData.titleTextColor
             };
@@ -140,7 +139,6 @@ export default function ServicesPage() {
                 columns: groupData.columns || 3,
                 services: [],
                 collapsed: groupData.collapsed,
-                titleAlign: groupData.titleAlign,
                 titleBackgroundColor: groupData.titleBackgroundColor,
                 titleTextColor: groupData.titleTextColor
             });
@@ -367,7 +365,7 @@ export default function ServicesPage() {
                                                 <h4 className="font-semibold truncate text-sm">{service.name}</h4>
                                                 <p className="text-xs text-gray-500 truncate">{service.url}</p>
                                             </div>
-                                            {(service.layout || service.align || service.showIcon === false) && (
+                                            {service.showIcon === false && (
                                                 <span className="text-[10px] bg-white/5 text-gray-400 px-1.5 py-0.5 rounded border border-white/10">Custom Style</span>
                                             )}
                                         </div>
