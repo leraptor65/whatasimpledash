@@ -1,0 +1,329 @@
+{
+  "title": "What A Simple Dash",
+  "defaultColumns": 3,
+  "theme": {
+    "mainBackground": "#0e0e0e",
+    "titleBackground": "rgba(0, 0, 0, .6)",
+    "text": "rgba(255, 255, 255, 1)",
+    "serviceBackground": "rgba(0, 0, 0, .6)",
+    "serviceBackgroundHover": "rgba(0, 0, 0, 1)"
+  },
+  "backgrounds": {
+    "active": "1775606181733-u8lr9e.jpg",
+    "history": [
+      "1756339415111.jpeg",
+      "1756339451485.jpeg",
+      "1000023402.jpg",
+      "wp8944713-4k-universal-studios-wallpapers.jpg",
+      "1756423947374.jpeg",
+      "1757117985561.jpeg"
+    ]
+  },
+  "groups": [
+    {
+      "name": "Smart Home",
+      "services": [
+        {
+          "name": "Home Assistant",
+          "url": "http://10.10.20.75:8123/",
+          "icon": "home-assistant.png"
+        },
+        {
+          "name": "ESPHome",
+          "url": "http://10.10.30.156:6052/",
+          "icon": "esphome.png"
+        },
+        {
+          "name": "Jellyfin",
+          "url": "https://jellyfin.projectglrz.xyz/",
+          "icon": "jellyfin.png"
+        }
+      ],
+      "collapsed": false
+    },
+    {
+      "name": "Utilities",
+      "services": [
+        {
+          "name": "A Simple Data Flow",
+          "url": "https://asdf.projectglrz.xyz/",
+          "icon": "asdf.png"
+        },
+        {
+          "name": "Immich",
+          "url": "https://immich.projectglrz.xyz/",
+          "icon": "immich.png"
+        },
+        {
+          "name": "Tandoor",
+          "url": "https://tandoor.projectglrz.xyz",
+          "icon": "tandoorrecipes.png"
+        },
+        {
+          "name": "UpSnap",
+          "url": "http://10.10.20.48:8090",
+          "icon": "upsnap.png"
+        },
+        {
+          "name": "Gitea",
+          "url": "https://git.projectglrz.xyz",
+          "icon": "gitea.png"
+        },
+        {
+          "name": "WatchYourLAN",
+          "url": "http://10.10.20.48:8840/",
+          "icon": "wyl.png"
+        },
+        {
+          "name": "UptimeKuma",
+          "url": "http://10.10.20.48:3001/",
+          "icon": "uptimekuma.png"
+        },
+        {
+          "name": "MySpeed",
+          "url": "http://10.10.20.48:5216/",
+          "icon": "myspeed.png"
+        },
+        {
+          "name": "PeaNUT",
+          "url": "http://10.10.20.48:3493/",
+          "icon": "peanut.png"
+        },
+        {
+          "name": "Nextcloud",
+          "url": "https://nextcloud.projectglrz.xyz/",
+          "icon": "nextcloud.png"
+        },
+        {
+          "name": "Stirling PDF",
+          "url": "http://10.10.20.48:8034/",
+          "icon": "stirling.png"
+        },
+        {
+          "name": "Ollama",
+          "url": "https://ollama.projectglrz.xyz/",
+          "icon": "ollama.png"
+        },
+        {
+          "name": "Stable Diffusion",
+          "url": "http://192.168.68.85:7860/",
+          "icon": "sd.png"
+        },
+        {
+          "name": "Guacamole",
+          "url": "https://guac.projectglrz.xyz/",
+          "icon": "guacamole.png"
+        },
+        {
+          "name": "Crafty Controller",
+          "url": "https://10.10.20.128:8443/",
+          "icon": "crafty-controller.png"
+        }
+      ]
+    },
+    {
+      "name": "Arr Stack",
+      "services": [
+        {
+          "name": "SABnzbd",
+          "url": "http://10.10.20.48:8081/",
+          "icon": "sabnzbd.png"
+        },
+        {
+          "name": "Tdarr",
+          "url": "http://10.10.20.211:8265/",
+          "icon": "tdarr.png"
+        },
+        {
+          "name": "Prowlarr",
+          "url": "http://10.10.20.48:9696/",
+          "icon": "prowlarr.png"
+        },
+        {
+          "name": "Sonarr",
+          "url": "http://10.10.20.48:8989/",
+          "icon": "sonarr.png"
+        },
+        {
+          "name": "Radarr",
+          "url": "http://10.10.20.48:7878/",
+          "icon": "radarr.png"
+        },
+        {
+          "name": "Bazarr",
+          "url": "http://10.10.20.48:6767/",
+          "icon": "bazarr.png"
+        },
+        {
+          "name": "Seerr",
+          "url": "https://request.projectglrz.xyz/",
+          "icon": "seerr.png"
+        }
+      ]
+    },
+    {
+      "name": "Hardware",
+      "services": [
+        {
+          "name": "QNAP",
+          "url": "http://10.10.20.200:8080/",
+          "icon": "qnap.png"
+        },
+        {
+          "name": "Ender 3 S1 Pro",
+          "url": "http://10.10.20.50/",
+          "icon": "octoprint.png"
+        },
+        {
+          "name": "HP OfficeJet Pro 8710",
+          "url": "http://10.10.10.22/",
+          "icon": "hp.png"
+        },
+        {
+          "name": "HDHomeRun",
+          "url": "http://10.10.10.186/",
+          "icon": "hdhomerun.png"
+        },
+        {
+          "name": "SmartThings",
+          "url": "https://my.smartthings.com/",
+          "icon": "smartthings.png"
+        },
+        {
+          "name": "Proxmox Backup Server",
+          "url": "http://10.10.20.146:8007/",
+          "icon": "proxmox.png"
+        },
+        {
+          "name": "TrueNAS",
+          "url": "https://10.10.20.201/",
+          "icon": "truenas.png"
+        }
+      ]
+    },
+    {
+      "name": "Network",
+      "services": [
+        {
+          "name": "UniFi",
+          "url": "http://10.10.10.1/",
+          "icon": "unifi.png"
+        },
+        {
+          "name": "UniFi Protect",
+          "url": "http://10.10.10.98/",
+          "icon": "unifi-protect.png"
+        },
+        {
+          "name": "Netgear Genie",
+          "url": "http://192.168.100.1/",
+          "icon": "netgear.png"
+        },
+        {
+          "name": "Nginx Proxy Manager",
+          "url": "http://10.10.20.227:81/",
+          "icon": "nginxproxymanager.png"
+        },
+        {
+          "name": "Wireguard",
+          "url": "http://10.10.20.88:10086/",
+          "icon": "wireguard.png"
+        }
+      ]
+    },
+    {
+      "name": "Admin",
+      "services": [
+        {
+          "name": "Proxmox",
+          "url": "http://10.10.20.144:8006/",
+          "icon": "proxmox.png"
+        },
+        {
+          "name": "Proxmox Backup Server",
+          "url": "http://10.10.20.143:8007/",
+          "icon": "proxmox.png"
+        },
+        {
+          "name": "Vaultwarden",
+          "url": "https://vw.projectglrz.xyz/",
+          "icon": "vaultwarden-light.png"
+        },
+        {
+          "name": "Authentik",
+          "url": "https://auth.projectglrz.xyz/",
+          "icon": "authentik.png"
+        },
+        {
+          "name": "Filestash",
+          "url": "http://10.10.20.48:8334/",
+          "icon": "filestash.png"
+        },
+        {
+          "name": "iDRAC",
+          "url": "https://10.10.20.72/",
+          "icon": "dell.png"
+        }
+      ]
+    },
+    {
+      "name": "Bookmarks",
+      "columns": 1,
+      "services": [
+        {
+          "name": "Gmail",
+          "url": "https://gmail.com/",
+          "icon": "gmail.png"
+        },
+        {
+          "name": "YouTube",
+          "url": "https://youtube.com/",
+          "icon": "youtube.png"
+        },
+        {
+          "name": "GitHub",
+          "url": "https://github.com/leraptor65?tab=repositories",
+          "icon": "github-light.png"
+        },
+        {
+          "name": "Cloudflare",
+          "url": "https://dash.cloudflare.com/",
+          "icon": "cloudflare.png"
+        },
+        {
+          "name": "Firebase",
+          "url": "https://console.firebase.google.com/",
+          "icon": "firebase.png"
+        },
+        {
+          "name": "ProtonVPN",
+          "url": "https://account.protonvpn.com/",
+          "icon": "proton-vpn.png"
+        },
+        {
+          "name": "Authentik Logout",
+          "url": "https://auth.projectglrz.xyz/flows/-/default/invalidation/",
+          "icon": "authentik.png"
+        },
+        {
+          "name": "DuckDNS",
+          "subtitle": "",
+          "url": "https://duckdns.org/",
+          "icon": "duckdns.png",
+          "hidden": false
+        }
+      ],
+      "collapsed": false
+    }
+  ],
+  "settings": {
+    "showTitleBackgrounds": true,
+    "customGreeting": "ProjectGLRZ",
+    "customHelpText": "Let's Begin",
+    "hideGreeting": false,
+    "showGreetingBackground": true,
+    "greetingRadius": 100,
+    "showBackground": false,
+    "showServiceBackgrounds": false
+  }
+}

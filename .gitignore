@@ -26,7 +26,7 @@
 /public/icons/*
 /public/backgrounds/*
 /public/uploads/*
-/config/services.dev.yml
+/config/services.yml
 
 # Keep directory structure
 !/public/icons/.gitkeep

@@ -38,7 +38,8 @@ export const backgroundsSchema = z.object({
 
 export const settingsSchema = z.object({
     showTitleBackgrounds: z.boolean().optional(),
-    backgroundBlur: z.number().optional(),
+    showServiceBackgrounds: z.boolean().optional(),
+    showBackground: z.boolean().optional(),
     localIp: z.string().optional(),
     customGreeting: z.string().optional(),
     customHelpText: z.string().optional(),
