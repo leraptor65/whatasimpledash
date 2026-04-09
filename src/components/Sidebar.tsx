@@ -2,65 +2,103 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { FaCog, FaPalette, FaThLarge, FaCode, FaImage, FaArrowLeft, FaIcons, FaInfoCircle, FaList, FaPuzzlePiece } from 'react-icons/fa';
+import { FaCog, FaThList, FaSearch, FaChevronLeft, FaChevronRight, FaBars, FaTimes, FaHome, FaPlus, FaPuzzlePiece, FaImage, FaIcons, FaCode } from 'react-icons/fa';
+import { useStore } from '@/store/useStore';
+import { useEffect, useState } from 'react';
 
-// Hardcoded version to avoid import issues with package.json or aliases during build
-const APP_VERSION = '3.0.0';
-
-const navItems = [
-    { name: 'General', href: '/settings', icon: FaCog },
-    { name: 'Services', href: '/settings/services', icon: FaList },
-    { name: 'Widgets', href: '/settings/widgets', icon: FaPuzzlePiece },
-    { name: 'Icons', href: '/settings/icons', icon: FaImage },
-    { name: 'Backgrounds', href: '/settings/backgrounds', icon: FaImage },
-    { name: 'Raw Editor', href: '/settings/raw', icon: FaCode },
+const sidebarItems = [
+  { name: 'Home', href: '/', icon: FaHome },
+  { name: 'General Settings', href: '/settings', icon: FaCog },
+  { name: 'Services', href: '/settings/services', icon: FaThList },
+  { name: 'Backgrounds', href: '/settings/backgrounds', icon: FaImage },
+  { name: 'Icons', href: '/settings/icons', icon: FaIcons },
+  { name: 'Raw YAML', href: '/settings/raw', icon: FaCode },
 ];
 
-export function Sidebar() {
-    const pathname = usePathname();
+export const Sidebar = () => {
+  const pathname = usePathname();
+  const { isSidebarOpen, toggleSidebar, setSidebarOpen } = useStore();
+  const [isMobile, setIsMobile] = useState(false);
 
-    return (
-        <div className="w-64 glass-panel h-screen flex flex-col fixed left-0 top-0 z-20">
-            <div className="p-6 border-b border-white/10 flex items-center gap-3">
-                <Link href="/" className="text-gray-400 hover:text-white transition-colors">
-                    <FaArrowLeft />
-                </Link>
-                <h1 className="text-xl font-bold text-gray-200">
-                    Settings
-                </h1>
-            </div>
-            <nav className="flex-1 p-4 space-y-2">
-                {navItems.map((item) => {
-                    const isActive = pathname === item.href;
-                    return (
-                        <Link
-                            key={item.href}
-                            href={item.href}
-                            className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${isActive
-                                ? 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30'
-                                : 'text-gray-400 hover:bg-white/5 hover:text-white'
-                                }`}
-                        >
-                            <item.icon className={isActive ? 'text-cyan-400' : 'text-gray-500'} />
-                            <span className="font-medium">{item.name}</span>
-                        </Link>
-                    );
-                })}
-            </nav>
-            <div className="p-4 border-t border-white/5 space-y-4">
-                <a
-                    href="https://github.com/leraptor65/whatasimpledash"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-3 px-4 py-2 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-all text-sm"
-                >
-                    <FaInfoCircle />
-                    <span>About</span>
-                </a>
-                <div className="px-4 text-xs text-gray-600 font-mono">
-                    v{APP_VERSION}
-                </div>
-            </div>
+  useEffect(() => {
+    const checkMobile = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      if (mobile) setSidebarOpen(false);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  return (
+    <>
+      {/* Mobile Toggle Button */}
+      {isMobile && !isSidebarOpen && (
+        <button 
+          onClick={toggleSidebar}
+          className="fixed top-4 left-4 z-50 p-2.5 bg-[#1a1a1a] text-white rounded-full shadow-lg border border-white/5"
+        >
+          <FaBars size={20} />
+        </button>
+      )}
+
+      {/* Sidebar Overlay (Mobile only) */}
+      {isMobile && isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40" 
+          onClick={toggleSidebar}
+        />
+      )}
+
+      {/* Sidebar Content */}
+      <aside 
+        className={`fixed left-0 top-0 h-full z-50 transition-all duration-300 ease-in-out border-r border-white/5 bg-[#0e0e0e] flex flex-col ${
+          isSidebarOpen ? 'w-64' : (isMobile ? 'w-64' : 'w-20')
+        } ${isMobile && !isSidebarOpen ? '-translate-x-full' : 'translate-x-0'}`}
+      >
+        <div className="p-6 flex items-center justify-between">
+          <div className="flex-1"></div>
+          <button 
+            onClick={toggleSidebar}
+            className="p-2 hover:bg-white/5 rounded-lg text-white/50 hover:text-white transition-colors"
+          >
+            {isSidebarOpen ? (isMobile ? <FaTimes /> : <FaChevronLeft />) : <FaChevronRight />}
+          </button>
         </div>
-    );
-}
+
+        <nav className={`flex-1 py-6 space-y-1.5 overflow-y-auto overflow-x-hidden no-scrollbar transition-all duration-300 ${isSidebarOpen ? 'px-4' : 'px-2 flex flex-col items-center'}`}>
+          {sidebarItems.map((item) => {
+            const isActive = pathname === item.href;
+            const Icon = item.icon;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`flex items-center rounded-xl transition-all group ${
+                  isSidebarOpen ? 'gap-4 px-3 py-3 w-full' : 'p-3 justify-center'
+                } ${
+                  isActive 
+                    ? 'bg-white/10 text-white border border-white/20' 
+                    : 'hover:bg-white/5 text-white/50 hover:text-white'
+                }`}
+                title={!isSidebarOpen ? item.name : ''}
+              >
+                <div className="flex-shrink-0 min-w-[24px] flex justify-center">
+                  <Icon size={20} className={isActive ? 'text-white' : 'opacity-80'} />
+                </div>
+                <span className={`text-sm font-medium whitespace-nowrap transition-opacity duration-200 ${
+                  isSidebarOpen ? 'opacity-100' : 'opacity-0 w-0'
+                }`}>
+                  {item.name}
+                </span>
+              </Link>
+            );
+          })}
+        </nav>
+
+        <div className="p-4 mt-auto"></div>
+      </aside>
+    </>
+  );
+};

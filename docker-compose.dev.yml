@@ -1,14 +1,12 @@
 services:
   whatasimpledash:
     build: .
-    container_name: whatasimpledash
+    container_name: whatasimpledash-dev
     restart: unless-stopped
     ports:
       - "3000:3000"
     volumes:
-      # This volume is now writable so the entrypoint can create the sample config
-      - /var/run/docker.sock:/var/run/docker.sock
       - ./config:/app/config
       - ./public/icons:/app/public/icons
-      - ./public/uploads:/app/public/uploads
       - ./public/backgrounds:/app/public/backgrounds
+      - ./public/uploads:/app/public/uploads

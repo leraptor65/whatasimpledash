@@ -6,4 +6,5 @@ node_modules
 
 # Local build and publish scripts
 build.sh
-publish.shbuild.sh\npublish.sh\ngit-ready.sh
+publish.sh
+config/services.dev.yml

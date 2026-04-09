@@ -49,24 +49,28 @@ export function ColorPickerProvider({ children }: { children: ReactNode }) {
                     {/* Backdrop */}
                     <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={closePicker} />
                     {/* Modal */}
-                    <div className="relative bg-gray-900 border border-white/10 p-6 rounded-2xl shadow-2xl flex flex-col gap-4 w-[260px] animate-in fade-in zoom-in duration-200">
-                        <h3 className="text-lg font-bold text-center mb-2">{label}</h3>
+                    <div className="relative bg-white/5 backdrop-blur-xl border border-white/10 p-6 rounded-3xl shadow-2xl flex flex-col gap-5 w-[280px] animate-in fade-in zoom-in duration-200">
+                        <div className="flex flex-col items-center gap-1">
+                            <h3 className="text-lg font-semibold tracking-tight text-white/90">{label}</h3>
+                            <div className="h-1 w-12 bg-white/40 rounded-full" />
+                        </div>
 
-                        <div className="flex justify-center">
+                        <div className="flex justify-center py-2">
                             <RgbaStringColorPicker color={color} onChange={handleColorChange} />
                         </div>
 
-                        <div className="space-y-2">
-                            <label className="text-xs text-gray-400 font-medium ml-1">Color Value (HEX or RGBA)</label>
+                        <div className="space-y-3">
+                            <label className="text-[10px] text-white/40 uppercase tracking-widest font-bold ml-1">Color Value (HEX or RGBA)</label>
                             <div className="flex gap-2">
                                 <input
                                     type="text"
                                     value={inputValue}
                                     onChange={handleInputChange}
-                                    className="flex-1 bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm font-mono focus:ring-2 focus:ring-cyan-500 outline-none"
+                                    className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm font-mono focus:ring-2 focus:ring-white/20 outline-none transition-all placeholder:text-white/20"
+                                    placeholder="#000000"
                                 />
                                 <div
-                                    className="w-10 h-10 rounded-lg border border-white/10"
+                                    className="w-11 h-11 rounded-xl border border-white/20 shadow-inner flex-shrink-0"
                                     style={{ backgroundColor: color }}
                                 />
                             </div>
@@ -74,7 +78,7 @@ export function ColorPickerProvider({ children }: { children: ReactNode }) {
 
                         <button
                             onClick={closePicker}
-                            className="mt-2 w-full py-2 bg-white/10 hover:bg-white/20 rounded-lg font-medium transition-colors"
+                            className="mt-2 w-full py-3 bg-white/10 hover:bg-white/20 border border-white/10 hover:border-white/20 rounded-xl font-bold tracking-wide transition-all active:scale-95 shadow-xl shadow-black/20"
                         >
                             Done
                         </button>

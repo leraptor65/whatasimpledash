@@ -1,106 +1,88 @@
 "use client";
 
-import { useState, useEffect, type ElementType } from 'react';
+import { useState, type ElementType } from 'react';
 import type { DashboardConfig, Service } from '@/types';
 import { FaGlobe } from 'react-icons/fa';
 import * as FaIcons from 'react-icons/fa';
 import * as SiIcons from 'react-icons/si';
 
-// --- Type Definitions ---
-type Alignment = 'left' | 'center' | 'right';
-type Layout = 'vertical' | 'horizontal' | 'horizontal-reverse' | 'vertical-reverse';
-
-// --- Icon Handling ---
 const AllIcons: Record<string, ElementType> = { ...FaIcons, ...SiIcons };
-const IconComponent = ({ icon, isVertical, textColor }: { icon?: string, isVertical: boolean, textColor?: string }) => {
-  if (!icon) return <FaGlobe style={{ color: textColor }} />;
-  const iconSize = isVertical ? "h-8 w-8" : "h-10 w-10";
-  if (icon.endsWith('.png') || icon.endsWith('.svg') || icon.endsWith('.jpg') || icon.endsWith('.webp')) {
-    return <img src={`/icons/${icon}`} alt="" className={iconSize} />;
+
+const IconComponent = ({ icon, textColor }: { icon?: string, textColor?: string }) => {
+  if (!icon) return <FaGlobe style={{ color: textColor }} size={24} />;
+  
+  // Backward compatibility check for old paths
+  let iconUrl = icon;
+  if (icon.startsWith('/api/images/icons/')) {
+    iconUrl = icon.replace('/api/images/icons/', '/icons/');
+  } else if (icon.startsWith('/icons/')) {
+     // Already has prefix, do nothing
+  } else if (icon.endsWith('.png') || icon.endsWith('.svg') || icon.endsWith('.jpg') || icon.endsWith('.webp')) {
+    iconUrl = `/icons/${icon}`;
+  }
+
+  if (iconUrl.startsWith('/') && (iconUrl.endsWith('.png') || iconUrl.endsWith('.svg') || iconUrl.endsWith('.jpg') || iconUrl.endsWith('.webp'))) {
+    const finalSrc = iconUrl.startsWith('/icons/') ? iconUrl.replace('/icons/', '/api/images/icons/') : iconUrl;
+    return <img src={finalSrc} alt="" className="h-8 w-8 object-contain" />;
   }
   const Icon = AllIcons[icon];
-  return Icon ? <Icon style={{ color: textColor }} /> : <FaGlobe style={{ color: textColor }} />;
+  return Icon ? <Icon style={{ color: textColor }} size={24} /> : <FaGlobe style={{ color: textColor }} size={24} />;
 };
 
-// --- Helper Functions ---
-const getTextAlignClass = (align: Alignment = 'center') => ({
-  left: "text-left", center: "text-center", right: "text-right",
-}[align]);
-
-const getLayoutClass = (layout: Layout = 'vertical', align: Alignment = 'center') => {
-  const alignmentClass = {
-    left: "items-start",
-    center: "items-center",
-    right: "items-end"
-  }[align];
-
-  const justifyContentClass = {
-    left: "justify-start",
-    center: "justify-center",
-    right: "justify-end"
-  }[align];
-
-  if (layout === 'vertical') {
-    return `flex-col justify-center ${alignmentClass}`;
-  }
-  if (layout === 'vertical-reverse') {
-    return `flex-col-reverse justify-center ${alignmentClass}`;
-  }
-  if (layout === 'horizontal') {
-    return `flex-row items-center ${justifyContentClass}`;
-  }
-  if (layout === 'horizontal-reverse') {
-    return `flex-row-reverse items-center ${justifyContentClass}`;
-  }
-  return 'flex-col justify-center items-center';
-};
-
-
-// --- Reusable Service Card with Status ---
-export const ServiceCard = ({ service, theme, groupAlign, groupLayout, columnCount, showBackground = true }: { service: Service; theme: DashboardConfig['theme'], groupAlign?: Alignment, groupLayout?: Layout, columnCount: number, showBackground?: boolean }) => {
+export const ServiceCard = ({ 
+  service, 
+  theme, 
+  columnCount, 
+  showBackground = true 
+}: { 
+  service: Service; 
+  theme: DashboardConfig['theme'], 
+  columnCount: number, 
+  showBackground?: boolean 
+}) => {
   const [hovered, setHovered] = useState(false);
-
-  // Defaults
-  const align = service.align || groupAlign || 'center';
-  const layout = service.layout || groupLayout || 'vertical';
-  const showIcon = service.showIcon !== false; // Default true
-
-  const isVertical = layout === 'vertical' || layout === 'vertical-reverse';
-
-  const paddingClass = columnCount <= 3 ? 'px-14' : 'px-4';
 
   const backgroundColor = showBackground
     ? (hovered
-      ? service.backgroundColor
-        ? service.backgroundColor
-        : theme.serviceBackgroundHover
-      : service.backgroundColor || theme.serviceBackground)
+      ? service.backgroundColor || theme.serviceBackgroundHover || 'rgba(255,255,255,0.1)'
+      : service.backgroundColor || theme.serviceBackground || 'rgba(255,255,255,0.05)')
     : 'transparent';
 
-  const textColor = service.textColor || theme.text;
-  const shadowClass = showBackground ? 'shadow-lg' : '';
+  const textColor = service.textColor || theme.serviceText || theme.text;
+  const showIcon = service.showIcon !== false;
 
   return (
     <a
       href={service.url}
       target="_blank"
       rel="noopener noreferrer"
-      className={`relative rounded-xl py-2 ${paddingClass} ${shadowClass} flex h-24 transition-colors ${getLayoutClass(layout, align)} gap-2`}
-      style={{
-        backgroundColor,
-      }}
+      className={`group relative flex items-center transition-all duration-300 hover:-translate-y-1 hover:shadow-xl overflow-hidden border border-white/5 backdrop-blur-md ${columnCount === 6 ? 'justify-center p-2 rounded-xl' : 'gap-4 p-4 rounded-2xl'}`}
+      style={{ backgroundColor }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
+      title={columnCount === 6 ? service.name : ''}
     >
+      {/* Subtle glow effect on hover */}
+      <div className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-300 bg-gradient-to-r from-white/20 to-transparent pointer-events-none" />
+
       {showIcon && (
-        <div className={`flex-shrink-0 ${isVertical ? 'text-3xl' : 'text-4xl'}`}>
-          <IconComponent icon={service.icon} isVertical={isVertical} textColor={textColor} />
+        <div className={`flex-shrink-0 flex items-center justify-center rounded-xl bg-white/5 border border-white/10 shadow-inner ${columnCount === 6 ? 'w-10 h-10' : 'w-12 h-12'}`}>
+          <IconComponent icon={service.icon} textColor={textColor} />
         </div>
       )}
-      <div className={getTextAlignClass(align)}>
-        <h3 className={`font-semibold ${isVertical ? 'text-md' : 'text-lg'} leading-tight`} style={{ color: textColor }}>{service.name}</h3>
-        {service.subtitle && columnCount < 5 && <p className="text-xs" style={{ color: textColor, opacity: 0.8 }}>{service.subtitle}</p>}
-      </div>
+      
+      {columnCount !== 6 && (
+        <div className="flex flex-col overflow-hidden text-left">
+          <h3 className="font-medium text-base truncate" style={{ color: textColor }}>
+            {service.name}
+          </h3>
+          {service.subtitle && (
+            <p className="text-sm truncate mt-0.5 opacity-60 font-light" style={{ color: textColor }}>
+              {service.subtitle}
+            </p>
+          )}
+        </div>
+      )}
     </a>
   );
 };

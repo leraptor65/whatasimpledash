@@ -1,14 +1,13 @@
 services:
   whatasimpledash:
+    build: .
     image: leraptor65/whatasimpledash:latest
     container_name: whatasimpledash
     restart: unless-stopped
     ports:
       - "3000:3000"
     volumes:
-      # These folders will be created on your host machine automatically
-      - /var/run/docker.sock:/var/run/docker.sock
       - ./config:/app/config
       - ./public/icons:/app/public/icons
-      - ./public/uploads:/app/public/uploads
       - ./public/backgrounds:/app/public/backgrounds
+      - ./public/uploads:/app/public/uploads

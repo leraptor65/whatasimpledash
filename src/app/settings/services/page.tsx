@@ -202,6 +202,44 @@ export default function ServicesPage() {
         await saveConfig({ ...config, groups: newGroups });
     };
 
+    // --- Global Clean Handlers ---
+    const handleStripOverrides = async () => {
+        if (!config || !window.confirm('Strip all custom alignments, styles, columns, and layouts from groups and services? This cannot be undone.')) return;
+
+        const newGroups = config.groups.map(group => {
+            const cleanServices = group.services.map(service => {
+                const s: Partial<Service> = {
+                    name: service.name,
+                    icon: service.icon,
+                    url: service.url
+                };
+                return s as Service;
+            });
+            return {
+                name: group.name,
+                services: cleanServices
+            } as ServiceGroup; 
+            // the required 'columns' property is stripped so it can cleanly fall back to defaultColumns at runtime, ignoring strict typing for this raw config save.
+        });
+
+        let newServices = config.services;
+        if (newServices) {
+             newServices = newServices.map(service => {
+                 const s: Partial<Service> = {
+                     name: service.name,
+                     icon: service.icon,
+                     url: service.url
+                 };
+                 return s as Service;
+             });
+        }
+
+        const success = await saveConfig({ ...config, groups: newGroups, services: newServices });
+        if (success) {
+            alert('All custom overrides stripped successfully!');
+        }
+    };
+
     // --- DnD Handlers ---
     const handleDragStart = (e: React.DragEvent, groupIndex: number, serviceIndex: number) => {
         setDraggedItem({ groupIndex, serviceIndex });
@@ -248,15 +286,22 @@ export default function ServicesPage() {
                     <h2 className="text-3xl font-bold mb-2">Services</h2>
                     <p className="text-gray-400">Manage your apps and links.</p>
                 </div>
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-3">
+                    <button
+                        onClick={handleStripOverrides}
+                        className="px-4 py-2 bg-[#1a1a1a] border border-[#333] hover:bg-[#2a2a2a] hover:border-red-500/50 hover:text-red-400 rounded-lg text-white/80 font-medium transition-all text-sm shadow-sm"
+                        title="Remove all custom styling from groups & services"
+                    >
+                        Strip Overrides
+                    </button>
                     <button
                         onClick={() => { setEditingService(null); setIsServiceModalOpen(true); }}
-                        className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-lg text-white font-medium hover:scale-105 transition-transform flex items-center gap-2 shadow-lg shadow-cyan-500/20"
+                        className="px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg text-white font-medium hover:scale-105 transition-transform flex items-center gap-2 shadow-xl shadow-black/20 text-sm"
                     >
                         <FaPlus /> Add New Service
                     </button>
-                    {status === 'saving' && <span className="text-yellow-500 animate-pulse flex items-center gap-2"><FaCheck /> Saving...</span>}
-                    {status === 'saved' && <span className="text-green-500 flex items-center gap-2"><FaCheck /> Saved</span>}
+                    {status === 'saving' && <span className="text-yellow-500 animate-pulse flex items-center gap-2 text-sm"><FaCheck /> Saving...</span>}
+                    {status === 'saved' && <span className="text-green-500 flex items-center gap-2 text-sm"><FaCheck /> Saved</span>}
                 </div>
             </header>
 
@@ -267,7 +312,7 @@ export default function ServicesPage() {
                             <div className="flex items-center gap-3">
                                 <h3 className="text-xl font-bold text-gray-200">{group.name}</h3>
                                 {group.collapsed && (
-                                    <span className="text-xs bg-cyan-500/10 text-cyan-400 px-2 py-0.5 rounded-full border border-cyan-500/20">Collapsed</span>
+                                    <span className="text-xs bg-white/10 text-white/50 px-2 py-0.5 rounded-full border border-white/10">Collapsed</span>
                                 )}
                             </div>
                             <div className="flex gap-2">
@@ -276,7 +321,7 @@ export default function ServicesPage() {
                                         setEditingGroupIndex(groupIndex);
                                         setIsGroupModalOpen(true);
                                     }}
-                                    className="text-gray-400 hover:text-cyan-400 p-2 text-sm flex items-center gap-1 transition-colors"
+                                    className="text-gray-400 hover:text-white p-2 text-sm flex items-center gap-1 transition-colors"
                                 >
                                     <FaEdit /> Edit Group
                                 </button>
@@ -311,10 +356,10 @@ export default function ServicesPage() {
                                         onDragStart={(e) => handleDragStart(e, groupIndex, serviceIndex)}
                                         onDragOver={handleDragOver}
                                         onDrop={(e) => handleDrop(e, groupIndex, serviceIndex)}
-                                        className={`glass-card px-4 py-3 rounded-xl flex items-center gap-4 group relative transition-all ${service.hidden ? 'opacity-50 grayscale' : ''} ${draggedItem?.groupIndex === groupIndex && draggedItem?.serviceIndex === serviceIndex ? 'opacity-50 border-2 border-dashed border-cyan-500' : 'hover:border-white/20'}`}
+                                        className={`glass-card px-4 py-3 rounded-xl flex items-center gap-4 group relative transition-all ${service.hidden ? 'opacity-50 grayscale' : ''} ${draggedItem?.groupIndex === groupIndex && draggedItem?.serviceIndex === serviceIndex ? 'opacity-50 border-2 border-dashed border-white/50' : 'hover:border-white/20'}`}
                                         style={{ cursor: 'grab' }}
                                     >
-                                        <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-cyan-400 text-lg overflow-hidden p-1">
+                                        <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-white/60 text-lg overflow-hidden p-1">
                                             {IconElement}
                                         </div>
                                         <div className="flex-1 min-w-0 flex items-center gap-4">
@@ -357,7 +402,7 @@ export default function ServicesPage() {
                                                         setEditingService({ service, groupIndex, serviceIndex });
                                                         setIsServiceModalOpen(true);
                                                     }}
-                                                    className="p-1.5 bg-blue-600/20 text-blue-400 rounded-md hover:bg-blue-600 hover:text-white transition-colors"
+                                                    className="p-1.5 bg-white/10 text-white/60 rounded-md hover:bg-white/20 hover:text-white transition-colors"
                                                     title="Edit"
                                                 >
                                                     <FaEdit size={12} />
@@ -373,7 +418,7 @@ export default function ServicesPage() {
                                     setEditingService({ service: { name: '', url: '', icon: 'FaPlus' }, groupIndex, serviceIndex: -1 });
                                     setIsServiceModalOpen(true);
                                 }}
-                                className="w-full glass-card border-dashed border-white/20 p-3 rounded-xl flex items-center justify-center gap-2 text-gray-500 hover:text-cyan-400 hover:border-cyan-500/50 cursor-pointer transition-all hover:bg-white/5"
+                                className="w-full glass-card border-dashed border-white/20 p-3 rounded-xl flex items-center justify-center gap-2 text-gray-500 hover:text-white hover:border-white/40 cursor-pointer transition-all hover:bg-white/5"
                             >
                                 <FaPlus size={12} />
                                 <span className="text-sm">Add Service</span>

@@ -64,7 +64,7 @@ export function GroupModal({ isOpen, onClose, onSave, onDelete, initialGroup }: 
                             type="text"
                             value={name}
                             onChange={(e: React.ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
-                            className="w-full glass-input px-4 py-3 rounded-lg focus:ring-2 focus:ring-cyan-500/50"
+                            className="w-full glass-input px-4 py-3 rounded-lg focus:ring-2 focus:ring-white/20"
                             placeholder="My Services"
                             autoFocus
                         />
@@ -136,7 +136,7 @@ export function GroupModal({ isOpen, onClose, onSave, onDelete, initialGroup }: 
 
                     <div className="border-t border-white/10 pt-4">
                         <label className="flex items-center gap-3 cursor-pointer group">
-                            <div className={`w-12 h-6 rounded-full p-1 transition-colors duration-200 ${collapsed ? 'bg-cyan-600' : 'bg-gray-700'}`}>
+                            <div className={`w-12 h-6 rounded-full p-1 transition-colors duration-200 ${collapsed ? 'bg-white/40' : 'bg-gray-700'}`}>
                                 <div className={`w-4 h-4 bg-white rounded-full shadow-md transform transition-transform duration-200 ${collapsed ? 'translate-x-6' : 'translate-x-0'}`} />
                             </div>
                             <input
@@ -172,7 +172,7 @@ export function GroupModal({ isOpen, onClose, onSave, onDelete, initialGroup }: 
                         </button>
                         <button
                             onClick={handleSave}
-                            className="px-6 py-2 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-medium shadow-lg shadow-cyan-500/20 transition-all transform hover:scale-105"
+                            className="px-6 py-2 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 text-white font-medium shadow-xl shadow-black/20 transition-all transform hover:scale-105"
                         >
                             Save Group
                         </button>
