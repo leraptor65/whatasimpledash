@@ -53,5 +53,7 @@ export type DashboardConfig = {
     hideGreeting?: boolean;
     showGreetingBackground?: boolean;
     greetingRadius?: number;
+    smoothScroll?: boolean;
+    smoothScrollSpeed?: number;
   };
 };

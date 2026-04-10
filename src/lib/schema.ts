@@ -47,6 +47,8 @@ export const settingsSchema = z.object({
     hideGreeting: z.boolean().optional(),
     showGreetingBackground: z.boolean().optional(),
     greetingRadius: z.number().optional(),
+    smoothScroll: z.boolean().optional(),
+    smoothScrollSpeed: z.number().optional(),
 });
 
 export const dashboardConfigSchema = z.object({

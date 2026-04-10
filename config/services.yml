@@ -1,17 +1,3 @@
-# title: Test Dashboard
-# defaultColumns: 4
-# theme:
-#   mainBackground: '#111827'
-#   text: '#ffffff'
-#   serviceBackground: '#1f2937'
-#   serviceBackgroundHover: '#374151'
-# groups:
-#   - name: Test Group
-#     services:
-#       - name: Test Service
-#         layout: vertical-reverse
-
-
 title: What A Simple Dash
 defaultColumns: 3
 theme:
@@ -21,14 +7,7 @@ theme:
   serviceBackground: rgba(0, 0, 0, .6)
   serviceBackgroundHover: rgba(0, 0, 0, 1)
 backgrounds:
-  active: 1775606181733-u8lr9e.jpg
-  history:
-    - 1756339415111.jpeg
-    - 1756339451485.jpeg
-    - 1000023402.jpg
-    - wp8944713-4k-universal-studios-wallpapers.jpg
-    - 1756423947374.jpeg
-    - 1757117985561.jpeg
+  active: 1756152777317.jpeg
 groups:
   - name: Smart Home
     services:
@@ -89,6 +68,7 @@ groups:
       - name: Crafty Controller
         url: https://10.10.20.128:8443/
         icon: crafty-controller.png
+    collapsed: false
   - name: Arr Stack
     services:
       - name: SABnzbd
@@ -112,6 +92,7 @@ groups:
       - name: Seerr
         url: https://request.projectglrz.xyz/
         icon: seerr.png
+    collapsed: false
   - name: Hardware
     services:
       - name: QNAP
@@ -135,6 +116,7 @@ groups:
       - name: TrueNAS
         url: https://10.10.20.201/
         icon: truenas.png
+    collapsed: false
   - name: Network
     services:
       - name: UniFi
@@ -156,9 +138,6 @@ groups:
     services:
       - name: Proxmox
         url: http://10.10.20.144:8006/
-        icon: proxmox.png
-      - name: Proxmox Backup Server
-        url: http://10.10.20.143:8007/
         icon: proxmox.png
       - name: Vaultwarden
         url: https://vw.projectglrz.xyz/
@@ -210,4 +189,6 @@ settings:
   customHelpText: Let's Begin
   hideGreeting: false
   showGreetingBackground: true
-  greetingRadius: 100
+  greetingRadius: 40
+  smoothScroll: true
+  smoothScrollSpeed: 100
