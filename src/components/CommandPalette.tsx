@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useMemo } from 'react';
 import { useStore } from '@/store/useStore';
 import { FaSearch } from 'react-icons/fa';
 import { ServiceCard } from '@/components/ServiceCard';
@@ -16,27 +16,45 @@ export const CommandPalette = ({ config }: CommandPaletteProps) => {
   const [searchQuery, setSearchQuery] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Flatten all services for search
-  const allServices: Service[] = [];
-  if (config.groups) {
-    for (const group of config.groups) {
-      if (group.services) {
-        allServices.push(...group.services.filter(s => !s.hidden));
-      }
-    }
-  }
-  if (config.services) {
-    allServices.push(...config.services.filter(s => !s.hidden));
-  }
+  // Flatten and deduplicate all services for search
+  const allServices = useMemo(() => {
+    const services: Service[] = [];
+    const seenUrls = new Set<string>();
 
-  const fuse = new Fuse(allServices, {
+    const addUnique = (sList: Service[]) => {
+      sList.forEach(s => {
+        if (!s.hidden) {
+          const uniqueKey = `${s.name}-${s.url}`;
+          if (!seenUrls.has(uniqueKey)) {
+            seenUrls.add(uniqueKey);
+            services.push(s);
+          }
+        }
+      });
+    };
+
+    if (config.groups) {
+      config.groups.forEach(group => {
+        if (group.services) addUnique(group.services);
+      });
+    }
+    if (config.services) {
+      addUnique(config.services);
+    }
+
+    return services;
+  }, [config]);
+
+  const fuse = useMemo(() => new Fuse(allServices, {
     keys: ['name', 'subtitle', 'url'],
     threshold: 0.3,
-  });
+  }), [allServices]);
 
-  const searchResults = searchQuery 
-    ? fuse.search(searchQuery).map((result: FuseResult<Service>) => result.item) 
-    : allServices;
+    const searchResults = useMemo(() => (
+    searchQuery 
+      ? fuse.search(searchQuery).map((result: FuseResult<Service>) => result.item) 
+      : allServices
+  ), [searchQuery, fuse, allServices]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -87,8 +105,8 @@ export const CommandPalette = ({ config }: CommandPaletteProps) => {
         <div className="p-4 overflow-y-auto overflow-x-hidden flex-1">
           {searchResults.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {searchResults.map((service) => (
-                <div key={service.name} onClick={() => setCommandPaletteOpen(false)}>
+              {searchResults.map((service, index) => (
+                <div key={`${service.name}-${service.url}-${index}`} onClick={() => setCommandPaletteOpen(false)}>
                   <ServiceCard 
                     service={service} 
                     theme={config.theme} 

@@ -7,11 +7,16 @@ import type { DashboardConfig, Service, ServiceGroup, Backgrounds } from '../typ
 import { ServiceCard } from '@/components/ServiceCard';
 import { CommandPalette } from '@/components/CommandPalette';
 import { useStore } from '@/store/useStore';
+import Lenis from 'lenis';
+import 'lenis/dist/lenis.css';
+import { useMotionValue } from 'framer-motion';
+import { ScrollMotionWrapper } from '@/components/ScrollMotionWrapper';
 
 export default function DashboardLayout() {
   const [config, setConfig] = useState<DashboardConfig | null>(null);
   const isSavingRef = useRef(false);
   const { toggleCommandPalette, isSidebarOpen } = useStore();
+  const scrollVelocity = useMotionValue(0);
 
   useEffect(() => {
     const fetchConfig = async () => {
@@ -31,6 +36,37 @@ export default function DashboardLayout() {
     const interval = setInterval(fetchConfig, 5000);
     return () => clearInterval(interval);
   }, []);
+
+  // Smooth Scroll Implementation
+  useEffect(() => {
+    if (!config?.settings?.smoothScroll) return;
+
+    const lenis = new Lenis({
+      duration: 1.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      orientation: 'vertical',
+      gestureOrientation: 'vertical',
+      smoothWheel: true,
+      wheelMultiplier: (config.settings.smoothScrollSpeed || 100) / 100,
+      touchMultiplier: 2,
+      infinite: false,
+    });
+
+    function raf(time: number) {
+      lenis.raf(time);
+      requestAnimationFrame(raf);
+    }
+
+    lenis.on('scroll', ({ velocity }: { velocity: number }) => {
+      scrollVelocity.set(velocity);
+    });
+
+    requestAnimationFrame(raf);
+
+    return () => {
+      lenis.destroy();
+    };
+  }, [config?.settings?.smoothScroll, config?.settings?.smoothScrollSpeed]);
 
   const filteredConfig = useMemo(() => {
     if (!config) return null;
@@ -157,71 +193,111 @@ export default function DashboardLayout() {
           </div>
         </header>
 
-        <main className="relative z-10 flex flex-col items-center justify-start min-h-screen pt-[12vh] pb-24 px-4 sm:px-8 w-full max-w-5xl mx-auto">
+        <main className="relative z-10 flex flex-col items-center justify-start min-h-screen pt-[12vh] pb-[40vh] px-4 sm:px-8 w-full max-w-5xl mx-auto">
           
           {!filteredConfig.settings?.hideGreeting && (
-            <div className={`text-center mb-16 animate-fade-in-up w-full max-w-2xl mx-auto transition-all duration-500 ${filteredConfig.settings?.showGreetingBackground ? 'p-8 rounded-3xl backdrop-blur-md border border-white/5 shadow-xl' : ''}`}
-                 style={filteredConfig.settings?.showGreetingBackground ? {
-                   backgroundColor: filteredConfig.theme.serviceBackground || 'rgba(255,255,255,0.05)',
-                   borderRadius: `${filteredConfig.settings?.greetingRadius || 24}px`
-                 } : {}}>
-              <h1 className="text-4xl md:text-6xl font-normal tracking-tight mb-4 drop-shadow-lg">
-                {filteredConfig.settings?.customGreeting || `Good ${new Date().getHours() < 12 ? 'morning' : new Date().getHours() < 18 ? 'afternoon' : 'evening'}`}
-              </h1>
-              <p className="text-lg md:text-xl opacity-60 font-light">
-                {filteredConfig.settings?.customHelpText || 'How can I help you today?'}
-              </p>
-            </div>
+            <ScrollMotionWrapper 
+              velocity={scrollVelocity} 
+              intensity={config.settings?.smoothScrollSpeed || 100}
+              index={0}
+            >
+              <div className={`text-center mb-16 w-full max-w-2xl mx-auto transition-all duration-500 ${filteredConfig.settings?.showGreetingBackground ? 'p-8 rounded-3xl backdrop-blur-md border border-white/5 shadow-xl' : ''}`}
+                   style={filteredConfig.settings?.showGreetingBackground ? {
+                     backgroundColor: filteredConfig.theme.serviceBackground || 'rgba(255,255,255,0.05)',
+                     borderRadius: `${filteredConfig.settings?.greetingRadius || 24}px`
+                   } : {}}>
+                <h1 className="text-4xl md:text-6xl font-normal tracking-tight mb-4 drop-shadow-lg">
+                  {filteredConfig.settings?.customGreeting || `Good ${new Date().getHours() < 12 ? 'morning' : new Date().getHours() < 18 ? 'afternoon' : 'evening'}`}
+                </h1>
+                <p className="text-lg md:text-xl opacity-60 font-light">
+                  {filteredConfig.settings?.customHelpText || 'How can I help you today?'}
+                </p>
+              </div>
+            </ScrollMotionWrapper>
           )}
 
 
 
           <div className="w-full space-y-12">
-            {filteredConfig.groups.map((group: ServiceGroup) => (
-                <div key={group.name} className="w-full animate-fade-in-up">
-                  <h2 
-                    onClick={() => toggleGroupCollapse(group.name)}
-                    className={`flex items-center gap-2 text-sm font-medium tracking-widest uppercase mb-4 ml-2 cursor-pointer select-none transition-all duration-300 ${config.settings?.showTitleBackgrounds ? 'px-4 py-2.5 rounded-xl shadow-sm border border-white/5 backdrop-blur-md' : 'opacity-60 hover:opacity-100'}`}
-                    style={{ 
-                      color: group.titleTextColor || config.theme.groupTitleText || config.theme.text,
-                      backgroundColor: config.settings?.showTitleBackgrounds ? (group.titleBackgroundColor || config.theme.titleBackground || 'rgba(255,255,255,0.05)') : 'transparent'
-                    }}
-                  >
-                     {group.collapsed ? <FaChevronRight size={12} className="opacity-50" /> : <FaChevronDown size={12} className="opacity-50" />}
-                     {group.name}
-                  </h2>
-                  
-                  {!group.collapsed && (
-                    <div className={`grid gap-4 ${getGridColsClass(group.columns || config.defaultColumns || 3)}`}>
-                      {group.services.map((service: Service) => (
-                         <ServiceCard 
-                           key={service.name} 
-                           service={service} 
-                           theme={config.theme} 
-                           columnCount={group.columns || config.defaultColumns || 3} 
-                           showBackground={config.settings?.showServiceBackgrounds !== false}
-                         />
-                      ))}
+            {(() => {
+              let globalIdx = 1; // Start at 1 because greeting is typically "index 0" conceptually
+              return (
+                <>
+                  {filteredConfig.groups.map((group: ServiceGroup) => {
+                    const headerIdx = globalIdx++;
+                    return (
+                      <div key={group.name} className="w-full">
+                        <ScrollMotionWrapper 
+                          velocity={scrollVelocity} 
+                          intensity={config.settings?.smoothScrollSpeed || 100}
+                          index={headerIdx}
+                        >
+                          <h2 
+                            onClick={() => toggleGroupCollapse(group.name)}
+                            className={`flex items-center gap-2 text-sm font-medium tracking-widest uppercase mb-4 ml-2 cursor-pointer select-none transition-all duration-300 ${config.settings?.showTitleBackgrounds ? 'px-4 py-2.5 rounded-xl shadow-sm border border-white/5 backdrop-blur-md' : 'opacity-60 hover:opacity-100'}`}
+                            style={{ 
+                              color: group.titleTextColor || config.theme.groupTitleText || config.theme.text,
+                              backgroundColor: config.settings?.showTitleBackgrounds ? (group.titleBackgroundColor || config.theme.titleBackground || 'rgba(255,255,255,0.05)') : 'transparent'
+                            }}
+                          >
+                             {group.collapsed ? <FaChevronRight size={12} className="opacity-50" /> : <FaChevronDown size={12} className="opacity-50" />}
+                             {group.name}
+                          </h2>
+                        </ScrollMotionWrapper>
+                        
+                        {!group.collapsed && (
+                          <div className={`grid gap-4 ${getGridColsClass(group.columns || config.defaultColumns || 3)}`}>
+                            {group.services.map((service: Service) => {
+                               const cardIdx = globalIdx++;
+                               return (
+                                 <ScrollMotionWrapper 
+                                   key={service.name} 
+                                   velocity={scrollVelocity} 
+                                   intensity={config.settings?.smoothScrollSpeed || 100}
+                                   index={cardIdx}
+                                 >
+                                   <ServiceCard 
+                                     service={service} 
+                                     theme={config.theme} 
+                                     columnCount={group.columns || config.defaultColumns || 3} 
+                                     showBackground={config.settings?.showServiceBackgrounds !== false}
+                                   />
+                                 </ScrollMotionWrapper>
+                               );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+
+                  {filteredConfig.services && filteredConfig.services.length > 0 && (
+                    <div className="w-full">
+                       <div className={`grid gap-4 ${getGridColsClass(config.defaultColumns || 3)}`}>
+                         {filteredConfig.services.map((service: Service) => {
+                            const serviceIdx = globalIdx++;
+                            return (
+                              <ScrollMotionWrapper 
+                                key={service.name} 
+                                velocity={scrollVelocity} 
+                                intensity={config.settings?.smoothScrollSpeed || 100}
+                                index={serviceIdx}
+                              >
+                                <ServiceCard 
+                                  service={service} 
+                                  theme={config.theme} 
+                                  columnCount={config.defaultColumns || 3} 
+                                  showBackground={config.settings?.showServiceBackgrounds !== false}
+                                />
+                              </ScrollMotionWrapper>
+                            );
+                         })}
+                       </div>
                     </div>
                   )}
-               </div>
-            ))}
-
-            {filteredConfig.services && filteredConfig.services.length > 0 && (
-              <div className="w-full animate-fade-in-up">
-                 <div className={`grid gap-4 ${getGridColsClass(config.defaultColumns || 3)}`}>
-                   {filteredConfig.services.map((service: Service) => (
-                      <ServiceCard 
-                        key={service.name} 
-                        service={service} 
-                        theme={config.theme} 
-                        columnCount={config.defaultColumns || 3} 
-                        showBackground={config.settings?.showServiceBackgrounds !== false}
-                      />
-                   ))}
-                 </div>
-              </div>
-            )}
+                </>
+              );
+            })()}
           </div>
         </main>
       </div>

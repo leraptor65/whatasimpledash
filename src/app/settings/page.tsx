@@ -317,6 +317,7 @@ export default function GeneralSettingsPage() {
                      { label: 'Show Wallpaper', key: 'settings.showBackground', current: config.settings?.showBackground !== false, text: "Enable or disable the dashboard's background image." },
                      { label: 'Highlight Headers', key: 'settings.showTitleBackgrounds', current: config.settings?.showTitleBackgrounds || false, text: "Add a subtle background to service group headers." },
                      { label: 'Elevated Cards', key: 'settings.showServiceBackgrounds', current: config.settings?.showServiceBackgrounds !== false, text: "Show distinct background cards for services." },
+                     { label: 'Smooth Scrolling', key: 'settings.smoothScroll', current: config.settings?.smoothScroll || false, text: "Enable premium smooth momentum scrolling." },
 
                     ].map((opt) => (
                     <div key={opt.key} className="flex items-center justify-between p-6 transition-all duration-300 hover:bg-white/[0.03]">
@@ -335,6 +336,27 @@ export default function GeneralSettingsPage() {
                     </div>
                    ))}
                 </div>
+
+                {config.settings?.smoothScroll && (
+                    <div className="mt-4 bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl p-6 space-y-4">
+                        <div className="flex justify-between items-center">
+                            <div>
+                                <p className="text-sm font-bold text-white uppercase tracking-wider opacity-90">Scroll Intensity</p>
+                                <p className="text-xs text-white/40 mt-1 font-light">Adjust the speed/friction of the smooth scroll.</p>
+                            </div>
+                            <span className="text-xs font-mono text-white/90 bg-white/10 px-2 py-1 rounded-md">{config.settings?.smoothScrollSpeed || 100}%</span>
+                        </div>
+                        <input 
+                            type="range" 
+                            min="50" 
+                            max="300" 
+                            step="10"
+                            value={config.settings?.smoothScrollSpeed || 100}
+                            onChange={e => handleChange('settings.smoothScrollSpeed', parseInt(e.target.value))}
+                            className="w-full h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer accent-white/60"
+                        />
+                    </div>
+                )}
             </section>
         </div>
     );

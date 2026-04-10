@@ -9,12 +9,18 @@
   --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
 }
 
-body {
+html {
   background-color: #000;
+}
+
+body {
+  background-color: transparent;
   color: #fff;
   /* Hide scrollbar for standard browsers */
   scrollbar-width: none;
   -ms-overflow-style: none;
+  overflow-x: hidden !important;
+  width: 100%;
 }
 
 body::-webkit-scrollbar {
@@ -81,4 +87,25 @@ body::-webkit-scrollbar {
 .no-scrollbar {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+/* Lenis Smooth Scroll Support */
+html.lenis, 
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis.lenis-scrolling iframe {
+  pointer-events: none;
 }

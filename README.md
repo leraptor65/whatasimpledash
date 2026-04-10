@@ -1,30 +1,27 @@
-# What A Simple Dash V2 🚀
+# What A Simple Dash V3 🚀
 
-A simple, highly customizable, self-hosted application dashboard. Use it to organize all your services, configured entirely through a simple YAML file or a rich in-app editor.
+A simple, highly customizable, and performant self-hosted application dashboard. Re-designed from the ground up for a clean, modern aesthetic that puts your services front and center.
 
-**Now powered by a lightweight Go backend!**
+Organize your digital life with an interface that is tailored exactly to your needs.
 
 ![Dashboard Screenshot](https://github.com/leraptor65/whatasimpledash/blob/main/Screenshots/home-screenshot.png?raw=true)
 
 ## ✨ Features
 
-*   **⚡ Fast Go Backend:** Re-engineered with Go for speed, efficiency, and a tiny memory footprint.
-*   **🛠️ Full In-App Editor:** Manage services, groups, theme, and settings with a GUI. No need to touch YAML if you don't want to.
-*   **📂 Tabbed Icon Picker:**
-    *   **Standard:** Search thousands of built-in FontAwesome icons.
-    *   **Custom:** Upload your own PNG/SVG icons and resize/manage them easily.
-*   **🖼️ Advanced Background Config:**
-    *   **Auto-Resizing:** Uploaded wallpapers are automatically optimized to 1920x1080 (High Quality).
-    *   **Modifiers:** Apply effects like **Blur**, **Vignette**, **Pixelate**, or hide the wallpaper entirely.
-*   **🎨 Deep Theming:** Control colors, transparency, and style.
-*   **🔍 Quick Search:** Just start typing to instantly filter and launch services.
-*   **⛅ Widgets:** Clock and Weather (OpenWeatherMap / WeatherAPI).
-*   **🔒 Deployment:** Simple Docker container.
+*   **🎨 High Customization:** Total control over your dashboard's look and feel. Adjust everything from colors and spacing to transparency through a flexible design system.
+*   **🛠️ Full In-App Editor:** A rich, tabbed GUI allows you to manage services, groups, theme, and global settings without ever touching a YAML file.
+*   **📂 Precision Icon Picker:**
+    *   **Standard:** Search through 10,000+ high-quality icons.
+    *   **Custom:** Upload, manage, and instantly apply your own PNG/SVG icons.
+*   **🖼️ Professional Wallpaper Management:**
+    *   **Auto-Optimization:** Uploaded wallpapers are automatically resized and optimized for peak performance and fast loading times.
+*   **🔍 Command Palette:** Press `Ctrl+K` to instantly search and launch any service across your entire dashboard.
+*   **🔒 Easy Deployment:** Simple, reliable setup using a lightweight Docker image.
 
-## 🚀 Easy Deployment
+## 🚀 Deployment
 
-### 1. Create Compose File
-Download `docker-compose.yml` or create it:
+### 1. Docker Compose
+The easiest way to get started is using Docker Compose.
 
 ```yaml
 services:
@@ -35,13 +32,13 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
       - ./config:/app/config
       - ./public/icons:/app/public/icons
       - ./public/backgrounds:/app/public/backgrounds
+      - ./public/uploads:/app/public/uploads
 ```
 
-### 2. Start
+### 2. Launch
 ```bash
 docker compose up -d
 ```
@@ -49,27 +46,19 @@ Access at `http://localhost:3000`.
 
 ## ⚙️ Configuration
 
-Configuration is stored in `config/services.yml` but can be edited via the Settings UI (Gear Icon).
+While WhatASimpleDash is designed to be managed via the **Settings UI** (Gear Icon), all configuration is persisted in a human-readable `config/services.yml` file.
 
-### Global Settings
-*   **Backgrounds**: Manage active wallpaper and history.
-    *   **Modifiers**: Choose between `None`, `Blur`, `Vignette`, `Pixelate`, or `No Wallpaper`.
-*   **Theme**: Customize colors for background, text, titles, and cards. Support for transparency (RGBA).
-
-### Services & Groups
-*   **Drag & Drop**: (Planned/In-Progress) Organize groups.
-*   **Icons**: Upload custom icons via the "Custom" tab in the editor or drop files into `public/icons`.
-
-## 🛠️ Build from Source
-
-1.  **Clone**: `git clone https://github.com/leraptor65/whatasimpledash.git`
-2.  **Build**: `./build.sh` (Requires Docker)
-3.  **Run**: Access `http://localhost:8081` (Dev port)
+### Persistent Volumes
+To keep your settings and icons across container updates, ensure you map the following volumes:
+- `/app/config`: Stores your `services.yml`.
+- `/app/public/icons`: Stores your custom uploaded icons.
+- `/app/public/backgrounds`: Stores your wallpaper library.
+- `/app/public/uploads`: Stores general file uploads.
 
 ## 💻 Tech Stack
-*   **Frontend**: Next.js, React, Tailwind CSS
-*   **Backend**: Go (Golang) standard library + `imaging` for processing
-*   **Container**: Docker (Multi-stage build)
+*   **Framework**: Next.js 14 (Standalone build)
+*   **Styling**: Tailwind CSS
+*   **State**: Zustand
 
 ## 📄 License
 MIT License.
