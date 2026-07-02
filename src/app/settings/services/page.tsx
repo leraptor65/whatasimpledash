@@ -69,10 +69,19 @@ export default function ServicesPage() {
         if (!config) return;
         const newGroups = [...config.groups];
 
-        // If editing, remove from old location first
-        if (editingService) {
-            const oldGroup = newGroups[editingService.groupIndex];
-            oldGroup.services.splice(editingService.serviceIndex, 1);
+        // Only remove the old entry when we're editing an EXISTING service.
+        // A serviceIndex of -1 (or missing) means "add new" — removing it would
+        // splice(-1, 1) and delete the last service in the group instead.
+        const isEditing =
+            editingService != null &&
+            typeof editingService.serviceIndex === 'number' &&
+            editingService.serviceIndex >= 0;
+
+        if (isEditing) {
+            const oldGroup = newGroups[editingService!.groupIndex];
+            if (oldGroup?.services) {
+                oldGroup.services.splice(editingService!.serviceIndex, 1);
+            }
         }
 
         // Add to new location (or same location if group didn't change)
@@ -413,7 +422,7 @@ export default function ServicesPage() {
 
                             <button
                                 onClick={() => {
-                                    setEditingService({ service: { name: '', url: '', icon: 'FaPlus' }, groupIndex, serviceIndex: -1 });
+                                    setEditingService({ service: { name: '', url: '', icon: 'FaGlobe' }, groupIndex, serviceIndex: -1 });
                                     setIsServiceModalOpen(true);
                                 }}
                                 className="w-full glass-card border-dashed border-white/20 p-3 rounded-xl flex items-center justify-center gap-2 text-gray-500 hover:text-white hover:border-white/40 cursor-pointer transition-all hover:bg-white/5"

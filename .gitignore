@@ -22,6 +22,14 @@
 .DS_Store
 *.pem
 
+# Local debug/scratch artifacts (never commit)
+/current_config.json
+/new_config.json
+/new_config_true.json
+/test_save.json
+/config/*.json
+*.tsclear
+
 # Ignore custom user-uploaded icons and backgrounds
 /public/icons/*
 /public/backgrounds/*

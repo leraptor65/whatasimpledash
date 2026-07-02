@@ -49,7 +49,7 @@ export const GlassFileManager = ({ type, onConfigUpdate, currentConfig, activeFi
         if (!selectedFile) return;
         if (!window.confirm(`Are you sure you want to delete ${selectedFile}?`)) return;
 
-        const res = await fetch(`/api/files/${type}/${selectedFile}`, { method: 'DELETE' });
+        const res = await fetch(`/api/files/${type}/${encodeURIComponent(selectedFile)}`, { method: 'DELETE' });
         const data = await res.json();
         if (data.success) {
             fetchFiles();
@@ -62,7 +62,7 @@ export const GlassFileManager = ({ type, onConfigUpdate, currentConfig, activeFi
     const handleRename = async () => {
         if (!selectedFile || !newName) return;
 
-        const res = await fetch(`/api/files/${type}/${selectedFile}`, {
+        const res = await fetch(`/api/files/${type}/${encodeURIComponent(selectedFile)}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ newName }),
@@ -140,7 +140,7 @@ export const GlassFileManager = ({ type, onConfigUpdate, currentConfig, activeFi
                             className={`group relative aspect-square glass-card rounded-xl overflow-hidden cursor-pointer hover:ring-2 hover:ring-white/40 transition-all ${isActive ? 'ring-2 ring-white/60' : ''}`}
                         >
                             <img
-                                src={`/api/images/${type}/${file}`}
+                                src={`/api/images/${type}/${encodeURIComponent(file)}`}
                                 alt={file}
                                 className="w-full h-full object-cover transition-transform group-hover:scale-110"
                             />
@@ -167,7 +167,7 @@ export const GlassFileManager = ({ type, onConfigUpdate, currentConfig, activeFi
                             </button>
                         </div>
                         <div className="p-6 flex-1 overflow-auto flex flex-col items-center justify-center bg-black/40">
-                            <img src={`/api/images/${type}/${selectedFile}`} alt="Preview" className="max-w-full max-h-[60vh] rounded-lg shadow-2xl" />
+                            <img src={`/api/images/${type}/${encodeURIComponent(selectedFile)}`} alt="Preview" className="max-w-full max-h-[60vh] rounded-lg shadow-2xl" />
                         </div>
                         <div className="p-6 border-t border-white/10 bg-white/5 space-y-4">
                             {type === 'backgrounds' && (
@@ -191,7 +191,7 @@ export const GlassFileManager = ({ type, onConfigUpdate, currentConfig, activeFi
                                 </button>
                             </div>
                             <div className="flex justify-between gap-4 pt-2">
-                                <a href={`/api/images/${type}/${selectedFile}`} download className="px-5 py-2.5 bg-white/10 hover:bg-white/20 border border-white/10 rounded-xl text-white font-medium flex items-center gap-2 transition-all active:scale-95">
+                                <a href={`/api/images/${type}/${encodeURIComponent(selectedFile)}`} download className="px-5 py-2.5 bg-white/10 hover:bg-white/20 border border-white/10 rounded-xl text-white font-medium flex items-center gap-2 transition-all active:scale-95">
                                     <FaDownload className="text-green-400" /> Download
                                 </a>
                                 <button onClick={handleDelete} className="px-5 py-2.5 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 hover:border-red-500/40 rounded-xl text-red-500 font-medium flex items-center gap-2 transition-all active:scale-95">

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { readFile } from 'fs/promises';
 import path from 'path';
+import { resolveSafeFilePath } from '@/lib/safePath';
 
 export async function GET(
   request: Request,
@@ -8,12 +9,12 @@ export async function GET(
 ) {
   const { type, filename } = params;
 
-  if (type !== 'icons' && type !== 'backgrounds') {
-    return NextResponse.json({ error: 'Invalid type' }, { status: 400 });
+  const filepath = resolveSafeFilePath(type, filename);
+  if (!filepath) {
+    return NextResponse.json({ error: 'Invalid type or filename' }, { status: 400 });
   }
 
   try {
-    const filepath = path.join(process.cwd(), 'public', type, filename);
     const buffer = await readFile(filepath);
     
     const ext = path.extname(filename).toLowerCase();

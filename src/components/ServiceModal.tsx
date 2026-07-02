@@ -28,6 +28,10 @@ export function ServiceModal({ isOpen, onClose, onSave, onDelete, initialService
     const [service, setService] = useState<Service>(defaultService);
     const [selectedGroupIndex, setSelectedGroupIndex] = useState(groupIndex);
 
+    // We're editing an existing service only when we have a real index into a
+    // group. The in-group "Add" button passes a blank service with index -1.
+    const isEditing = typeof serviceIndex === 'number' && serviceIndex >= 0;
+
     useEffect(() => {
         if (isOpen) {
             setService(initialService ? { ...defaultService, ...initialService } : defaultService);
@@ -42,7 +46,7 @@ export function ServiceModal({ isOpen, onClose, onSave, onDelete, initialService
             <div className="glass-panel w-full max-w-xl rounded-2xl overflow-hidden shadow-2xl flex flex-col max-h-[85vh]">
                 <div className="p-4 border-b border-white/10 flex justify-between items-center bg-white/5">
                     <h3 className="text-xl font-bold text-white">
-                        {initialService ? 'Edit Service' : 'Add New Service'}
+                        {isEditing ? 'Edit Service' : 'Add New Service'}
                     </h3>
                     <button onClick={onClose} className="text-gray-400 hover:text-white transition-colors">
                         <FaTimes size={20} />
@@ -175,7 +179,7 @@ export function ServiceModal({ isOpen, onClose, onSave, onDelete, initialService
                 </div>
 
                 <div className="p-4 border-t border-white/10 bg-white/5 flex justify-between gap-3">
-                    {initialService && onDelete && typeof groupIndex === 'number' ? (
+                    {isEditing && onDelete ? (
                         <button
                             onClick={() => onDelete(groupIndex, serviceIndex)}
                             className="px-4 py-2 rounded-lg border border-red-500/30 text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors flex items-center gap-2"

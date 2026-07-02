@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { unlink, rename } from 'fs/promises';
-import path from 'path';
+import { hasAllowedImageExtension, resolveSafeFilePath } from '@/lib/safePath';
 
 export async function DELETE(
   request: Request,
@@ -8,12 +8,12 @@ export async function DELETE(
 ) {
   const { type, filename } = params;
 
-  if (type !== 'icons' && type !== 'backgrounds') {
-    return NextResponse.json({ error: 'Invalid type' }, { status: 400 });
+  const filepath = resolveSafeFilePath(type, filename);
+  if (!filepath) {
+    return NextResponse.json({ error: 'Invalid type or filename' }, { status: 400 });
   }
 
   try {
-    const filepath = path.join(process.cwd(), 'public', type, filename);
     await unlink(filepath);
     return NextResponse.json({ success: true, message: 'File deleted successfully' });
   } catch (error) {
@@ -28,8 +28,9 @@ export async function PUT(
 ) {
   const { type, filename } = params;
 
-  if (type !== 'icons' && type !== 'backgrounds') {
-    return NextResponse.json({ error: 'Invalid type' }, { status: 400 });
+  const oldPath = resolveSafeFilePath(type, filename);
+  if (!oldPath) {
+    return NextResponse.json({ error: 'Invalid type or filename' }, { status: 400 });
   }
 
   try {
@@ -38,8 +39,14 @@ export async function PUT(
       return NextResponse.json({ error: 'New name is required' }, { status: 400 });
     }
 
-    const oldPath = path.join(process.cwd(), 'public', type, filename);
-    const newPath = path.join(process.cwd(), 'public', type, newName);
+    if (!hasAllowedImageExtension(newName)) {
+      return NextResponse.json({ error: 'Unsupported file type' }, { status: 400 });
+    }
+
+    const newPath = resolveSafeFilePath(type, newName);
+    if (!newPath) {
+      return NextResponse.json({ error: 'Invalid new filename' }, { status: 400 });
+    }
 
     await rename(oldPath, newPath);
     return NextResponse.json({ success: true, message: 'File renamed successfully', filename: newName });

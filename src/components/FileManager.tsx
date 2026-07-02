@@ -48,7 +48,7 @@ export const FileManager = ({ type, onConfigUpdate }: FileManagerProps) => {
         if (!selectedFile) return;
         if (!window.confirm(`Are you sure you want to delete ${selectedFile}? This cannot be undone.`)) return;
 
-        const res = await fetch(`/api/files/${type}/${selectedFile}`, { method: 'DELETE' });
+        const res = await fetch(`/api/files/${type}/${encodeURIComponent(selectedFile)}`, { method: 'DELETE' });
         const data = await res.json();
         if (data.success) {
             fetchFiles();
@@ -64,7 +64,7 @@ export const FileManager = ({ type, onConfigUpdate }: FileManagerProps) => {
     const handleRename = async () => {
         if (!selectedFile || !newName) return;
 
-        const res = await fetch(`/api/files/${type}/${selectedFile}`, {
+        const res = await fetch(`/api/files/${type}/${encodeURIComponent(selectedFile)}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ newName }),
@@ -113,7 +113,7 @@ export const FileManager = ({ type, onConfigUpdate }: FileManagerProps) => {
                     <div className="bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-md">
                         <h3 className="text-lg font-semibold mb-4 break-all">{selectedFile}</h3>
                         <div className="mb-4 max-h-64 overflow-auto">
-                            <img src={`/api/images/${type}/${selectedFile}`} alt="Preview" className="max-w-full h-auto mx-auto" />
+                            <img src={`/api/images/${type}/${encodeURIComponent(selectedFile)}`} alt="Preview" className="max-w-full h-auto mx-auto" />
                         </div>
                         <div className="flex gap-2 mb-4">
                             <input type="text" value={newName} onChange={(e) => setNewName(e.target.value)} className="w-full bg-gray-700 border border-gray-600 rounded-md shadow-sm py-2 px-3"/>
@@ -122,7 +122,7 @@ export const FileManager = ({ type, onConfigUpdate }: FileManagerProps) => {
                             </button>
                         </div>
                         <div className="flex gap-4">
-                            <a href={`/api/images/${type}/${selectedFile}`} download className="flex items-center gap-2 bg-green-600 hover:bg-green-500 px-4 py-2 rounded-md text-sm">
+                            <a href={`/api/images/${type}/${encodeURIComponent(selectedFile)}`} download className="flex items-center gap-2 bg-green-600 hover:bg-green-500 px-4 py-2 rounded-md text-sm">
                                 <FaDownload /> Download
                             </a>
                             <button onClick={handleDelete} className="flex items-center gap-2 bg-red-600 hover:bg-red-500 px-4 py-2 rounded-md text-sm">

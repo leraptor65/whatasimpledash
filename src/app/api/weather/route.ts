@@ -15,16 +15,18 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "API key is required" }, { status: 400 });
   }
 
+  // Encode all user-supplied values so they can't inject extra query params.
+  const enc = encodeURIComponent;
   let query = '';
   if (zipcode) {
-    query = `zip=${zipcode}${country ? `,${country}` : ''}`;
+    query = `zip=${enc(`${zipcode}${country ? `,${country}` : ''}`)}`;
   } else if (city) {
-    query = `q=${city}${state ? `,${state}` : ''}${country ? `,${country}` : ''}`;
+    query = `q=${enc(`${city}${state ? `,${state}` : ''}${country ? `,${country}` : ''}`)}`;
   } else {
     return NextResponse.json({ error: "City or Zipcode is required" }, { status: 400 });
   }
 
-  const url = `https://api.openweathermap.org/data/2.5/weather?${query}&appid=${apiKey}&units=${units}`;
+  const url = `https://api.openweathermap.org/data/2.5/weather?${query}&appid=${enc(apiKey)}&units=${enc(units)}`;
 
   try {
     const res = await fetch(url);
