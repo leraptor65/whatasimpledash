@@ -1,4 +1,20 @@
 
+// --- Card appearance (cascades global -> group -> service) ---
+export type CardLayout =
+  | 'icon-left'   // icon then title (default)
+  | 'icon-right'  // title then icon
+  | 'icon-top'    // icon centered, title below
+  | 'icon-only'   // icon, no text
+  | 'text-only';  // text, no icon
+
+export type TextSize = 'xs' | 'sm' | 'base' | 'lg' | 'xl';
+
+export type CardAppearance = {
+  layout?: CardLayout;
+  textSize?: TextSize;
+  fontFamily?: string; // font option key (see lib/appearance FONT_OPTIONS)
+};
+
 export type Service = {
   name: string;
   subtitle?: string;
@@ -8,6 +24,7 @@ export type Service = {
   backgroundColor?: string;
   textColor?: string;
   hidden?: boolean;
+  appearance?: CardAppearance;
 };
 
 export type ServiceGroup = {
@@ -17,6 +34,7 @@ export type ServiceGroup = {
   titleBackgroundColor?: string; // Custom background color for group title
   titleTextColor?: string;       // Custom text color for group title
   collapsed?: boolean;
+  appearance?: CardAppearance;
 };
 
 export type Theme = {
@@ -51,6 +69,7 @@ export type DashboardConfig = {
   defaultColumns: number;
   theme: Theme;
   backgrounds?: Backgrounds;
+  appearance?: CardAppearance; // global card-appearance defaults
   groups: ServiceGroup[];
   services?: Service[]; // This will now be officially for ungrouped services
   settings?: {

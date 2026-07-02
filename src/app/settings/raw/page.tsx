@@ -8,8 +8,12 @@ import 'prismjs/components/prism-yaml';
 import 'prismjs/themes/prism-dark.css';
 import { FaSave, FaCheck, FaExclamationCircle, FaCopy } from 'react-icons/fa';
 import { dashboardConfigSchema } from '@/lib/schema';
+import { useConfirm } from '@/contexts/ConfirmContext';
+import { useToast } from '@/contexts/ToastContext';
 
 export default function RawEditorPage() {
+    const confirm = useConfirm();
+    const toast = useToast();
     const [configText, setConfigText] = useState('');
     const [status, setStatus] = useState<'loading' | 'saved' | 'saving' | 'error' | 'unsaved' | 'idle'>('loading');
     const [lastSavedText, setLastSavedText] = useState('');
@@ -44,9 +48,13 @@ export default function RawEditorPage() {
     };
 
     const handleSave = async () => {
-        if (!window.confirm("Are you sure you want to save these raw changes? Invalid YAML will break the dashboard.")) {
-            return;
-        }
+        const ok = await confirm({
+            title: 'Save raw config?',
+            message: 'Saving invalid YAML can break the dashboard. Continue?',
+            confirmLabel: 'Save',
+            danger: true,
+        });
+        if (!ok) return;
 
         setStatus('saving');
         try {
@@ -56,7 +64,7 @@ export default function RawEditorPage() {
             try {
                 newConfig = yaml.load(configText);
             } catch (yamlErr: any) {
-                alert(`YAML Syntax Error:\n${yamlErr.message}`);
+                toast.error(`YAML syntax error: ${yamlErr.message}`);
                 setStatus('error');
                 return;
             }
@@ -66,7 +74,7 @@ export default function RawEditorPage() {
             if (!validation.success) {
                 // Determine format of error to display
                 const errorStr = validation.error.errors.map(e => `• ${e.path.join('.')}: ${e.message}`).join('\n');
-                alert(`Configuration Validation Failed:\n\n${errorStr}`);
+                toast.error(`Validation failed:\n${errorStr}`);
                 setStatus('error');
                 return;
             }
@@ -81,14 +89,14 @@ export default function RawEditorPage() {
             if (res.ok) {
                 setStatus('saved');
                 setLastSavedText(configText);
-                // alert("Settings saved successfully!"); // Removed to rely on button state
+                toast.success('Configuration saved.');
             } else {
                 const errData = await res.json();
-                alert(`Server Error: ${errData.message}`);
+                toast.error(`Server error: ${errData.message}`);
                 setStatus('error');
             }
         } catch (e: any) {
-            alert('Unknown Error: ' + e.message);
+            toast.error('Unknown error: ' + e.message);
             setStatus('error');
         }
     };
@@ -96,7 +104,7 @@ export default function RawEditorPage() {
     // Copy to clipboard
     const handleCopy = () => {
         navigator.clipboard.writeText(configText);
-        // alert('Copied to clipboard!'); // Optional, maybe toast?
+        toast.success('Copied to clipboard.');
     };
 
     if (status === 'loading') return <div className="p-8">Loading...</div>;

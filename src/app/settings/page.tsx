@@ -4,6 +4,10 @@ import { useEffect, useState } from 'react';
 import type { DashboardConfig, Theme } from '@/types';
 import { FaSave, FaCheck, FaExclamationCircle, FaUndo, FaSpinner } from 'react-icons/fa';
 import { ColorInput } from '@/components/ColorInput';
+import { AppearanceEditor } from '@/components/AppearanceEditor';
+import { useConfirm } from '@/contexts/ConfirmContext';
+import { useToast } from '@/contexts/ToastContext';
+import type { CardAppearance } from '@/types';
 
 const defaultTheme: Theme = {
     mainBackground: '#0e0e0e',
@@ -14,6 +18,8 @@ const defaultTheme: Theme = {
 };
 
 export default function GeneralSettingsPage() {
+    const confirm = useConfirm();
+    const toast = useToast();
     const [config, setConfig] = useState<DashboardConfig | null>(null);
     const [status, setStatus] = useState<'loading' | 'saved' | 'saving' | 'error' | 'idle'>('loading');
     const [theme, setTheme] = useState<Theme>(defaultTheme);
@@ -62,15 +68,28 @@ export default function GeneralSettingsPage() {
         saveConfig(newConfig);
     };
 
-    const handleResetTheme = () => {
-        if (window.confirm('Reset theme to defaults? This will apply immediately.')) {
-            setTheme(defaultTheme);
-            if (config) {
-                const newConfig = { ...config, theme: defaultTheme };
-                setConfig(newConfig);
-                saveConfig(newConfig);
-            }
+    const handleResetTheme = async () => {
+        const ok = await confirm({
+            title: 'Reset theme?',
+            message: 'Reset all theme colors to defaults? This applies immediately.',
+            confirmLabel: 'Reset',
+            danger: true,
+        });
+        if (!ok) return;
+        setTheme(defaultTheme);
+        if (config) {
+            const newConfig = { ...config, theme: defaultTheme };
+            setConfig(newConfig);
+            saveConfig(newConfig);
+            toast.success('Theme reset to defaults.');
         }
+    };
+
+    const handleGlobalAppearanceChange = (appearance: CardAppearance) => {
+        if (!config) return;
+        const newConfig = { ...config, appearance };
+        setConfig(newConfig);
+        saveConfig(newConfig);
     };
 
     const saveConfig = async (newConfig: DashboardConfig) => {
@@ -123,7 +142,7 @@ export default function GeneralSettingsPage() {
                 <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl overflow-hidden divide-y divide-white/5 shadow-2xl">
                     <div className="flex items-center justify-between p-6 transition-all duration-300 hover:bg-white/[0.03]">
                         <div className="pr-4 w-2/3">
-                            <p className="text-sm font-bold text-white uppercase tracking-wider opacity-90">Dashboard Title</p>
+                            <p className="text-sm font-semibold text-white/90">Dashboard Title</p>
                             <p className="text-xs text-white/40 mt-1 font-light">The main heading displayed at the top of your dashboard.</p>
                         </div>
                         <div className="flex justify-end w-1/3">
@@ -138,7 +157,7 @@ export default function GeneralSettingsPage() {
                     </div>
                     <div className="flex items-center justify-between p-6 transition-all duration-300 hover:bg-white/[0.03]">
                         <div className="pr-4 w-2/3">
-                            <p className="text-sm font-bold text-white uppercase tracking-wider opacity-90">Custom Greeting</p>
+                            <p className="text-sm font-semibold text-white/90">Custom Greeting</p>
                             <p className="text-xs text-white/40 mt-1 font-light">Override the default "Good morning/afternoon" text.</p>
                         </div>
                         <div className="flex justify-end w-1/3">
@@ -154,7 +173,7 @@ export default function GeneralSettingsPage() {
 
                     <div className="flex items-center justify-between p-6 transition-all duration-300 hover:bg-white/[0.03]">
                         <div className="pr-4 w-2/3">
-                            <p className="text-sm font-bold text-white uppercase tracking-wider opacity-90">Greeting Background</p>
+                            <p className="text-sm font-semibold text-white/90">Greeting Background</p>
                             <p className="text-xs text-white/40 mt-1 font-light">Add a soft glass panel effect to the dashboard header.</p>
                         </div>
                         <div className="flex justify-end w-1/3">
@@ -174,7 +193,7 @@ export default function GeneralSettingsPage() {
                         <div className="p-6 space-y-4 bg-white/[0.02]">
                             <div className="flex justify-between items-center">
                                 <div>
-                                    <p className="text-sm font-bold text-white uppercase tracking-wider opacity-90">Corner Radius</p>
+                                    <p className="text-sm font-semibold text-white/90">Corner Radius</p>
                                     <p className="text-xs text-white/40 mt-1 font-light">Adjust the softness of the background edges.</p>
                                 </div>
                                 <span className="text-xs font-mono text-white/90 bg-white/10 px-2 py-1 rounded-md">{config.settings?.greetingRadius || 24}px</span>
@@ -192,7 +211,7 @@ export default function GeneralSettingsPage() {
 
                     <div className="flex items-center justify-between p-6 transition-all duration-300 hover:bg-white/[0.03]">
                         <div className="pr-4 w-2/3">
-                            <p className="text-sm font-bold text-white uppercase tracking-wider opacity-90">Hide Greeting</p>
+                            <p className="text-sm font-semibold text-white/90">Hide Greeting</p>
                             <p className="text-xs text-white/40 mt-1 font-light">Remove the greeting section from the main view.</p>
                         </div>
                         <div className="flex justify-end w-1/3">
@@ -210,7 +229,7 @@ export default function GeneralSettingsPage() {
 
                     <div className="flex items-center justify-between p-6 transition-all duration-300 hover:bg-white/[0.03]">
                         <div className="pr-4 w-2/3">
-                            <p className="text-sm font-bold text-white uppercase tracking-wider opacity-90">Custom Help Text</p>
+                            <p className="text-sm font-semibold text-white/90">Custom Help Text</p>
                             <p className="text-xs text-white/40 mt-1 font-light">Overrides the sub-greeting text.</p>
                         </div>
                         <div className="flex justify-end w-1/3">
@@ -226,7 +245,7 @@ export default function GeneralSettingsPage() {
 
                     <div className="flex items-center justify-between p-6 transition-all duration-300 hover:bg-white/[0.03]">
                         <div className="pr-4 w-2/3">
-                            <p className="text-sm font-bold text-white uppercase tracking-wider opacity-90">Layout Columns</p>
+                            <p className="text-sm font-semibold text-white/90">Layout Columns</p>
                             <p className="text-xs text-white/40 mt-1 font-light">The default number of columns for services grid.</p>
                         </div>
                         <div className="flex justify-end w-1/3">
@@ -253,7 +272,7 @@ export default function GeneralSettingsPage() {
                     </div>
                     <button
                         onClick={handleResetTheme}
-                        className="ml-4 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-xl text-xs font-bold uppercase tracking-widest transition-all active:scale-95 text-white/60 hover:text-white"
+                        className="ml-4 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-xl text-xs font-semibold transition-all active:scale-95 text-white/60 hover:text-white"
                     >
                         Reset Defaults
                     </button>
@@ -305,6 +324,22 @@ export default function GeneralSettingsPage() {
                 </div>
             </section>
 
+            {/* Card Appearance Section (global defaults) */}
+            <section className="space-y-6 pt-6">
+                <div className="flex items-center gap-3">
+                    <h3 className="text-xl font-bold text-white/90">Card Appearance</h3>
+                    <div className="h-px flex-1 bg-white/5" />
+                </div>
+                <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl p-6 shadow-2xl">
+                    <AppearanceEditor
+                        value={config.appearance}
+                        onChange={handleGlobalAppearanceChange}
+                        inheritLabel="Default"
+                        inheritNote="Global defaults for every service card. Groups and individual services can override these."
+                    />
+                </div>
+            </section>
+
             {/* Preferences Section */}
             <section className="space-y-6 pt-6">
                 <div className="flex items-center gap-3">
@@ -313,25 +348,26 @@ export default function GeneralSettingsPage() {
                 </div>
                 <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl overflow-hidden divide-y divide-white/5 shadow-2xl">
                    {[
-                     { label: 'Show Greeting', key: 'settings.hideGreeting', current: config.settings?.hideGreeting !== true, text: "Enable or disable the greeting at the top of the dashboard.", invert: true },
                      { label: 'Show Wallpaper', key: 'settings.showBackground', current: config.settings?.showBackground !== false, text: "Enable or disable the dashboard's background image." },
                      { label: 'Highlight Headers', key: 'settings.showTitleBackgrounds', current: config.settings?.showTitleBackgrounds || false, text: "Add a subtle background to service group headers." },
                      { label: 'Elevated Cards', key: 'settings.showServiceBackgrounds', current: config.settings?.showServiceBackgrounds !== false, text: "Show distinct background cards for services." },
                      { label: 'Smooth Scrolling', key: 'settings.smoothScroll', current: config.settings?.smoothScroll || false, text: "Enable premium smooth momentum scrolling." },
-
                     ].map((opt) => (
                     <div key={opt.key} className="flex items-center justify-between p-6 transition-all duration-300 hover:bg-white/[0.03]">
-                        <div className="pr-4 w-5/6">
-                            <p className="text-sm font-bold text-white uppercase tracking-wider opacity-90">{opt.label}</p>
+                        <div className="pr-4 w-2/3">
+                            <p className="text-sm font-semibold text-white/90">{opt.label}</p>
                             <p className="text-xs text-white/40 mt-1 font-light">{opt.text}</p>
                         </div>
-                        <div className="flex justify-end w-1/6">
-                            <div 
-                                className={`w-6 h-6 rounded-lg border cursor-pointer flex items-center justify-center transition-all ${opt.current ? 'bg-white/20 border-white/40 shadow-lg shadow-white/5' : 'bg-white/5 border-white/10'}`}
-                                onClick={() => handleChange(opt.key, opt.invert ? opt.current : !opt.current)}
-                            >
-                                {opt.current && <FaCheck className="text-white text-[10px]" />}
-                            </div>
+                        <div className="flex justify-end w-1/3">
+                            <label className="relative inline-flex items-center cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    className="sr-only peer"
+                                    checked={opt.current}
+                                    onChange={() => handleChange(opt.key, !opt.current)}
+                                />
+                                <div className="w-11 h-6 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-white/40"></div>
+                            </label>
                         </div>
                     </div>
                    ))}
@@ -341,7 +377,7 @@ export default function GeneralSettingsPage() {
                     <div className="mt-4 bg-white/5 backdrop-blur-md border border-white/10 rounded-3xl p-6 space-y-4">
                         <div className="flex justify-between items-center">
                             <div>
-                                <p className="text-sm font-bold text-white uppercase tracking-wider opacity-90">Scroll Intensity</p>
+                                <p className="text-sm font-semibold text-white/90">Scroll Intensity</p>
                                 <p className="text-xs text-white/40 mt-1 font-light">Adjust the speed/friction of the smooth scroll.</p>
                             </div>
                             <span className="text-xs font-mono text-white/90 bg-white/10 px-2 py-1 rounded-md">{config.settings?.smoothScrollSpeed || 100}%</span>

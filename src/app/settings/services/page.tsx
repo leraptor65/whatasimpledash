@@ -6,10 +6,14 @@ import { ServiceModal } from '@/components/ServiceModal';
 import { GroupModal } from '@/components/GroupModal';
 import { FaPlus, FaEdit, FaTrash, FaCheck, FaChevronUp, FaChevronDown } from 'react-icons/fa';
 import * as InitialIcons from 'react-icons/fa'; // Load icons for display
+import { useConfirm } from '@/contexts/ConfirmContext';
+import { useToast } from '@/contexts/ToastContext';
 
 const allIcons: any = InitialIcons;
 
 export default function ServicesPage() {
+    const confirm = useConfirm();
+    const toast = useToast();
     const [config, setConfig] = useState<DashboardConfig | null>(null);
     const [status, setStatus] = useState<'loading' | 'saved' | 'saving' | 'error' | 'idle'>('loading');
     const [draggedItem, setDraggedItem] = useState<{ groupIndex: number, serviceIndex: number } | null>(null);
@@ -97,31 +101,33 @@ export default function ServicesPage() {
         if (success) {
             setIsServiceModalOpen(false);
             setEditingService(null);
-            alert('Service saved successfully!');
+            toast.success('Service saved.');
         } else {
-            alert('Failed to save service.');
+            toast.error('Failed to save service.');
         }
     };
 
     const handleDeleteService = async (groupIndex: number, serviceIndex?: number) => {
-        // Confirmation is done in modal now usually, but if called directly we might want it.
-        // Modal logic wraps confirm, so here we just execute? 
-        // Wait, GroupModal does confirm. ServiceModal does NOT do confirm in my previous code!
-        // GroupModal code: `if (window.confirm...) onDelete()`.
-        // ServiceModal code: Just `onClick={() => onDelete(...)}`.
-        // So `handleDeleteService` MUST confirm.
-        if (!config || !window.confirm('Delete this service?')) return;
-        const newGroups = [...config.groups];
+        if (!config) return;
         if (typeof serviceIndex !== 'number' || serviceIndex < 0) return; // Safety
 
+        const ok = await confirm({
+            title: 'Delete service?',
+            message: 'This service will be removed from the dashboard.',
+            confirmLabel: 'Delete',
+            danger: true,
+        });
+        if (!ok) return;
+
+        const newGroups = [...config.groups];
         newGroups[groupIndex].services.splice(serviceIndex, 1);
         const success = await saveConfig({ ...config, groups: newGroups });
         if (success) {
-            alert('Service deleted successfully!');
+            toast.success('Service deleted.');
             setIsServiceModalOpen(false);
             setEditingService(null);
         } else {
-            alert('Failed to delete service.');
+            toast.error('Failed to delete service.');
         }
     };
 
@@ -139,7 +145,8 @@ export default function ServicesPage() {
                 columns: groupData.columns!,
                 collapsed: groupData.collapsed,
                 titleBackgroundColor: groupData.titleBackgroundColor,
-                titleTextColor: groupData.titleTextColor
+                titleTextColor: groupData.titleTextColor,
+                appearance: groupData.appearance
             };
         } else {
             // Add new
@@ -149,7 +156,8 @@ export default function ServicesPage() {
                 services: [],
                 collapsed: groupData.collapsed,
                 titleBackgroundColor: groupData.titleBackgroundColor,
-                titleTextColor: groupData.titleTextColor
+                titleTextColor: groupData.titleTextColor,
+                appearance: groupData.appearance
             });
         }
 
@@ -157,37 +165,24 @@ export default function ServicesPage() {
         if (success) {
             setIsGroupModalOpen(false);
             setEditingGroupIndex(null);
-            alert('Group saved successfully!');
+            toast.success('Group saved.');
         } else {
-            alert('Failed to save group.');
+            toast.error('Failed to save group.');
         }
     };
 
     const handleDeleteGroup = async (index: number) => {
-        // Confirmation done in GroupModal? Yes. 
-        // BUT wait, GroupModal calls `onDelete` which is THIS function. 
-        // IF GroupModal has confirm, we don't need double confirm here. 
-        // GroupModal: `if (window.confirm('Delete this group...')) onDelete()`.
-        // So we can remove confirm here, OR rely on it. 
-        // Let's remove confirm here if it's annoying, or keeping it is safer. 
-        // Actually double alert is bad.
-        // Let's assume passed callback is "action" only.
-        // BUT wait. If I click Delete in modal, it confirms, then calls this. 
-        // This calls `!window.confirm` -> double confirm. 
-        // I should remove confirm here OR remove it from modal.
-        // I already edited GroupModal to have confirm. I will remove it here.
-        // ServiceModal did NOT have confirm in my modification. So I keep confirm here for service.
-
+        // Confirmation is handled by GroupModal before it calls this.
         if (!config) return;
         const newGroups = [...config.groups];
         newGroups.splice(index, 1);
         const success = await saveConfig({ ...config, groups: newGroups });
         if (success) {
-            alert('Group deleted successfully!');
+            toast.success('Group deleted.');
             setIsGroupModalOpen(false);
             setEditingGroupIndex(null);
         } else {
-            alert('Failed to delete group.');
+            toast.error('Failed to delete group.');
         }
     };
 
@@ -211,7 +206,14 @@ export default function ServicesPage() {
 
     // --- Global Clean Handlers ---
     const handleStripOverrides = async () => {
-        if (!config || !window.confirm('Strip all custom alignments, styles, columns, and layouts from groups and services? This cannot be undone.')) return;
+        if (!config) return;
+        const ok = await confirm({
+            title: 'Reset to defaults?',
+            message: 'Resets every group and service back to your global settings — clearing custom colors, columns, layouts, text sizes, and fonts. This cannot be undone.',
+            confirmLabel: 'Reset',
+            danger: true,
+        });
+        if (!ok) return;
 
         const newGroups = config.groups.map(group => {
             const cleanServices = group.services.map(service => {
@@ -243,7 +245,9 @@ export default function ServicesPage() {
 
         const success = await saveConfig({ ...config, groups: newGroups, services: newServices });
         if (success) {
-            alert('All custom overrides stripped successfully!');
+            toast.success('Reset to defaults.');
+        } else {
+            toast.error('Failed to reset.');
         }
     };
 
@@ -297,9 +301,9 @@ export default function ServicesPage() {
                     <button
                         onClick={handleStripOverrides}
                         className="px-4 py-2 bg-[#1a1a1a] border border-[#333] hover:bg-white hover:text-black rounded-lg text-white/80 font-medium transition-all text-sm shadow-sm"
-                        title="Remove all custom styling from groups & services"
+                        title="Reset all groups & services to your global settings"
                     >
-                        Strip Overrides
+                        Reset to Defaults
                     </button>
                     <button
                         onClick={() => { setEditingService(null); setIsServiceModalOpen(true); }}

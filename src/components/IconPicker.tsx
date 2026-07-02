@@ -57,7 +57,7 @@ export function IconPicker({ value, onChange }: { value: string, onChange: (icon
             </div>
 
             {isOpen && (
-                <div className="absolute z-50 top-full mt-2 left-0 w-full glass-panel rounded-xl max-h-96 flex flex-col p-4 shadow-2xl border border-white/10">
+                <div className="absolute z-50 top-full mt-2 left-0 w-full bg-[#181818] rounded-xl max-h-96 flex flex-col p-4 shadow-2xl border border-white/15">
                     <div className="flex gap-2 mb-4 border-b border-white/10 pb-2">
                         <button
                             onClick={() => setActiveTab('standard')}

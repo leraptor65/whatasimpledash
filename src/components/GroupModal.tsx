@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { FaTimes, FaTrash } from 'react-icons/fa';
-import type { ServiceGroup } from '@/types';
+import type { CardAppearance, ServiceGroup } from '@/types';
+import { AppearanceEditor } from './AppearanceEditor';
+import { useConfirm } from '@/contexts/ConfirmContext';
 
 interface GroupModalProps {
     isOpen: boolean;
@@ -13,11 +15,13 @@ interface GroupModalProps {
 }
 
 export function GroupModal({ isOpen, onClose, onSave, onDelete, initialGroup }: GroupModalProps) {
+    const confirm = useConfirm();
     const [name, setName] = useState('');
     const [columns, setColumns] = useState(3);
     const [collapsed, setCollapsed] = useState(false);
     const [titleBackgroundColor, setTitleBackgroundColor] = useState('');
     const [titleTextColor, setTitleTextColor] = useState('');
+    const [appearance, setAppearance] = useState<CardAppearance | undefined>(undefined);
 
     useEffect(() => {
         if (isOpen) {
@@ -26,6 +30,7 @@ export function GroupModal({ isOpen, onClose, onSave, onDelete, initialGroup }: 
             setCollapsed(initialGroup?.collapsed || false);
             setTitleBackgroundColor(initialGroup?.titleBackgroundColor || '');
             setTitleTextColor(initialGroup?.titleTextColor || '');
+            setAppearance(initialGroup?.appearance);
         }
     }, [isOpen, initialGroup]);
 
@@ -38,8 +43,20 @@ export function GroupModal({ isOpen, onClose, onSave, onDelete, initialGroup }: 
             columns,
             collapsed,
             titleBackgroundColor: titleBackgroundColor || undefined,
-            titleTextColor: titleTextColor || undefined
+            titleTextColor: titleTextColor || undefined,
+            appearance,
         });
+    };
+
+    const handleDelete = async () => {
+        if (!onDelete) return;
+        const ok = await confirm({
+            title: 'Delete group?',
+            message: 'This deletes the group and all its services. This cannot be undone.',
+            confirmLabel: 'Delete',
+            danger: true,
+        });
+        if (ok) onDelete();
     };
 
     return (
@@ -134,16 +151,21 @@ export function GroupModal({ isOpen, onClose, onSave, onDelete, initialGroup }: 
                         </label>
                         <p className="text-xs text-gray-500 mt-2">Services in this group will be hidden until expanded.</p>
                     </div>
+
+                    <div className="border-t border-white/10 pt-4">
+                        <AppearanceEditor
+                            value={appearance}
+                            onChange={setAppearance}
+                            inheritLabel="Inherit"
+                            inheritNote="Applies to every card in this group. Unset options inherit from the global defaults; a service can still override its own."
+                        />
+                    </div>
                 </div>
 
                 <div className="p-6 border-t border-white/10 bg-white/5 flex justify-between gap-3">
                     {initialGroup && onDelete ? (
                         <button
-                            onClick={() => {
-                                if (window.confirm('Delete this group and all its services?')) {
-                                    onDelete();
-                                }
-                            }}
+                            onClick={handleDelete}
                             className="px-4 py-2 rounded-lg border border-red-500/30 text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-colors flex items-center gap-2"
                         >
                             <FaTrash size={14} /> Delete Group

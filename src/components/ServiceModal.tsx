@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { FaTimes, FaTrash } from 'react-icons/fa';
 import type { Service, ServiceGroup } from '@/types';
 import { IconPicker } from './IconPicker';
+import { AppearanceEditor } from './AppearanceEditor';
 
 interface ServiceModalProps {
     isOpen: boolean;
@@ -158,6 +159,15 @@ export function ServiceModal({ isOpen, onClose, onSave, onDelete, initialService
                                 </div>
                             </div>
                             <p className="text-xs text-gray-500 mt-2">Leave empty to use the global theme colors.</p>
+                        </div>
+
+                        <div className="col-span-1 md:col-span-2 border-t border-white/10 pt-4">
+                            <AppearanceEditor
+                                value={service.appearance}
+                                onChange={(appearance) => setService({ ...service, appearance })}
+                                inheritLabel="Inherit"
+                                inheritNote="Unset options inherit from the group, then the global defaults."
+                            />
                         </div>
 
                         <div className="col-span-1 md:col-span-2 border-t border-white/10 pt-4 mt-2">

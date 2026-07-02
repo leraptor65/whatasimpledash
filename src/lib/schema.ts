@@ -12,6 +12,12 @@ export const themeSchema = z.object({
     serviceText: z.string().optional(),
 });
 
+export const cardAppearanceSchema = z.object({
+    layout: z.enum(['icon-left', 'icon-right', 'icon-top', 'icon-only', 'text-only']).optional(),
+    textSize: z.enum(['xs', 'sm', 'base', 'lg', 'xl']).optional(),
+    fontFamily: z.string().optional(),
+});
+
 export const serviceSchema = z.object({
     name: z.string(),
     subtitle: z.string().optional(),
@@ -21,6 +27,7 @@ export const serviceSchema = z.object({
     backgroundColor: z.string().optional(),
     textColor: z.string().optional(),
     hidden: z.boolean().optional(),
+    appearance: cardAppearanceSchema.optional(),
 });
 
 export const serviceGroupSchema = z.object({
@@ -30,6 +37,7 @@ export const serviceGroupSchema = z.object({
     titleBackgroundColor: z.string().optional(),
     titleTextColor: z.string().optional(),
     collapsed: z.boolean().optional(),
+    appearance: cardAppearanceSchema.optional(),
 });
 
 
@@ -60,6 +68,7 @@ export const dashboardConfigSchema = z.object({
     defaultColumns: z.number().default(4),
     theme: themeSchema.default({}),
     backgrounds: backgroundsSchema.optional(),
+    appearance: cardAppearanceSchema.optional(),
     groups: z.array(serviceGroupSchema).default([]),
     services: z.array(serviceSchema).optional(),
     settings: settingsSchema.optional(),

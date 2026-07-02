@@ -2,8 +2,12 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { FaTrash, FaUpload, FaSearch, FaExclamationCircle, FaCheck } from 'react-icons/fa';
+import { useConfirm } from '@/contexts/ConfirmContext';
+import { useToast } from '@/contexts/ToastContext';
 
 export default function IconsPage() {
+    const confirm = useConfirm();
+    const toast = useToast();
     const [icons, setIcons] = useState<string[]>([]);
     const [search, setSearch] = useState('');
     const [loading, setLoading] = useState(true);
@@ -44,12 +48,13 @@ export default function IconsPage() {
             const data = await res.json();
             if (res.ok) {
                 await fetchIcons();
+                toast.success('Icon uploaded.');
             } else {
-                alert(data.error || 'Upload failed');
+                toast.error(data.error || 'Upload failed.');
             }
         } catch (e) {
             console.error(e);
-            alert('Upload error');
+            toast.error('Upload error.');
         } finally {
             setUploading(false);
             if (fileInputRef.current) fileInputRef.current.value = '';
@@ -57,7 +62,13 @@ export default function IconsPage() {
     };
 
     const handleDelete = async (fileName: string) => {
-        if (!confirm(`Are you sure you want to delete ${fileName}?`)) return;
+        const ok = await confirm({
+            title: 'Delete icon?',
+            message: `Delete "${fileName}"? This cannot be undone.`,
+            confirmLabel: 'Delete',
+            danger: true,
+        });
+        if (!ok) return;
 
         try {
             const res = await fetch(`/api/files/icons/${encodeURIComponent(fileName)}`, {
@@ -65,12 +76,13 @@ export default function IconsPage() {
             });
             if (res.ok) {
                 setIcons(icons.filter(i => i !== fileName));
+                toast.success('Icon deleted.');
             } else {
-                alert('Failed to delete icon');
+                toast.error('Failed to delete icon.');
             }
         } catch (e) {
             console.error(e);
-            alert('Delete error');
+            toast.error('Delete error.');
         }
     };
 

@@ -4,9 +4,11 @@ import { useState, useEffect } from 'react';
 import { GlassFileManager } from '@/components/GlassFileManager';
 import { WallpaperBackground } from '@/components/WallpaperBackground';
 import { BACKGROUND_EFFECTS, effectMeta } from '@/lib/backgroundEffects';
+import { useToast } from '@/contexts/ToastContext';
 import type { DashboardConfig, BackgroundEffect } from '@/types';
 
 export default function BackgroundsPage() {
+    const toast = useToast();
     const [config, setConfig] = useState<DashboardConfig | null>(null);
 
     useEffect(() => {
@@ -28,7 +30,7 @@ export default function BackgroundsPage() {
         } catch {
             // Roll back so the UI doesn't diverge from what's persisted.
             setConfig(previous);
-            alert('Failed to save. Please try again.');
+            toast.error('Failed to save. Please try again.');
         }
     };
 

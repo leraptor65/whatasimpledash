@@ -12,6 +12,7 @@ import 'lenis/dist/lenis.css';
 import { useMotionValue } from 'framer-motion';
 import { ScrollMotionWrapper } from '@/components/ScrollMotionWrapper';
 import { WallpaperBackground } from '@/components/WallpaperBackground';
+import { resolveAppearance, fontStack } from '@/lib/appearance';
 
 export default function DashboardLayout() {
   const [config, setConfig] = useState<DashboardConfig | null>(null);
@@ -136,11 +137,12 @@ export default function DashboardLayout() {
     <>
       <CommandPalette config={filteredConfig} />
 
-      <div 
-        className="min-h-screen w-full relative overflow-x-hidden font-sans" 
-        style={{ 
-          backgroundColor: showWallpaper ? 'transparent' : config.theme.mainBackground, 
-          color: config.theme.text 
+      <div
+        className="min-h-screen w-full relative overflow-x-hidden"
+        style={{
+          backgroundColor: showWallpaper ? 'transparent' : config.theme.mainBackground,
+          color: config.theme.text,
+          fontFamily: fontStack(config.appearance?.fontFamily),
         }}
       >
         {showWallpaper && (
@@ -253,11 +255,12 @@ export default function DashboardLayout() {
                                    intensity={config.settings?.smoothScrollSpeed || 100}
                                    index={cardIdx}
                                  >
-                                   <ServiceCard 
-                                     service={service} 
-                                     theme={config.theme} 
-                                     columnCount={group.columns || config.defaultColumns || 3} 
+                                   <ServiceCard
+                                     service={service}
+                                     theme={config.theme}
+                                     columnCount={group.columns || config.defaultColumns || 3}
                                      showBackground={config.settings?.showServiceBackgrounds !== false}
+                                     appearance={resolveAppearance(config.appearance, group.appearance, service.appearance)}
                                    />
                                  </ScrollMotionWrapper>
                                );
@@ -280,11 +283,12 @@ export default function DashboardLayout() {
                                 intensity={config.settings?.smoothScrollSpeed || 100}
                                 index={serviceIdx}
                               >
-                                <ServiceCard 
-                                  service={service} 
-                                  theme={config.theme} 
-                                  columnCount={config.defaultColumns || 3} 
+                                <ServiceCard
+                                  service={service}
+                                  theme={config.theme}
+                                  columnCount={config.defaultColumns || 3}
                                   showBackground={config.settings?.showServiceBackgrounds !== false}
+                                  appearance={resolveAppearance(config.appearance, undefined, service.appearance)}
                                 />
                               </ScrollMotionWrapper>
                             );

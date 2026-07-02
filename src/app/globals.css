@@ -16,6 +16,8 @@ html {
 body {
   background-color: transparent;
   color: #fff;
+  /* Normalize the whole UI to Inter (self-hosted via next/font). */
+  font-family: var(--font-inter), system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   /* Hide scrollbar for standard browsers */
   scrollbar-width: none;
   -ms-overflow-style: none;

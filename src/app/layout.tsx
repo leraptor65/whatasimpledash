@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { fontVariables } from "@/lib/fonts";
+import { Providers } from "./Providers";
 
 export const metadata: Metadata = {
   title: "What A Simple Dash",
@@ -13,8 +15,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body>
-        {children}
+      <body className={fontVariables}>
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import { FaTrash, FaUpload, FaDownload, FaEdit, FaImage } from 'react-icons/fa';
 import type { DashboardConfig } from '@/types';
+import { useConfirm } from '@/contexts/ConfirmContext';
+import { useToast } from '@/contexts/ToastContext';
 
 type FileManagerProps = {
     type: 'backgrounds' | 'icons';
@@ -12,6 +14,8 @@ type FileManagerProps = {
 };
 
 export const GlassFileManager = ({ type, onConfigUpdate, currentConfig, activeFile }: FileManagerProps) => {
+    const confirm = useConfirm();
+    const toast = useToast();
     const [files, setFiles] = useState<string[]>([]);
     const [selectedFile, setSelectedFile] = useState<string | null>(null);
     const [newName, setNewName] = useState("");
@@ -40,22 +44,30 @@ export const GlassFileManager = ({ type, onConfigUpdate, currentConfig, activeFi
 
         if (data.success) {
             fetchFiles();
+            toast.success('File uploaded.');
         } else {
-            alert(`Error: ${data.error}`);
+            toast.error(data.error || 'Upload failed.');
         }
     };
 
     const handleDelete = async () => {
         if (!selectedFile) return;
-        if (!window.confirm(`Are you sure you want to delete ${selectedFile}?`)) return;
+        const ok = await confirm({
+            title: 'Delete file?',
+            message: `Delete "${selectedFile}"? This cannot be undone.`,
+            confirmLabel: 'Delete',
+            danger: true,
+        });
+        if (!ok) return;
 
         const res = await fetch(`/api/files/${type}/${encodeURIComponent(selectedFile)}`, { method: 'DELETE' });
         const data = await res.json();
         if (data.success) {
             fetchFiles();
             setSelectedFile(null);
+            toast.success('File deleted.');
         } else {
-            alert(`Error: ${data.error}`);
+            toast.error(data.error || 'Delete failed.');
         }
     };
 
@@ -71,8 +83,9 @@ export const GlassFileManager = ({ type, onConfigUpdate, currentConfig, activeFi
         if (data.success) {
             fetchFiles();
             setSelectedFile(newName);
+            toast.success('File renamed.');
         } else {
-            alert(`Error: ${data.error}`);
+            toast.error(data.error || 'Rename failed.');
         }
     };
 
