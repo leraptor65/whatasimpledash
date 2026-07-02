@@ -35,6 +35,10 @@ export const serviceGroupSchema = z.object({
 
 export const backgroundsSchema = z.object({
     active: z.string().optional(),
+    // A single wallpaper effect, applied one at a time. `intensity` is 0-100
+    // and its meaning depends on the effect (blur px, darken amount, etc.).
+    effect: z.enum(['none', 'blur', 'vignette', 'darken', 'grayscale', 'sepia', 'pixelate']).optional(),
+    effectIntensity: z.number().min(0).max(100).optional(),
 });
 
 export const settingsSchema = z.object({

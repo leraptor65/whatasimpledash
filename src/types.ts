@@ -30,8 +30,19 @@ export type Theme = {
   serviceText?: string;
 };
 
+export type BackgroundEffect =
+  | 'none'
+  | 'blur'
+  | 'vignette'
+  | 'darken'
+  | 'grayscale'
+  | 'sepia'
+  | 'pixelate';
+
 export type Backgrounds = {
   active?: string;
+  effect?: BackgroundEffect;
+  effectIntensity?: number; // 0-100
 };
 
 

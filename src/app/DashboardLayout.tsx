@@ -11,6 +11,7 @@ import Lenis from 'lenis';
 import 'lenis/dist/lenis.css';
 import { useMotionValue } from 'framer-motion';
 import { ScrollMotionWrapper } from '@/components/ScrollMotionWrapper';
+import { WallpaperBackground } from '@/components/WallpaperBackground';
 
 export default function DashboardLayout() {
   const [config, setConfig] = useState<DashboardConfig | null>(null);
@@ -126,21 +127,10 @@ export default function DashboardLayout() {
     return <main className="min-h-screen flex items-center justify-center bg-[#0e0e0e] text-white">Loading...</main>;
   }
 
-  const backgroundUrlRaw = config.backgrounds?.active ? `/api/images/backgrounds/${config.backgrounds.active}` : '';
-  const backgroundUrl = backgroundUrlRaw;
+  const backgroundUrl = config.backgrounds?.active
+    ? `/api/images/backgrounds/${encodeURIComponent(config.backgrounds.active)}`
+    : '';
   const showWallpaper = config.settings?.showBackground !== false && backgroundUrl;
-
-  const finalBgStyle: React.CSSProperties = {
-    backgroundImage: `url("${backgroundUrl}")`,
-    backgroundSize: 'cover',
-    backgroundPosition: 'center',
-    backgroundAttachment: 'fixed',
-    position: 'fixed',
-    zIndex: -1,
-    top: 0, left: 0, right: 0, bottom: 0,
-    width: '100vw',
-    height: '100vh',
-  };
 
   return (
     <>
@@ -153,7 +143,14 @@ export default function DashboardLayout() {
           color: config.theme.text 
         }}
       >
-        {showWallpaper && <div style={finalBgStyle} id="wallpaper-bg" />}
+        {showWallpaper && (
+          <WallpaperBackground
+            url={backgroundUrl}
+            effect={config.backgrounds?.effect}
+            intensity={config.backgrounds?.effectIntensity}
+            fixed
+          />
+        )}
         {showWallpaper && config.theme.mainBackground && (
           <div 
             className="fixed inset-0 z-[-1]" 

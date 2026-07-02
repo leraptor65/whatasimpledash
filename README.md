@@ -13,8 +13,9 @@ Organize your digital life with an interface that is tailored exactly to your ne
 *   **📂 Precision Icon Picker:**
     *   **Standard:** Search through 10,000+ high-quality icons.
     *   **Custom:** Upload, manage, and instantly apply your own PNG/SVG icons.
-*   **🖼️ Professional Wallpaper Management:**
-    *   **Auto-Optimization:** Uploaded wallpapers are automatically resized and optimized for peak performance and fast loading times.
+*   **🖼️ Wallpaper Management & Effects:**
+    *   Upload, manage, and switch between wallpapers from the Settings UI.
+    *   Apply a live effect to your wallpaper — **Blur**, **Vignette**, **Darken**, **Grayscale**, **Sepia**, or **Pixelate** — with an adjustable intensity. Effects render in the browser and never alter the original file.
 *   **🔍 Command Palette:** Press `Ctrl+K` to instantly search and launch any service across your entire dashboard.
 *   **🔒 Easy Deployment:** Simple, reliable setup using a lightweight Docker image.
 
